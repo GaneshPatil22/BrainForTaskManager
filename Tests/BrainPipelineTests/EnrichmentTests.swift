@@ -30,7 +30,8 @@ struct EnrichmentTests {
         var gen = generator()
         let input = capture("Kal plumber ko call krna h, 20 min ka kaam", &gen)
         let result = await pipeline().enrich(
-            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen)
+            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen, requester: .local
+        )
 
         #expect(result.item.type.value == .task)
         #expect(result.item.effort.value == .small)
@@ -48,7 +49,8 @@ struct EnrichmentTests {
         for text in ["", "   ", "\u{200B}\u{200B}"] {
             let input = capture(text, &gen)
             let result = await pipeline().enrich(
-                capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen)
+                capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen,
+                requester: .local)
             #expect(result.capture.status == .failed, "\(text.debugDescription)")
             #expect(result.capture.status.isRetryable)
             #expect(result.capture.rawText == text, "raw text must survive verbatim")
@@ -72,7 +74,8 @@ struct EnrichmentTests {
         // A fragment T0 cannot type, so it has to escalate.
         let input = capture("the thing about the refunds and the other matter entirely", &gen)
         let result = await pipeline(router: router).enrich(
-            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen)
+            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen, requester: .local
+        )
 
         #expect(result.capture.status == .enriched, "the capture survives the outage")
         #expect(result.item.title.isEmpty == false)
@@ -86,7 +89,8 @@ struct EnrichmentTests {
         var gen = generator()
         let input = capture("call priya on 9876543210 about the ₹1,200 bill", &gen)
         let result = await pipeline().enrich(
-            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen)
+            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen, requester: .local
+        )
 
         #expect(result.trace.redactedBeforeSending)
         #expect(result.capture.rawText.contains("9876543210"), "original must be intact")
@@ -102,7 +106,7 @@ struct EnrichmentTests {
 
         let input = capture("client approval ke baad invoice bhejna h", &gen)
         let result = await pipeline().enrich(
-            capture: input, graph: graph, now: Self.now, idGenerator: &gen)
+            capture: input, graph: graph, now: Self.now, idGenerator: &gen, requester: .local)
 
         let edge = try #require(result.suggestedEdges.first)
         #expect(edge.from == blocker.id)
@@ -117,7 +121,8 @@ struct EnrichmentTests {
         var gen = generator()
         let input = capture("after the thing nobody has written down yet, do this", &gen)
         let result = await pipeline().enrich(
-            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen)
+            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen, requester: .local
+        )
         #expect(result.suggestedEdges.isEmpty, "precision over recall — no guess")
     }
 
@@ -137,7 +142,8 @@ struct EnrichmentTests {
 
         let input = capture("call the plumber", &gen)
         let result = await pipeline(router: router).enrich(
-            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen)
+            capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen, requester: .local
+        )
 
         #expect(result.item.type.value == .task)
         #expect(result.trace.tierByField["type"] == .t0)
@@ -150,15 +156,58 @@ struct EnrichmentTests {
             var genA = generator(), genB = generator()
             let a = await pipeline().enrich(
                 capture: capture(text, &genA), graph: BrainGraph(), now: Self.now,
-                idGenerator: &genA)
+                idGenerator: &genA, requester: .local)
             let b = await pipeline().enrich(
                 capture: capture(text, &genB), graph: BrainGraph(), now: Self.now,
-                idGenerator: &genB)
+                idGenerator: &genB, requester: .local)
             #expect(a.item.type.value == b.item.type.value, "\(text)")
             #expect(a.item.dueAt.value == b.item.dueAt.value, "\(text)")
             #expect(a.item.category.value == b.item.category.value, "\(text)")
         }
     }
+
+    /// R2's regression test. The ledger-level fair-share test would pass even
+    /// with the bug, because the bug was that the pipeline never told the
+    /// router who was asking. This asserts the plumbing, not the policy.
+    @Test("One user exhausting their share does not stop the next user")
+    func fairShareReachesTheRouter() async throws {
+        var gen = generator()
+        let ledger = BudgetLedger()
+        await ledger.setLimits(
+            ModelLimits(requestsPerMinute: nil, tokensPerMinute: nil, requestsPerDay: 100),
+            for: "m")
+        let router = ModelRouter(
+            ladders: [
+                .classifyType: [
+                    Rung(
+                        name: "t2", action: .provider(FakeModel.firstAllowed()),
+                        model: "m", tier: .t2),
+                    Rung(name: "give-up", action: .degrade, model: "-", tier: .t0),
+                ]
+            ],
+            ledger: ledger, mode: .live)
+        let pipe = pipeline(router: router)
+        // Needs a capture T0 cannot type, or nothing escalates and the budget
+        // is never consulted at all.
+        let text = "the thing about the refunds and the other matter entirely"
+        let greedy = Requester(id: "greedy", dailyLimit: 2)
+
+        var answered = 0
+        for _ in 0..<4 {
+            let result = await pipe.enrich(
+                capture: capture(text, &gen), graph: BrainGraph(), now: Self.now,
+                idGenerator: &gen, requester: greedy)
+            if result.trace.tierByField["type"] == .t2 { answered += 1 }
+        }
+        #expect(answered == 2, "greedy got \(answered) model answers against a share of 2")
+
+        // The whole point of a fair share: the next user is still served.
+        let other = await pipe.enrich(
+            capture: capture(text, &gen), graph: BrainGraph(), now: Self.now,
+            idGenerator: &gen, requester: Requester(id: "other", dailyLimit: 2))
+        #expect(other.trace.tierByField["type"] == .t2, "second user was starved")
+    }
+
 }
 
 @Suite("Normalizer")

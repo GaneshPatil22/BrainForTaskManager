@@ -306,7 +306,8 @@ public enum Metrics {
             result.captures += 1
             let capture = Capture(id: generator.next(), rawText: text, createdAt: now)
             let enriched = await pipeline.enrich(
-                capture: capture, graph: graph, now: now, idGenerator: &generator)
+                capture: capture, graph: graph, now: now, idGenerator: &generator, requester: .local
+            )
             graph.insert(enriched.item)
             if enriched.capture.status == .failed { result.failed += 1 }
             for (_, tier) in enriched.trace.tierByField {

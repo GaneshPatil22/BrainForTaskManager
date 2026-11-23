@@ -28,9 +28,28 @@ protocol LLMProvider {
 `estimateTokens` is required, not optional: TPM is enforced by counting before
 the call. Counting after is how you get rate-limited.
 
-## The ladder is configuration, not code
+## The ladder is code, with the limits as data
 
-`config/router.prod.yaml`:
+**Amended 2026-11-24.** This section used to say "configuration, not code" and
+show `config/router.prod.yaml`. That file was never written, and nothing
+loaded it — tests and CLI commands each built rungs their own way, so there
+was no production ladder at all. It is now
+`BrainProduction.ProductionRouter`, one supported entry point.
+
+A YAML ladder needs a parser dependency Brain does not have, cannot be
+type-checked, and drifts silently from the `Rung` API — which is exactly what
+happened to the sketch below. What genuinely changes is the *limits*, and
+those stay data, carrying the date and source of their last verification.
+
+**The `when:` clause below does not exist in `Rung`.** `.askUser` returns the
+moment it is reached, so an unconditional T3 rung placed before the T2 rungs
+would make every escalated capture a question to the user and the T2
+providers would never be called. T3-before-T2 needs a predicate on `Rung`
+before it can be built. It is also not wanted for `classifyType`, which this
+document's own table routes T0 → T1 → T2; T3 before T2 belongs to
+`judgeLink`, which nothing routes yet.
+
+The sketch is kept for the shape only:
 
 ```yaml
 capabilities:
@@ -65,7 +84,24 @@ capabilities:
 
 Rung order is the escalation order. `degrade` is mandatory and always last.
 
-## Free-tier budgets — verified 2026-11-22 from Ganesh's AI Studio account
+## Free-tier budgets
+
+**Re-checked 2026-11-24.** Google's public rate-limit page
+(`ai.google.dev/gemini-api/docs/rate-limits`, now a 301 to
+`aistudio.google.com/docs/rate-limits`) no longer publishes a per-model
+free-tier table. It says limits "can be viewed in Google AI Studio" and shows
+only Gemini Decision 1: **200 RPM / 50,000 TPM / 10,000 RPD**, which matches
+what we had.
+
+The Gemma and Flash-Lite rows below therefore **cannot be verified without
+signing in to Ganesh's account**. They are dated and sourced in
+`ProductionRouter`, and `ProductionRouter.staleLimits(now:)` reports any row
+older than 90 days so an out-of-date number does not quietly govern spending.
+
+One thing the docs did settle: **RPD resets at midnight Pacific** — not on a
+rolling 24-hour window, which is what `BudgetLedger` previously implemented.
+
+### Verified 2026-11-22 from Ganesh's AI Studio account
 
 | Model | RPM | TPM | **RPD** | Usable? |
 |---|---|---|---|---|

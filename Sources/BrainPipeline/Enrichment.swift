@@ -21,6 +21,30 @@ public struct EnrichmentTrace: Sendable {
     public var unresolved: [String] = []
 }
 
+/// Who a capture is being enriched for, and what share of the daily pool they
+/// are entitled to.
+///
+/// **Required, not defaulted.** `ModelRouter.route` has always accepted
+/// `user:` and `userLimit:`, both defaulting to nil, and the pipeline simply
+/// never passed them — so the per-user fair share in `docs/06-model-router.md`
+/// was fully implemented and completely unreachable on the real path. A
+/// defaulted parameter here would reproduce exactly that bug. Callers that
+/// genuinely have no user say so explicitly with `.local`.
+public struct Requester: Sendable, Hashable {
+    public let id: String
+    /// Nil means no per-user cap: correct for a single-user CLI, wrong for a
+    /// shared deployment.
+    public let dailyLimit: Int?
+
+    public init(id: String, dailyLimit: Int?) {
+        self.id = id
+        self.dailyLimit = dailyLimit
+    }
+
+    /// One machine, one person, no pool to share. Used by the CLI and evals.
+    public static let local = Requester(id: "local", dailyLimit: nil)
+}
+
 /// A question for the user, when asking is cheaper and more honest than
 /// guessing (`docs/09-tiering.md`, T3).
 public struct UserQuestion: Sendable, Hashable {
@@ -63,7 +87,7 @@ public struct EnrichmentPipeline: Sendable {
 
     public func enrich(
         capture: Capture, graph: BrainGraph, now: Date,
-        idGenerator: inout ULIDGenerator
+        idGenerator: inout ULIDGenerator, requester: Requester
     ) async -> EnrichmentResult {
         var trace = EnrichmentTrace(captureId: capture.id)
         var questions: [UserQuestion] = []
@@ -105,7 +129,8 @@ public struct EnrichmentPipeline: Sendable {
                 untrustedContent: normalized.redacted,
                 allowedAnswers: ItemType.allCases.map(\.rawValue),
                 promptVersion: Prompts.version)
-            let answer = await router.route(request)
+            let answer = await router.route(
+                request, user: requester.id, userLimit: requester.dailyLimit)
             trace.routedCapabilities.append(Capability.classifyType.rawValue)
             trace.guardsFired += answer.trace.guardsFired
             trace.estimatedTokens += answer.trace.estimatedTokens

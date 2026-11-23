@@ -56,7 +56,8 @@ struct EnrichCommand: AsyncParsableCommand {
             let capture = Capture(
                 id: generator.next(), rawText: line, createdAt: nowDate)
             let result = await pipeline.enrich(
-                capture: capture, graph: graph, now: nowDate, idGenerator: &generator)
+                capture: capture, graph: graph, now: nowDate, idGenerator: &generator,
+                requester: .local)
 
             if result.capture.status == .failed { failed += 1 }
             graph.insert(result.item)

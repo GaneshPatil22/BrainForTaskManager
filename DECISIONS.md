@@ -1085,3 +1085,99 @@ Server (ADR-0003). Brain is tagged `0.4.0` at the end of B4.
 **Still open:** whether the shared docs move out of `Brain/docs/` now (ADR-0003
 says "when Server starts"). They stay in Brain until a second component needs
 them.
+
+## 2026-11-24 — 0.5.0: what the server needs from Brain (R1, R2, R3)
+
+Three changes requested by the Server session before its enrichment worker
+makes live calls. All three premises checked against the code first; all three
+were real, one smaller than stated and one riskier.
+
+### R1 — BudgetStore, and the day boundary was wrong
+
+`BudgetLedger` kept the daily counters in memory, so a restart handed the
+deployment a fresh free-tier allowance. Added `BudgetStore` (async protocol,
+one atomic `reserve`), `InMemoryBudgetStore` as the default, and
+`BudgetLedger(store:now:)`.
+
+**The real work was concurrency, not storage.** `consume` was synchronous
+inside the actor, which is what made check-and-charge atomic. Adding an
+`await` to a storage call makes the actor re-entrant at that point: two
+concurrent captures can both pass the RPM check before either records itself.
+Writing it the obvious way — charge the day, then append to the minute window
+— reintroduces precisely the double-spend the actor exists to prevent. The
+minute slot is now taken *before* the await and released if the day refuses.
+
+Measured, not argued: with the naive ordering a limit of **RPM 5 let all 40
+concurrent callers through**. The test asserts 5 and fails on the naive
+version, which was checked by writing it both ways.
+
+**The day boundary was also wrong**, and independently. The old code rolled
+24 hours after the *first call* — a rolling window, so a deployment whose
+first call landed at 23:00 would carry the previous day's count through most
+of the next day. Verified against Google's own docs on 2026-11-24
+(`aistudio.google.com/docs/rate-limits`, which
+`ai.google.dev/gemini-api/docs/rate-limits` now 301s to): *"Requests per day
+(RPD) quotas reset at midnight Pacific time."* Now keyed by `ProviderDay` in
+`America/Los_Angeles` — the zone identifier, not a fixed offset, so DST is
+handled rather than shifting the reset by an hour twice a year.
+
+**No caller churn.** `BudgetLedger` is an actor, so `consume` was already
+`await`-ed everywhere. Making it genuinely async changed no call sites.
+
+Refunds: **fail-closed, no `release` in the protocol.** A request charged and
+then failing in transport stays charged. Simpler, and it errs toward
+under-spending a free tier. Revisit if B7's soak shows transport failures are
+a material share.
+
+Also found: `BudgetLedger` had **no dedicated test file**. Its entire coverage
+was two cases inside `RouterTests`. Now has one.
+
+### R2 — the fair share was built and unreachable
+
+`ModelRouter.route` has always taken `user:` and `userLimit:`, both defaulting
+to nil. `EnrichmentPipeline.enrich` called `route(request)` and passed
+neither, so the per-user fair share was fully implemented and never once
+exercised on the real path. One line.
+
+**`Requester` is required, not defaulted.** A defaulted parameter is exactly
+how this bug happened; repeating the pattern would invite it back. Callers
+with no real user pass `.local` explicitly. Cost is a dozen call sites updated
+once.
+
+The regression test is at the *pipeline* level deliberately: a ledger-level
+fair-share test passes even with the bug, because the bug was that the
+pipeline never told the router who was asking. Confirmed by reintroducing the
+bug — greedy got 4 model answers against a share of 2.
+
+### R3 — a production ladder, in code, and no T3 rung
+
+`docs/06` described `config/router.prod.yaml`. **That file never existed and
+nothing loaded it.** Now `BrainProduction.ProductionRouter`, a new composition
+-root target — the only place that needs to see both the adapters and the
+pipeline's prompts, so neither has to depend on the other.
+
+Code over YAML: a parser dependency Brain lacks, no type checking, and silent
+drift from the `Rung` API — which is what happened to the sketch in `docs/06`.
+The limits stay data, carrying a verification date and source.
+
+**The requested ladder would not have worked.** The ask was "T3 (ask the
+user), T2 rungs, degrade last". `Rung` has no condition field and `.askUser`
+returns unconditionally the moment it is reached, so a T3 rung ahead of the T2
+rungs would turn every escalated capture into a question and the free-tier
+providers below would never be called. The YAML sketch hid this in a
+`when: { stakes: low, reversible: true }` clause the code cannot express.
+It is also not what `docs/09` asks for: its table routes classify-type as
+T0 → T1 → T2, no T3. T3-before-T2 belongs to `judgeLink`, which nothing routes
+yet, and needs a predicate on `Rung` first. Ladder is therefore
+decision-1 → gemma → flash-lite → degrade. A test fails if an `askUser` rung
+is added ahead of the providers.
+
+**Limits could only be partly re-verified.** Google's public page no longer
+publishes a per-model free-tier table; it shows only Decision 1 (200 / 50,000
+/ 10,000, matching what we had) and directs you to the AI Studio dashboard.
+The Gemma and Flash-Lite rows cannot be checked without signing in to Ganesh's
+account. They are dated and sourced, and `staleLimits(now:)` reports any row
+older than 90 days rather than letting it quietly govern spending. `docs/06`
+amended to say so instead of claiming verification it does not have.
+
+Replay is the default mode, so a server CI run with no key spends nothing.

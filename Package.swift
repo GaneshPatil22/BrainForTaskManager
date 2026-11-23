@@ -30,6 +30,7 @@ let package = Package(
             name: "BrainCLI",
             dependencies: [
                 "BrainCore", "BrainDatasets", "BrainPipeline", "BrainAdapters", "BrainEval",
+                "BrainProduction",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
@@ -41,6 +42,14 @@ let package = Package(
         // Provider implementations. The only target that knows a vendor
         // exists; everything else talks to LLMProvider.
         .target(name: "BrainAdapters", dependencies: ["BrainCore", "BrainHarness"]),
+
+        // Composition root: the one supported way to build the production
+        // ladder. Kept separate because it is the only place that needs to
+        // see both the adapters and the pipeline's prompts, and neither of
+        // those should have to depend on the other.
+        .target(
+            name: "BrainProduction",
+            dependencies: ["BrainCore", "BrainHarness", "BrainAdapters", "BrainPipeline"]),
 
         // capture -> item + suggested edges. Typed stages, each degrading to
         // "unknown" rather than throwing: a capture is never lost.
@@ -66,6 +75,9 @@ let package = Package(
         .testTarget(name: "BrainHarnessTests", dependencies: ["BrainHarness", "BrainCore"]),
         .testTarget(
             name: "BrainAdaptersTests", dependencies: ["BrainAdapters", "BrainHarness"]),
+        .testTarget(
+            name: "BrainProductionTests",
+            dependencies: ["BrainProduction", "BrainHarness"]),
         .testTarget(
             name: "BrainPipelineTests",
             dependencies: ["BrainPipeline", "BrainHarness", "BrainCore"]),

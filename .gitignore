@@ -33,3 +33,6 @@ eval/traces/
 .DS_Store
 .vscode/
 .idea/
+
+# Scratch analysis output, not part of the repo
+.analysis/

@@ -124,3 +124,47 @@ and no stereotype. A founder and a student diverge in the model because they
 **Verdict.** The instinct is right; the mechanism needs changing. Do B-03a now
 (ten minutes, high value), fold B-03b into the B2 generator, and drop B-03c in
 favour of B6.
+
+---
+
+## B-04 — Task `category`, and the mode taxonomy
+
+**Source: the generated datasets, 2026-11-23** (`docs/13-generated-datasets.md`).
+
+Two findings from 15,509 generated picks, both actionable and both T0.
+
+### B-04a — A `category` field we do not model
+
+Five of the twenty "moods" pivot on a task **category** that exists nowhere in
+our schema; it only leaked into the rationale text. ~18-20% of all picks are
+unimplementable without it. The taxonomy is consistent across all three files:
+
+```
+paperwork and admin      errands and shopping     calls and messages
+planning and booking     creative or deep work    hands-on chores and upkeep
+money and payments       study or learning        health and self-care
+household
+```
+
+This is a **keyword lexicon, not a model call** — a one-line regex already
+reaches 75% on `money-first`. It is T0 and passes the AI Justification Test
+trivially. It is a domain change (`Item` gains `category: Classified<Category>`),
+so it waits for a decision rather than being slipped in.
+
+### B-04b — Modes are deterministic policies, not inferred states
+
+The twenty moods are filter-and-sort rules over the graph we already have, with
+measured fit of 71-100% for seventeen of them. That reframes the whole
+role/mindset question from `12-backlog.md` B-03:
+
+> Do not *infer* the user's mode. **Offer modes**, each a T0 policy.
+
+`short-on-time` is exactly **B-01**. `quick-wins-hunter` is the quick-wins set we
+already compute. `deadline-panic` is due-ascending. `overwhelmed-pick-one` is
+`next` with k=1. Most of the taxonomy is already implicit in `BrainCore`.
+
+With 4-5 tasks per scenario the twenty collapse to **8-10 distinguishable
+behaviours**, which is a more honest starting point for a UI than twenty.
+
+**Start when** Brain v1 is frozen and there is a UI with somewhere to put a mode
+switch. Until then the taxonomy is recorded, not built.

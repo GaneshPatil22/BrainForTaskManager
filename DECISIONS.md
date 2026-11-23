@@ -197,3 +197,48 @@ Split into three uses:
 `rank --again` writes to `second_pass`, leaving `expected` untouched, and never
 shows the earlier answer. Overwriting would destroy the only data that can tell
 us the noise floor.
+
+### 2026-11-23 — Role is dropped. Measured, not argued.
+Three independent analyses plus my own direct check: **404 of 404** same-mood/
+different-role pairs across the three generated files have byte-identical picks.
+Change the role, hold the mood, and the answer never moves. Same role with a
+different mood agrees 0-14% of the time. The pick list is a pure function of
+`(scenario, mood)`; 893 role strings carry no decision value.
+
+This is the empirical form of `12-backlog.md` B-03c, and stronger than the
+argument there: a model trained on this data would **correctly** learn to ignore
+role. Keeping it triples the apparent size of the eval while conditioning on a
+null variable.
+
+### 2026-11-23 — The generated datasets are fixtures and a mode spec, not ground truth
+15,509 picks with zero hallucinations, zero constraint violations, 100% parse
+integrity — and **zero case-only or whitespace-only near-misses**, which over
+15,509 opportunities proves they were emitted programmatically rather than
+written. A rationale is a pure function of `(mood, slot, effort, due, unblocks)`.
+
+Scoring a ranker against them measures "did we reimplement the generator", not
+"do we match human judgment", so they cannot satisfy the AI Justification Test.
+**Ganesh's 30 hand-ranked scenarios remain the only human ground truth.**
+
+What they are genuinely good for is recorded in `docs/13-generated-datasets.md`:
+a specification of twenty mode policies (17 of them clean T0 rules), and the
+discovery of a `category` field we do not model.
+
+### 2026-11-23 — Real bug found: a clock time with no day word was discarded
+`shaam 5 baje` and `9am` both parsed to nothing. `parse()` returned nil whenever
+no *date* rule matched, throwing away a time it had already found — silently
+losing a date the user had plainly stated. Now resolves to the next occurrence
+of that clock time (today if still ahead, else tomorrow, matching the
+roll-forward convention the dated rules already use), at reduced confidence
+because the day was inferred rather than stated. Regression test added.
+Also added `this week` / `is hafte` / `weekend`.
+
+### 2026-11-23 — Where our grammar and the data disagree, the grammar wins
+The dataset headers claim `agle hafte` = Fri 4 Dec; `matchNextPeriod` gives Mon
+30 Nov (now + 7 days). The data is wrong, not the parser. Logged for whoever
+regenerates it, along with `large` being rendered "about 3 hr" when
+`Domain.swift` says 240 min.
+
+### 2026-11-23 — Generated data moved out of `examples/`
+`examples/` is for files a human copies and edits. 1.9 MB of generated fixtures
+is not that. Now `datasets/generated/`.

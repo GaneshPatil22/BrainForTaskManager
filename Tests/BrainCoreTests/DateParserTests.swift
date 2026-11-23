@@ -94,6 +94,18 @@ struct DateParserTests {
         expectDay("agle mahine", 2026, 12, 23)
     }
 
+    @Test("This week and weekend, both languages")
+    func thisPeriod() {
+        // Today is Monday 23 Nov 2026.
+        expectDay("weekend", 2026, 11, 28, rule: "weekend")  // coming Saturday
+        expectDay("is weekend", 2026, 11, 28)
+        expectDay("this week", 2026, 11, 29, rule: "thisWeek")  // coming Sunday
+        expectDay("is hafte", 2026, 11, 29)
+        // Must not be swallowed by the `next week` rule.
+        expectDay("next week", 2026, 11, 30, rule: "nextWeek")
+        expectDay("agle hafte", 2026, 11, 30)
+    }
+
     // MARK: - Month end and day of month
 
     @Test("Month end, both languages")
@@ -183,6 +195,30 @@ struct DateParserTests {
     }
 
     // MARK: - Abstention and grounding
+
+    /// A clock time with no day word used to return nil, silently losing a
+    /// date the user had clearly stated. Found by the generated datasets:
+    /// `shaam 5 baje` and `9am` both parsed to nothing.
+    @Test("A time with no day word resolves to the next occurrence")
+    func timeWithoutDayWord() throws {
+        // "now" is Mon 23 Nov 10:00 IST, so 5pm today is still ahead.
+        let evening = try #require(parser.parse("shaam 5 baje", now: Fixtures.now))
+        var comps = Fixtures.calendar.dateComponents([.day, .hour, .minute], from: evening.date)
+        #expect(comps.day == 23 && comps.hour == 17 && comps.minute == 0)
+        #expect(evening.rule == "timeOnly")
+
+        // 9am has already passed at 10:00, so it rolls to tomorrow — matching
+        // the roll-forward convention the dated rules already use.
+        let morning = try #require(parser.parse("9am", now: Fixtures.now))
+        comps = Fixtures.calendar.dateComponents([.day, .hour], from: morning.date)
+        #expect(comps.day == 24 && comps.hour == 9)
+
+        // The day was inferred, not stated, so confidence must be lower than
+        // the same time with an unambiguous day word. (Comparing against "kal"
+        // would be wrong: "kal" is itself ambiguous and scores lower still.)
+        let explicit = try #require(parser.parse("tomorrow 5pm", now: Fixtures.now))
+        #expect(evening.confidence < explicit.confidence)
+    }
 
     @Test("Text with no date abstains rather than guessing")
     func abstains() {

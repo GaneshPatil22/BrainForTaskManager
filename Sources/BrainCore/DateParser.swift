@@ -57,6 +57,27 @@ public struct DateParser: Sendable {
             }
             return ParsedDate(date: date, span: span, confidence: confidence, rule: match.rule)
         }
+
+        // A time with no day word: "shaam 5 baje", "9am", "call at 6:30".
+        // Previously this returned nil, losing a date the user clearly stated.
+        // Resolve to the next occurrence of that clock time — today if it is
+        // still ahead, otherwise tomorrow, matching the roll-forward convention
+        // the dated rules already use ("15 tarikh" rolls to next month).
+        if let time {
+            guard
+                let todayAtTime = calendar.date(
+                    bySettingHour: time.hour, minute: time.minute, second: 0, of: now)
+            else { return nil }
+            let resolved =
+                todayAtTime > now
+                ? todayAtTime
+                : calendar.date(byAdding: .day, value: 1, to: todayAtTime) ?? todayAtTime
+            // Lower than the time's own confidence: the clock time was stated,
+            // the day was inferred.
+            return ParsedDate(
+                date: resolved, span: time.span,
+                confidence: time.confidence * 0.9, rule: "timeOnly")
+        }
         return nil
     }
 
@@ -74,6 +95,7 @@ public struct DateParser: Sendable {
         Rule(match: matchMonthName),
         Rule(match: matchDayOfMonth),
         Rule(match: matchMonthEnd),
+        Rule(match: matchThisPeriod),
         Rule(match: matchNextPeriod),
         Rule(match: matchInNDays),
         Rule(match: matchWeekday),
@@ -199,6 +221,31 @@ public struct DateParser: Sendable {
         comps.hour = endOfDay.hour; comps.minute = endOfDay.minute; comps.second = endOfDay.second
         guard let date = cal.date(from: comps) else { return nil }
         return Match(date: date, span: span(m), confidence: 0.9, rule: "monthEnd")
+    }
+
+    /// `this week`, `is hafte`, `weekend`, `is weekend`.
+    ///
+    /// "This week" resolves to the coming Sunday (week end), "weekend" to the
+    /// coming Saturday. Both are stated with lower confidence than an explicit
+    /// day, because where a week ends is a matter of personal convention.
+    static let matchThisPeriod: @Sendable (String, Date, Calendar) -> Match? = { text, now, cal in
+        if let m = firstMatch(#"\b(?:is\s+)?week\s*-?\s*end\b|\bweekend\b"#, text) {
+            let today = cal.component(.weekday, from: now)
+            var delta = 7 - today  // Saturday == 7
+            if delta <= 0 { delta += 7 }
+            guard let date = cal.date(byAdding: .day, value: delta, to: now) else { return nil }
+            return Match(
+                date: endOfDay(date, cal), span: span(m), confidence: 0.75, rule: "weekend")
+        }
+        if let m = firstMatch(#"\b(this\s+week|is\s+haft[ae]|is\s+week)\b"#, text) {
+            let today = cal.component(.weekday, from: now)
+            var delta = 1 - today  // Sunday == 1, end of the current week
+            if delta <= 0 { delta += 7 }
+            guard let date = cal.date(byAdding: .day, value: delta, to: now) else { return nil }
+            return Match(
+                date: endOfDay(date, cal), span: span(m), confidence: 0.75, rule: "thisWeek")
+        }
+        return nil
     }
 
     /// `next week`, `agle hafte`, `next month`, `agle mahine`.

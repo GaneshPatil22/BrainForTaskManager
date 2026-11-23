@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard promote-baseline dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios ingest clean
+.PHONY: help dev build test eval gate lint ci scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -24,6 +24,9 @@ $(LABELS): scripts/category-truth.py datasets/generated
 
 eval: $(LABELS) ## Full eval suite, replay mode — offline, deterministic, free
 	swift run EvalCLI run --split dev --cassettes replay
+
+diagnose: ## Explain the ranking disagreements (read-only, no tuning)
+	swift run EvalCLI diagnose --split dev
 
 gate: $(LABELS) ## Regression gate vs. the committed baseline
 	swift run EvalCLI gate --split dev --cassettes replay

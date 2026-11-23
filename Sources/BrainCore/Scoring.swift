@@ -15,6 +15,18 @@ public struct ScoringWeights: Sendable, Hashable {
     /// Reference bucket for the effort denominator (`small` = 20 min → E = 1).
     public var effortReferenceMinutes: Double = 20
 
+    /// How hard effort is divided out: `numerator / E^effortExponent`.
+    ///
+    /// 1.0 is leverage-per-unit-effort. **0.0 ignores effort entirely**, which
+    /// is not as odd as it sounds: `quick wins` is already a separate list, so
+    /// the main ranking does not also have to be the cheap-things list.
+    ///
+    /// Exists because the diagnosis showed the formula is structurally biased,
+    /// not merely mistuned: when our top pick differs from Ganesh's, his is on
+    /// average **eight times heavier** (150 min vs 19 min), and heavier in
+    /// 77% of disagreements. Dividing by effort is what causes that.
+    public var effortExponent: Double = 1.0
+
     public init() {}
     public static let `default` = ScoringWeights()
 }
@@ -91,7 +103,8 @@ public enum Scoring {
             calendar: calendar, weights: weights)
 
         let bucket = item.effortBucket
-        let e = effortDenominator(bucket, weights: weights)
+        let rawDenominator = effortDenominator(bucket, weights: weights)
+        let e = pow(rawDenominator, weights.effortExponent)
         let numerator =
             weights.base
             + weights.unblocked * log1p(u)

@@ -564,3 +564,51 @@ rather than needing a hand-tuned constant.
 
 Also lowered the sample-change annotation from a 20% move to 5%: an 11% drift
 had previously slipped through unannotated and looked like a code regression.
+
+### 2026-11-23 — The scoring formula is missing a term, not mistuned. Measured.
+Top-1 agreement sat at 24.3% on 74 ranked dev scenarios. Diagnosis (`make
+diagnose`, read-only) says what the disagreements look like:
+
+```
+When we disagree (53 cases):        ours      theirs
+  effort (minutes)                 18.87    150.09
+  due pressure                      0.38      0.27
+  unblocks                          0.23      0.34
+  goals served                      0.58      0.34
+
+  their pick is heavier              77.4%
+  their pick is more urgent          18.9%
+  their pick unblocks more           15.1%
+  their pick has no deadline         71.7%
+```
+
+**Ganesh picks the big substantive thing; the formula picks the cheap quick
+thing.** His picks are eight times heavier on average. They are not more
+urgent, do not unblock more, and mostly have no deadline at all — so none of
+our existing terms explain them.
+
+A 900-combination grid search over `effortExponent × w_unblocked × w_due ×
+w_goals × w_base` tops out at **36.5%**, and its best point is degenerate:
+effort off, due off, goals off, base near zero. That is the formula saying
+none of its terms predict the choice. The exit target is 90%.
+
+**So this is not a tuning problem.** No weight assignment closes a 54-point
+gap, and more scaffolding on top of this formula would be wasted work. Good
+that the diagnosis ran before B3 rather than after.
+
+Two readings, both plausible, not yet distinguished:
+1. A missing **importance** term, independent of graph position and effort —
+   "how much this matters", which correlates with size but is not size.
+2. A single global ranking is the wrong product model. Ganesh ranked in one
+   stated frame ("productive, happy"), and in that frame the right policy is
+   **big-rock-first** — which is literally one of the twenty modes the
+   generated datasets turned out to encode (`docs/12-backlog.md` B-04b).
+
+The second is the more interesting possibility and the two converge on the
+same evidence, which is suggestive rather than conclusive at n=74 (±11pp).
+
+**Nothing was changed.** `effortExponent` was added to `ScoringWeights`
+defaulted to 1.0, so behaviour is identical; it exists because effort is a
+divisor and no weighted term could undo its bias. Scorecard is unmoved
+(top-3 71.6%, top-1 24.3%) and the three hand-computed worked examples in
+`docs/02-scoring-spec.md` still pass.

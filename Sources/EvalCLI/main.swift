@@ -9,7 +9,7 @@ struct EvalCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "EvalCLI",
         abstract: "Run the eval suite, print the scorecard, enforce the regression gate.",
-        subcommands: [Run.self, Scorecard_.self, Gate.self, PromoteBaseline.self],
+        subcommands: [Run.self, Scorecard_.self, Gate.self, PromoteBaseline.self, Diagnose.self],
         defaultSubcommand: Run.self)
 }
 

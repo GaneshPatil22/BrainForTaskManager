@@ -29,7 +29,7 @@ let package = Package(
         .executableTarget(
             name: "BrainCLI",
             dependencies: [
-                "BrainCore", "BrainDatasets", "BrainPipeline", "BrainAdapters",
+                "BrainCore", "BrainDatasets", "BrainPipeline", "BrainAdapters", "BrainEval",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),

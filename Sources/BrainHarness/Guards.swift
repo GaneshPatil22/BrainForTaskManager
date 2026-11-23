@@ -152,6 +152,12 @@ public enum Guards {
             (#"(?:\+?\d{1,3}[ -]?)?(?:\d{5}[ -]?\d{5}|\d{10})\b"#, "[phone]"),
             (#"\b\d{4}[ -]?\d{4}[ -]?\d{4}\b"#, "[id-number]"),
             (#"(?:₹|rs\.?|inr)\s?\d[\d,]*(?:\.\d+)?"#, "[amount]"),
+            // Bare Indian shorthand: "50K", "1.5k", "2 lakh", "3cr". Added
+            // after B4 measured the guard against 300 real captures and found
+            // it redacted **nothing** — every amount Ganesh writes is in this
+            // form, and none carries a currency marker. A guard that never
+            // fires on real data is not a guard.
+            (#"\b\d+(?:\.\d+)?\s?(?:k|lakh|lacs?|lakhs?|cr|crores?)\b"#, "[amount]"),
             (#"\b(?:otp|pin|cvv)\s*(?:is|:)?\s*\d{3,8}\b"#, "[otp]"),
         ]
         for (pattern, replacement) in rules {

@@ -151,6 +151,21 @@ struct PIIStripTests {
         }
     }
 
+    /// B4 found this: the guard redacted **0 of 300** real captures, because
+    /// every amount Ganesh writes is bare Indian shorthand with no currency
+    /// marker. A guard that never fires on real data is not a guard.
+    @Test("Bare Indian amounts are redacted, not just ones with a currency mark")
+    func bareIndianAmounts() {
+        for input in [
+            "Nitin se 50K liye h", "Shakti ko 10k diye", "1.5k sip har month",
+            "2 lakh ka loan", "3cr valuation",
+        ] {
+            let (output, changed) = Guards.stripPII(input)
+            #expect(changed, "\(input)")
+            #expect(output.contains("[amount]"), "\(input) → \(output)")
+        }
+    }
+
     @Test("Ordinary text is untouched")
     func leavesTextAlone() {
         let (output, changed) = Guards.stripPII("kal subah plumber ko call karna hai")

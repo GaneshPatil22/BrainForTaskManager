@@ -948,3 +948,71 @@ number stops meaning anything.
 zero and says nothing about whether we can afford to run. 418 tokens per
 escalation against Decision 1's caps gives ~10,000 escalations a day — that is
 the number that constrains us.
+
+## 2026-11-24 — B4: guards measured one at a time
+
+`brain guard-eval` (new, replay-only, spends no quota). Each guard measured
+against the data where it can actually fire, rather than against cases
+invented for it.
+
+| guard | measured | verdict |
+|---|---|---|
+| 1 ID whitelist | 0 of 52 answers out-of-set | Expected. Both providers get a closed option set; with the Decisions API an out-of-set answer is inexpressible. Keeps the 0% target a property of the code, not of the model. |
+| 3 schema | 0 normalised, 0 rejected | Never fired. Kept: the first Gemma call of this project returned a bullet list of its own reasoning. |
+| 4 abstention | see below | The one with a real finding. |
+| 7 cross-check | 15/15 agreements correct; 2 disagreements, both with one correct side | Precision bought with recall, as `docs/04-scorecard.md` asks for. |
+| 10 PII strip | **0 of 300 → 5 of 300** after a fix | A real gap on real data. |
+| 12 claim check | 0 opportunities | Nothing rephrases explanations yet. Reported as unmeasurable rather than as 100% effective. |
+
+### Guard 10 had a real gap, found only because it was measured on real text
+
+It redacted **0 of 300** of Ganesh's captures. Every amount he writes is bare
+Indian shorthand — "50K", "10k", "1.5k sip", "2 lakh" — with no currency
+marker, and the pattern required one. A guard that never fires on real data is
+not a guard. Added `\b\d+(?:\.\d+)?\s?(?:k|lakh|lacs?|lakhs?|cr|crores?)\b`;
+now 5 of 300 (2%), `[amount]×5`. Regression test added.
+
+Known false positive: "5k run" is a distance, not money, and gets redacted
+too. Accepted — over-redaction is the safe direction for a guard whose job is
+keeping content away from a provider that may train on it, and the only cost
+is that the model sees "[amount] run" instead of "5k run" when typing the
+capture. At 5 of 300 it is not over-firing in practice.
+
+This is the second time measuring on Ganesh's own captures rather than
+synthetic ones overturned something that looked fine (the first: Hinglish
+tuned to `karna`, which appears once in 300, against `krna`/`krni` at 108).
+
+### Guard 4: no threshold is being set, and two things I had wrong
+
+Sweep on gemini-decision-1 (the only provider reporting a real confidence —
+35 recorded, genuine spread 0.32–0.95):
+
+```
+threshold   accepted   correct   wrong-through   right-discarded
+    0.0         25        24               1                 0
+    0.5         23        23               0                 1
+    0.7         17        17               0                 7
+    0.9          7         7               0                17
+```
+
+**Correction 1.** I had this written up as "change the default from 0.7 to
+0.5". There is no 0.7 default. The live default is `Rung.acceptAbove = 0`
+(`Sources/BrainHarness/Router.swift:30`) — nothing is gated today. 0.7 existed
+only as a reporting constant in `T2ScoreCommand`, now annotated as
+illustrative.
+
+**Correction 2.** A weighted sweep picks 0.35, and that number is not
+trustworthy: there is exactly **one** wrong answer in the sample, so the
+"optimal" cut is just below that single answer's confidence. That is fitting a
+parameter to one data point. The command now refuses to recommend a threshold
+below 10 errors and says why, rather than printing a number someone would ship.
+
+What the data *does* support is an upper bound: the lowest confidence on a
+correct answer is 0.50, so any threshold above 0.50 is measurably costing
+correct answers and catching nothing. **Decision: leave `acceptAbove` at 0**
+until there are enough errors to fit against — recorded as a deliberate choice
+rather than left as an unexamined default.
+
+Gemma remains ungateable at any threshold: it answers 1.00 to everything
+(1 distinct value), so its confidence carries no information. Its low ECE is
+accidental, as recorded on 2026-11-23.

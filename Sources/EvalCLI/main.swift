@@ -323,7 +323,8 @@ enum Runner {
                 value: audit.answers == 0
                     ? nil
                     // Decision 1: 10,000 RPD, 50,000 TPM. Whichever binds first.
-                    : Double(min(10_000, 50_000 * 60 * 24 / max(audit.totalTokens / audit.answers, 1))),
+                    : Double(
+                        min(10_000, 50_000 * 60 * 24 / max(audit.totalTokens / audit.answers, 1))),
                 unit: .count, tolerance: 500,
                 note: "at the measured token cost, against the verified free-tier caps"),
         ]

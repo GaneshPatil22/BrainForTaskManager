@@ -184,7 +184,11 @@ struct T2ScoreCommand: AsyncParsableCommand {
                 let isCorrect = answer == expected
                 if isCorrect { tally.correct += 1 }
 
-                // What the product would actually accept at a 0.7 threshold.
+                // Illustrative, NOT the shipping operating point. B4 measured
+                // the sweep (`brain guard-eval`): at 0.7 this discards 7 of 24
+                // correct answers and catches no error. The live default is
+                // `Rung.acceptAbove = 0`. Kept at 0.7 here only so the column
+                // stays comparable with earlier runs.
                 if response.confidence >= 0.7 {
                     if isCorrect { tally.correctAccepted += 1 }
                 } else {

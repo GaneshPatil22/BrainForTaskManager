@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios enrich coverage ingest clean
+.PHONY: help dev build test eval gate lint ci scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios enrich guard-eval coverage ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -77,6 +77,9 @@ add-scenarios: ## Add your own scenarios:  make add-scenarios FILE=examples/my-s
 enrich: ## Run the full pipeline on raw captures:  make enrich FILE=~/Desktop/captures.txt
 	@test -n "$(FILE)" || (echo "usage: make enrich FILE=path/to/captures.txt"; exit 1)
 	@swift build 2>/dev/null; swift run brain enrich "$(FILE)" --show-tiers
+
+guard-eval: ## Per-guard measured effect on real data (B4)
+	@swift build 2>/dev/null; swift run brain guard-eval --captures ~/Desktop/captures.txt
 
 coverage: ## What T0 reads from real captures:  make coverage FILE=~/Desktop/captures.txt
 	@test -n "$(FILE)" || (echo "usage: make coverage FILE=path/to/captures.txt"; exit 1)

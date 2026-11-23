@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard dogfood clean
+.PHONY: help dev build test eval gate lint ci scorecard dogfood rank rank-status ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -42,7 +42,17 @@ else
 endif
 
 dogfood: ## Run the dogfood CLI against the sample dump
-	swift run brain examples/sample.brain
+	swift run brain next examples/sample.brain
+
+rank: ## Rank the 30 scenarios by hand (blind, resumable)
+	@swift build 2>/dev/null; swift run brain rank
+
+rank-status: ## How many scenarios are ranked so far
+	@echo "ranked: $$(grep -l ranking_top3 datasets/scenarios/*.json 2>/dev/null | wc -l | tr -d ' ')/$$(ls datasets/scenarios/*.json | wc -l | tr -d ' ')"
+
+ingest: ## Ingest raw captures:  make ingest FILE=~/Desktop/captures.txt
+	@test -n "$(FILE)" || (echo "usage: make ingest FILE=path/to/captures.txt"; exit 1)
+	swift run brain ingest "$(FILE)"
 
 lint: ## Format check
 	swift format lint --recursive Sources Tests

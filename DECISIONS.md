@@ -135,3 +135,26 @@ failing the build or, worse, passing silently. CI calls the same Make targets,
 so `make ci` and GitHub Actions cannot diverge.
 
 ### 2026-11-23 — B1 complete: 59 tests, Core + dogfood CLI, no AI anywhere.
+
+### 2026-11-23 — Scenarios committed before any scoring ran against them
+The 30 ranking scenarios went in at commit `b9d7230` with `expected: null`,
+before a single leverage number was computed on them. The history is the
+evidence that they were not shaped to suit the formula. I have not looked at
+what the formula says about any of them.
+
+### 2026-11-23 — Ranking is blind by construction, not by discipline
+`brain rank` never prints a score, a leverage value, or the scenario's `tests`
+field. Item order within a scenario and scenario order across the sitting are
+both deterministically shuffled, so position and fatigue cannot correlate with
+scenario type. Resumable, because 30 in one sitting is optimistic.
+
+### 2026-11-23 — Capture ingest takes the loosest possible input
+One capture per line, nothing else. Anything that forces structure at collection
+time changes *what gets collected* — and messiness is the thing being measured.
+Ids derive from content (FNV-1a), so re-running ingest is idempotent and a
+capture keeps its split forever; adding more data never reshuffles existing rows.
+
+### 2026-11-23 — FNV-1a replaces SHA-256 for splitting
+Splitting needs stable, well-spread and dependency-free, not cryptographic.
+`docs/03-dataset-schema.md` updated to match the implementation rather than
+leaving the doc aspirational.

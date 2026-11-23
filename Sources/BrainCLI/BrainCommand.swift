@@ -6,18 +6,23 @@ import Foundation
 struct BrainCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "brain",
-        abstract: "Read a plain-text dump and print what to do next.",
-        discussion: """
-            Dogfood CLI for Brain v1 Core. Everything it prints is computed
-            deterministically — no AI is involved at any point.
+        abstract: "Brain v1 Core — everything here is computed deterministically.",
+        subcommands: [NextCommand.self, RankCommand.self, IngestCommand.self],
+        defaultSubcommand: NextCommand.self)
+}
 
+/// Dogfood: read a plain-text dump, print what to do next. No AI involved.
+struct NextCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "next",
+        abstract: "Read a dump file and print next / ranked / quick wins / blocked.",
+        discussion: """
             Format:
               goal: Ship Brain v1
               Finalize API spec | medium | due kal | goal Ship Brain v1
               Call plumber      | tiny
               Deploy to prod    | small | after Finalize API spec
-            """
-    )
+            """)
 
     @Argument(help: "Path to the dump file.")
     var file: String
@@ -31,7 +36,7 @@ struct BrainCommand: ParsableCommand {
     @Option(name: .long, help: "Weight for unconfirmed edges (0...1).")
     var alpha: Double = 0.0
 
-    @Flag(name: .long, help: "Print the full ranked list, not just the top 5.")
+    @Flag(name: .long, help: "Print the full ranked list, not just the top 8.")
     var all = false
 
     func run() throws {
@@ -57,8 +62,6 @@ struct BrainCommand: ParsableCommand {
             graph: parsed.graph, now: nowDate, calendar: calendar,
             policy: EdgePolicy(alpha: alpha))
 
-        Printer.render(
-            outputs: outputs, issues: parsed.issues,
-            showAll: all, timeZone: zone)
+        Printer.render(outputs: outputs, issues: parsed.issues, showAll: all, timeZone: zone)
     }
 }

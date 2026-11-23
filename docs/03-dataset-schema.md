@@ -17,8 +17,16 @@ on a fresh clone, and the eval reports which sets were present in the run.
 
 ## Splitting
 
-**Hash-based, not random.** `split(id) = ["train","dev","test"][ sha256(id)[0] % 10 ]`
-mapped `0–6 → train`, `7–8 → dev`, `9 → test`.
+**Hash-based, not random.** `split(id) = FNV-1a-64(id) % 10`, mapped
+`0–6 → train`, `7–8 → dev`, `9 → test` for synthetic data.
+
+**Real captures use 50/20/30** (`0–4 train`, `5–6 dev`, `7–9 test`) — weighted
+toward test because the test number is what gets reported and 30 rows proves
+nothing (`docs/05-targets.md`).
+
+FNV-1a rather than SHA-256: splitting needs stable, well-spread, and
+dependency-free, not cryptographic. Capture ids themselves derive from content,
+so **ingesting the same capture twice is idempotent and its split never moves.**
 
 Adding new data **never reshuffles existing rows** — an item's split is a pure
 function of its id. This is what makes baselines comparable across months.

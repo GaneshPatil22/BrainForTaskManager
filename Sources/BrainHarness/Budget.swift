@@ -26,6 +26,18 @@ public enum BudgetRefusal: Error, Equatable, CustomStringConvertible {
     case tokensPerMinute(limit: Int, wanted: Int)
     case requestsPerDay(limit: Int)
     case userFairShare(limit: Int, user: String)
+    /// The store could not be reached — Postgres down, timed out, mid-failover.
+    ///
+    /// Distinct from every other case because **nothing was over budget**. A
+    /// store-backed implementation would otherwise have to borrow a reason
+    /// that did not happen, and the logs would report a quota problem during
+    /// a database outage.
+    ///
+    /// Semantics are **fail-closed**: an unreachable store refuses the call.
+    /// Failing open would mean spending unmetered against a free tier with no
+    /// way to know how much went out, which is the exact failure `BudgetStore`
+    /// was added to prevent. The capture is not lost — the router degrades.
+    case storeUnavailable(detail: String)
 
     public var description: String {
         switch self {
@@ -35,6 +47,9 @@ public enum BudgetRefusal: Error, Equatable, CustomStringConvertible {
         case .requestsPerDay(let limit): "RPD limit \(limit) reached"
         case .userFairShare(let limit, let user):
             "user \(user) has used their daily share of \(limit)"
+        case .storeUnavailable(let detail):
+            "budget store unavailable (\(detail)) — refusing rather than "
+                + "spending unmetered"
         }
     }
 }

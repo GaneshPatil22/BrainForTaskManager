@@ -11,6 +11,10 @@ let package = Package(
         .library(name: "BrainHarness", targets: ["BrainHarness"]),
         .library(name: "BrainPipeline", targets: ["BrainPipeline"]),
         .library(name: "BrainAdapters", targets: ["BrainAdapters"]),
+        // The composition root the server imports: ProductionRouter.make is
+        // the only supported way to build the production ladder, so the
+        // module has to leave the package.
+        .library(name: "BrainProduction", targets: ["BrainProduction"]),
         .executable(name: "brain", targets: ["BrainCLI"]),
         .executable(name: "EvalCLI", targets: ["EvalCLI"]),
     ],

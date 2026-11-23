@@ -210,3 +210,52 @@ struct FairShareTests {
         try await ledger.consume(model: "m", estimatedTokens: 1, user: "b", userLimit: 2)
     }
 }
+
+/// Stands in for Postgres being down mid-failover.
+private struct DeadStore: BudgetStore {
+    func reserve(
+        model: String, user: String?, day: ProviderDay,
+        modelDailyLimit: Int?, userDailyLimit: Int?
+    ) async -> BudgetReservation {
+        .refused(.storeUnavailable(detail: "connection refused"))
+    }
+    func dailyRequests(model: String, day: ProviderDay) async -> Int { 0 }
+}
+
+@Suite("An unreachable store")
+struct StoreUnavailableTests {
+    @Test("Refuses the call rather than spending unmetered")
+    func failsClosed() async {
+        let ledger = BudgetLedger(store: DeadStore(), now: { pacific(2026, 11, 24, 10) })
+        await ledger.setLimits(
+            ModelLimits(requestsPerMinute: 10, tokensPerMinute: nil, requestsPerDay: 100),
+            for: "m")
+        await #expect(throws: BudgetRefusal.storeUnavailable(detail: "connection refused")) {
+            try await ledger.consume(model: "m", estimatedTokens: 1)
+        }
+    }
+
+    @Test("Says the store is down, not that a quota was hit")
+    func readsAsAnOutage() {
+        let text = BudgetRefusal.storeUnavailable(detail: "connection refused").description
+        #expect(text.contains("budget store unavailable"))
+        #expect(text.contains("connection refused"))
+        // The point of the case: an outage must not be logged as a limit.
+        #expect(!text.contains("limit"))
+    }
+
+    @Test("A refused call does not leak the minute slot it was holding")
+    func releasesTheSlot() async {
+        let ledger = BudgetLedger(store: DeadStore(), now: { pacific(2026, 11, 24, 10) })
+        await ledger.setLimits(
+            ModelLimits(requestsPerMinute: 2, tokensPerMinute: nil, requestsPerDay: nil),
+            for: "m")
+        for _ in 0..<5 {
+            _ = try? await ledger.consume(model: "m", estimatedTokens: 1)
+        }
+        // If the slot leaked, an outage would also exhaust RPM and the model
+        // would stay unreachable after the store recovered.
+        let usage = await ledger.usage(model: "m")
+        #expect(usage.minuteRequests == 0, "an outage burned \(usage.minuteRequests) RPM slots")
+    }
+}

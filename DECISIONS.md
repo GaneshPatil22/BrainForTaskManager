@@ -1257,3 +1257,39 @@ Now prints what is actually true and exits non-zero.
 
 Verified: `make ci` passes on macOS and `make ci-linux` passes in the
 container, same metrics, same gate.
+
+## 2026-11-24 — 0.5.1: BrainProduction is a package product
+
+`BrainProduction` was declared as a target but never as a `.library` product,
+so it stopped at the package boundary and the server could not import the one
+supported way to build the production ladder. One line in `Package.swift`.
+
+Verified by building a throwaway package that depends on Brain by path and
+imports `BrainProduction`, rather than assuming the declaration was enough:
+it resolves, `ProductionRouter.make` runs, and the ladder comes back
+`t2-decision -> t2-gemma -> t2-flash-lite -> degrade`. Consumers need
+`import Foundation` for `staleLimits(now:)`, which takes a `Date`.
+
+### `BudgetRefusal.storeUnavailable(detail:)`
+
+Requested as optional; worth taking. Without it a Postgres-backed store with
+a dead connection has to borrow a reason that did not happen — and the logs
+would report a quota problem in the middle of a database outage, which is the
+sort of thing that costs an hour at 2am.
+
+**Fail-closed**, consistent with the refund decision in 0.5.0: an unreachable
+store refuses the call. Failing open would mean spending unmetered against a
+free tier with no way to know how much went out, which is the exact failure
+`BudgetStore` exists to prevent. The capture is not lost — the router
+degrades.
+
+A test asserts the outage does **not** leak the minute slot it was holding.
+Without that, a store outage would also burn the RPM pool and the model would
+stay unreachable for a minute after the store recovered.
+
+Adding an enum case is source-breaking for exhaustive switches; nothing in
+Brain switches over `BudgetRefusal` except its own `description`, and the
+server has not integrated yet.
+
+Tag `0.5.1`. The two commits since `0.5.0` (Linux verification, CI image) are
+tooling and docs only, so this remains a patch release.

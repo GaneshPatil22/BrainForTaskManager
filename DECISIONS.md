@@ -692,3 +692,24 @@ genuinely is mostly tasks, but with no labels this is *recognition*, not
 **B-05 validated by the data:** 25 captures carry recurrence markers —
 "Har month" ×16, "Har Sunday" ×3, "Har 6 months", "Har 3 months", "Har Friday",
 "Har 15 days". The feature request was not hypothetical.
+
+### 2026-11-23 — All 130 scenarios ranked. The dev number has converged.
+Dev split is complete at 91 ranked. Top-3 was 71.6% at n=74 and is **71.4% at
+n=91** — the number has stopped moving, so it is real rather than small-sample
+noise. Top-1 23.1%, NDCG@5 0.743, interval now ±10pp.
+
+### 2026-11-23 — `agreement` now makes the paired comparison, not two loose numbers
+The command measured self-agreement and left it sitting next to a top-3 figure
+from a different sample, which decides nothing. It now computes **our**
+performance on exactly the scenarios that were ranked twice, so the comparison
+is paired and does not depend on sample sizes matching. It then states the
+verdict outright:
+
+- if our top-3 ≥ his top-1 self-agreement → we are already inside the noise of
+  his own judgement, further ranking work is fitting Tuesday's mood against
+  Friday's, **stop and build the product**
+- otherwise the gap is real work
+
+**Second pass is ~30 scenarios, not 130.** At n=30 the interval is ±16pp, and
+paired that is enough to decide; n=15 gives ±23pp and settles nothing. `make
+rank-again` now defaults to `--limit 30`.

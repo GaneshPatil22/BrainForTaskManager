@@ -69,7 +69,8 @@ struct CoverageCommand: ParsableCommand {
             String(format: "%5.1f%% (%d)", 100 * Double(count) / n, count)
         }
 
-        print("""
+        print(
+            """
 
             T0 COVERAGE ON REAL CAPTURES  (\(captures.count) lines, \(file))
 

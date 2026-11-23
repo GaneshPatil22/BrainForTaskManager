@@ -44,8 +44,8 @@ dogfood: ## Run the dogfood CLI against the sample dump
 rank: ## Rank the 30 scenarios by hand (blind, resumable)
 	@swift build 2>/dev/null; swift run brain rank
 
-rank-again: ## Second-pass ranking on a different day (finds the noise floor)
-	@swift build 2>/dev/null; swift run brain rank --again
+rank-again: ## Second pass on ~30 scenarios, days later (finds the noise floor)
+	@swift build 2>/dev/null; swift run brain rank --again --limit 30
 
 agreement: ## How much you disagree with yourself — the ceiling for any model
 	@swift build 2>/dev/null; swift run brain agreement

@@ -11,7 +11,8 @@ struct BrainCommand: ParsableCommand {
         subcommands: [
             NextCommand.self, RankCommand.self,
             NewScenarioCommand.self, IngestCommand.self,
-            AgreementCommand.self, SplitCommand.self, CategoryEvalCommand.self, SampleCommand.self, CoverageCommand.self,
+            AgreementCommand.self, SplitCommand.self, CategoryEvalCommand.self, SampleCommand.self,
+            CoverageCommand.self,
         ],
         defaultSubcommand: NextCommand.self)
 }

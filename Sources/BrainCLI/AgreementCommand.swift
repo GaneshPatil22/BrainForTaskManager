@@ -45,6 +45,29 @@ struct AgreementCommand: ParsableCommand {
         var top1Same = 0
         var top3OverlapTotal = 0
         var exactOrderSame = 0
+        // The comparison that actually decides anything: on these same
+        // scenarios, how often did WE put his pick in the top 3? Measuring the
+        // ceiling in isolation leaves it hanging next to a number from a
+        // different sample; paired on identical scenarios, it is decisive.
+        var ourTop3 = 0
+        var ourTop1 = 0
+
+        var calendarByID: [String: (ScenarioLoader.Loaded, [String])] = [:]
+        for scenario in loaded {
+            if let first = scenario.file.expected?.rankingTop3 {
+                calendarByID[scenario.file.id] = (scenario, first)
+            }
+        }
+        for (id, first, _) in paired {
+            guard let (scenario, _) = calendarByID[id],
+                let humanTop = first.first.flatMap({ scenario.idsByKey[$0] })
+            else { continue }
+            let outputs = Brain.compute(
+                graph: scenario.graph, now: scenario.now, calendar: scenario.calendar)
+            let ours = outputs.startable.map(\.item.id)
+            if ours.first == humanTop { ourTop1 += 1 }
+            if ours.prefix(3).contains(humanTop) { ourTop3 += 1 }
+        }
 
         for (_, first, second) in paired {
             if first.first == second.first { top1Same += 1 }

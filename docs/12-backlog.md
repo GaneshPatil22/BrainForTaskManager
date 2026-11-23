@@ -89,7 +89,10 @@ time, then **no model can exceed about 75% agreement**, and the ≥90% target in
 
 Nobody can tell us this number except a human ranking the same scenarios twice.
 
-- **Cost:** re-rank 12–15 scenarios on a different day, roughly 10 minutes.
+- **Cost:** re-rank **~30** scenarios on a different day, roughly 15 minutes.
+  Not all 130: 30 gives a ±16pp interval, and because the comparison is
+  **paired** — our score and the self-agreement score come from the same
+  scenarios — that is enough to decide. 15 would give ±23pp and settle nothing.
 - **Buys:** the noise floor, and honest targets calibrated against it.
 
 Highest value-per-minute item in this file.

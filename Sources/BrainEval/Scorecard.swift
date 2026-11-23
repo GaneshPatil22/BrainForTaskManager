@@ -167,9 +167,22 @@ public struct Scorecard: Codable, Sendable {
 
                 let change = metric.higherIsBetter ? value - base : base - value
                 if change < -tolerance {
-                    result.failures.append(
+                    // A metric can move because the code changed or because the
+                    // *sample* changed. Conflating the two turns the gate into
+                    // noise, so say which it is rather than cry regression at a
+                    // bigger, more honest denominator.
+                    let baseN = baseline.metric(section.name, metric.name)?.sampleSize
+                    var reason =
                         "\(section.name)/\(metric.name): \(metric.formatted()) vs baseline "
-                            + "\(String(format: "%.4f", base)) — beyond tolerance \(tolerance)")
+                        + "\(String(format: "%.4f", base)) — beyond tolerance \(tolerance)"
+                    if let n = metric.sampleSize, let baseN,
+                        abs(Double(n - baseN)) / Double(max(baseN, 1)) > 0.2
+                    {
+                        reason +=
+                            " [SAMPLE CHANGED n=\(baseN)→\(n): likely not a code regression — "
+                            + "re-promote the baseline if the larger sample is the better number]"
+                    }
+                    result.failures.append(reason)
                 } else if change > tolerance {
                     result.improvements.append("\(section.name)/\(metric.name)")
                 }

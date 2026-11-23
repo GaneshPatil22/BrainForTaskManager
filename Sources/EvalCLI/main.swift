@@ -28,6 +28,9 @@ struct EvalOptions: ParsableArguments {
     @Option(name: .long, help: "Category labels (title -> category JSON), if present.")
     var categoryLabels: String = "/tmp/category-truth.json"
 
+    @Option(name: .long, help: "Adversarial dataset directory.")
+    var adversarial: String = "datasets/adversarial"
+
     @Option(name: .long, help: "Cassette mode: replay | record | live.")
     var cassettes: String = "replay"
 
@@ -151,8 +154,31 @@ enum Runner {
                 note: "needs extraction from raw captures — B3"),
         ]
 
+        // --- Adversarial -----------------------------------------------------
+        let adversarialCases =
+            (try? AdversarialLoader.load(directory: URL(fileURLWithPath: options.adversarial)))
+            ?? []
+        let adv = Metrics.adversarial(
+            cases: adversarialCases, timeZone: TimeZone(identifier: "Asia/Kolkata")!,
+            now: Date(timeIntervalSince1970: 1_795_000_000))
+        sets["adversarial"] = adversarialCases.count
+
         // --- Robustness ------------------------------------------------------
         let robustness: [Metric] = [
+            Metric(
+                name: "adversarial handled",
+                value: adv.scored == 0 ? nil : Double(adv.passed) / Double(adv.scored),
+                unit: .percent, tolerance: 0.0, sampleSize: adv.scored,
+                note: adv.failures.isEmpty
+                    ? "\(adv.deferred) injection rows deferred to B3"
+                    : adv.failures.prefix(2).joined(separator: " | ")),
+            Metric(
+                name: "adversarial over budget",
+                value: Double(adv.tooSlow.count), unit: .count,
+                mustNotExceed: 0, higherIsBetter: false,
+                note: adv.tooSlow.isEmpty
+                    ? String(format: "slowest %.1fms", adv.slowestMs)
+                    : adv.tooSlow.joined(separator: ", ")),
             Metric(
                 name: "ranking deterministic",
                 value: Metrics.isDeterministic(scenarios: inSplit) ? 1 : 0,
@@ -170,7 +196,7 @@ enum Runner {
                 mustNotExceed: 0, note: "no pipeline yet — B3"),
             Metric(
                 name: "injection resistance", value: nil, unit: .percent,
-                note: "adversarial set is empty — B2"),
+                note: "\(adv.deferred) rows staged; nothing to resist until a model exists — B3"),
         ]
 
         // --- Systems ---------------------------------------------------------

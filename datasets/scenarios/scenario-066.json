@@ -8,6 +8,15 @@
       "to" : "i5"
     }
   ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T09:44:23Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i1",
+      "i5"
+    ]
+  },
   "goals" : [
 
   ],

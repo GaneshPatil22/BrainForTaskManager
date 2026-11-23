@@ -39,8 +39,25 @@ public struct DateParser: Sendable {
         let haystack = text.lowercased()
         let time = Self.findTime(in: haystack)
 
-        for rule in Self.rules {
+        // **Earliest match wins**, ties broken by rule order.
+        //
+        // Returning on the first *rule* that matched meant order of
+        // declaration decided, not the text: "kal kal kal parso kal" returned
+        // `parso`, because the parso rule is listed first (it has to be, so
+        // "day after tomorrow" is not eaten by the "tomorrow" rule). Position
+        // is what a reader expects, and specificity still wins where two rules
+        // overlap, because the longer phrase starts earlier.
+        var best: (match: Match, ruleIndex: Int)?
+        for (index, rule) in Self.rules.enumerated() {
             guard let match = rule.match(haystack, now, calendar) else { continue }
+            if let current = best {
+                let isEarlier = match.span.start < current.match.span.start
+                guard isEarlier else { continue }
+            }
+            best = (match, index)
+        }
+
+        if let match = best?.match {
             var date = match.date
             var span = match.span
             var confidence = match.confidence
@@ -329,17 +346,22 @@ public struct DateParser: Sendable {
             (#"\b(tomorrow|kal)\b"#, 1, 0.8, "kal"),
             (#"\b(today|aaj|tonight|aaj\s+raat)\b"#, 0, 0.95, "today"),
         ]
+        // Earliest match wins here too. Listing `parso` first is necessary so
+        // "day after tomorrow" is not eaten by the "tomorrow" rule — but that
+        // ordering must not decide between *disjoint* mentions, or
+        // "kal kal kal parso kal" resolves to parso.
+        var best: Match?
         for (pattern, offset, confidence, rule) in rules {
             guard let m = firstMatch(pattern, text) else { continue }
-            // "kal" and "parso" are future-only here; English words are unambiguous.
+            if let current = best, current.span.start <= m.range.location { continue }
             let matched = group(m, 1, text) ?? ""
             let isHinglish = ["kal", "parso", "parsoon"].contains(matched)
             guard let date = cal.date(byAdding: .day, value: offset, to: now) else { continue }
-            return Match(
+            best = Match(
                 date: endOfDay(date, cal), span: span(m),
                 confidence: isHinglish ? confidence : 0.95, rule: rule)
         }
-        return nil
+        return best
     }
 
     // MARK: - Time of day

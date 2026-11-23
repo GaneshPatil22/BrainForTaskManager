@@ -45,31 +45,40 @@ public struct EffortParser: Sendable {
     public func parse(_ text: String) -> ParsedEffort? {
         let haystack = text.lowercased()
 
-        // Fixed phrases first — they are unambiguous and cheap.
-        for (pattern, minutes, rule) in Self.phrases {
-            guard let match = DateParser.firstMatch(pattern, haystack) else { continue }
-            return ParsedEffort(
-                bucket: Self.bucket(forMinutes: minutes), minutes: minutes,
-                span: DateParser.span(match), confidence: 0.9, rule: rule)
+        // **Earliest explicit match wins.** Returning on the first matching
+        // *pattern* meant declaration order decided: "1 ghante 20 min" scored
+        // 20 minutes, because the minutes pattern is listed before hours.
+        var best: ParsedEffort?
+        func consider(_ candidate: ParsedEffort) {
+            if let current = best, current.span.start <= candidate.span.start { return }
+            best = candidate
         }
 
-        // Then `<number> <unit>`.
+        for (pattern, minutes, rule) in Self.phrases {
+            guard let match = DateParser.firstMatch(pattern, haystack) else { continue }
+            consider(
+                ParsedEffort(
+                    bucket: Self.bucket(forMinutes: minutes), minutes: minutes,
+                    span: DateParser.span(match), confidence: 0.9, rule: rule))
+        }
         for (pattern, multiplier, rule) in Self.quantities {
             guard let match = DateParser.firstMatch(pattern, haystack),
                 let amount = DateParser.group(match, 1, haystack).flatMap(Double.init),
                 amount > 0
             else { continue }
             guard !Self.isPrecededByDateWord(haystack, at: match.range.location) else { continue }
-
             let minutes = amount * multiplier
-            return ParsedEffort(
-                bucket: Self.bucket(forMinutes: minutes), minutes: minutes,
-                span: DateParser.span(match), confidence: 0.95, rule: rule)
+            consider(
+                ParsedEffort(
+                    bucket: Self.bucket(forMinutes: minutes), minutes: minutes,
+                    span: DateParser.span(match), confidence: 0.95, rule: rule))
         }
+        if let best { return best }
 
-        // Qualitative hints last, and only the unambiguous ones. "long" and
-        // "bada" are deliberately absent: they are vague enough that abstaining
-        // and escalating is better than a confident guess.
+        // Qualitative hints are a last resort regardless of position: an
+        // explicit duration anywhere beats "jaldi" at the start. Only the
+        // unambiguous ones are listed — "long" and "bada" are deliberately
+        // absent, because abstaining and escalating beats a confident guess.
         for (pattern, minutes, rule) in Self.qualitative {
             guard let match = DateParser.firstMatch(pattern, haystack) else { continue }
             return ParsedEffort(

@@ -33,7 +33,9 @@ public struct DependencyParser: Sendable {
         var found: [ParsedDependency] = []
         var claimed = Set<Int>()
 
-        for (pattern, position, confidence, rule) in Self.rules {
+        for (literal, pattern, position, confidence, rule) in Self.rules {
+            // Cheap literal check first — see the note on `rules`.
+            guard haystack.contains(literal) else { continue }
             guard let match = DateParser.firstMatch(pattern, haystack),
                 let referent = DateParser.group(match, 1, haystack)
             else { continue }
@@ -97,34 +99,50 @@ public struct DependencyParser: Sendable {
 
     // MARK: - Patterns
 
-    /// Ordered most specific first. Hinglish puts the referent **before** the
-    /// marker ("client ke baad"), English after it ("after client") — the
-    /// `Position` field is what makes one parser handle both word orders.
-    static let rules: [(String, Position, Double, String)] = [
+    /// `(literal, pattern, position, confidence, rule)`, most specific first.
+    /// Hinglish puts the referent **before** the marker ("client ke baad"),
+    /// English after it — `Position` is what lets one parser handle both.
+    ///
+    /// **`literal` is a performance guard, not a nicety.** These patterns open
+    /// with a lazy quantifier, which on a 60k-character capture with no match
+    /// makes NSRegularExpression retry from every position — measured at
+    /// **52 seconds** before this check existed. A `contains` on the marker
+    /// costs microseconds and skips the regex entirely when it cannot match.
+    ///
+    /// The referent is also bounded to 80 characters. A task title is never
+    /// longer, and an unbounded lazy quantifier is what turns a linear scan
+    /// quadratic.
+    static let rules: [(String, String, Position, Double, String)] = [
         // Completion reads many ways: "done", but also "green" (CI), "merged",
         // "approved", "back" (a person). Narrow lists cause silent misses.
         (
-            #"\bonce\s+(.+?)\s+(?:is\s+|are\s+|has\s+|have\s+)?"#
+            "once",
+            #"\bonce\s+(.{1,80}?)\s+(?:is\s+|are\s+|has\s+|have\s+)?"#
                 + #"(?:done|finished|complete|completed|ready|green|merged|approved|live|back|"#
                 + #"signed|confirmed|arrived|replied|landed)\b"#,
             .afterMarker, 0.95, "onceDone"
         ),
+        ("blocked by", #"\bblocked\s+by\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, 0.95, "blockedBy"),
+        ("depends on", #"\bdepends\s+on\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, 0.95, "blockedBy"),
         (
-            #"\b(?:blocked\s+by|depends\s+on)\s+(.+?)(?:[,.;]|$)"#,
-            .afterMarker, 0.95, "blockedBy"
-        ),
-        (
-            #"\b(?:waiting|wait)\s+(?:for|on)\s+(.+?)(?:[,.;]|$)"#,
+            "wait", #"\b(?:waiting|wait)\s+(?:for|on)\s+(.{1,80}?)(?:[,.;]|$)"#,
             .afterMarker, 0.9, "waitingFor"
         ),
-        (#"\bneeds?\s+(.+?)\s+first\b"#, .afterMarker, 0.9, "needsFirst"),
-        (#"\b(.+?)\s+(?:ho\s+jaye|hone)\s+ke\s+baad\b"#, .beforeMarker, 0.95, "honeKeBaadHinglish"),
-        (#"\b(.+?)\s+ke\s+baad\b"#, .beforeMarker, 0.9, "keBaadHinglish"),
+        ("first", #"\bneeds?\s+(.{1,80}?)\s+first\b"#, .afterMarker, 0.9, "needsFirst"),
         (
-            #"\b(.+?)\s+k[ae]\s+(?:wait|intezaar|intzaar)\b"#,
+            "ke baad", #"\b(.{1,80}?)\s+(?:ho\s+jaye|hone)\s+ke\s+baad\b"#,
+            .beforeMarker, 0.95, "honeKeBaadHinglish"
+        ),
+        ("ke baad", #"\b(.{1,80}?)\s+ke\s+baad\b"#, .beforeMarker, 0.9, "keBaadHinglish"),
+        (
+            "wait", #"\b(.{1,80}?)\s+k[ae]\s+(?:wait|intezaar|intzaar)\b"#,
             .beforeMarker, 0.85, "kaWaitHinglish"
         ),
-        (#"\bafter\s+(.+?)(?:[,.;]|$)"#, .afterMarker, 0.85, "after"),
+        (
+            "intezaar", #"\b(.{1,80}?)\s+k[ae]\s+(?:wait|intezaar|intzaar)\b"#,
+            .beforeMarker, 0.85, "kaWaitHinglish"
+        ),
+        ("after", #"\bafter\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, 0.85, "after"),
     ]
 }
 

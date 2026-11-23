@@ -1,34 +1,34 @@
 {
   "dataset" : "v1",
-  "generatedAt" : "2026-11-23T09:27:18Z",
-  "runId" : "01M83VPCGG5N6Q8ERKZTXCQ1QX",
+  "generatedAt" : "2026-11-23T09:54:10Z",
+  "runId" : "01M83X7JSCX4WYFSDQ3E42KYEK",
   "sections" : [
     {
       "metrics" : [
         {
           "higherIsBetter" : true,
           "name" : "human pick in top-3",
-          "note" : "±19pp at 95%",
-          "sampleSize" : 28,
+          "note" : "±13pp at 95%",
+          "sampleSize" : 54,
           "tolerance" : 0.02,
           "unit" : "percent",
-          "value" : 0.8571428571428571
+          "value" : 0.7037037037037037
         },
         {
           "higherIsBetter" : true,
           "name" : "human pick is our top-1",
-          "sampleSize" : 28,
+          "sampleSize" : 54,
           "tolerance" : 0.03,
           "unit" : "percent",
-          "value" : 0.35714285714285715
+          "value" : 0.2777777777777778
         },
         {
           "higherIsBetter" : true,
           "name" : "NDCG@5",
-          "sampleSize" : 28,
+          "sampleSize" : 54,
           "tolerance" : 0.03,
           "unit" : "ratio",
-          "value" : 0.7817853702255896
+          "value" : 0.7371021139564576
         }
       ],
       "name" : "ranking"
@@ -57,10 +57,10 @@
         {
           "higherIsBetter" : true,
           "name" : "accuracy on attempted",
-          "sampleSize" : 1094,
+          "sampleSize" : 1092,
           "tolerance" : 0.02,
           "unit" : "percent",
-          "value" : 0.8007312614259597
+          "value" : 0.8031135531135531
         },
         {
           "higherIsBetter" : true,
@@ -69,7 +69,7 @@
           "sampleSize" : 1308,
           "tolerance" : 0.05,
           "unit" : "percent",
-          "value" : 0.8363914373088684
+          "value" : 0.8348623853211009
         }
       ],
       "name" : "category"
@@ -95,6 +95,23 @@
     },
     {
       "metrics" : [
+        {
+          "higherIsBetter" : true,
+          "name" : "adversarial handled",
+          "note" : "10 injection rows deferred to B3",
+          "sampleSize" : 24,
+          "tolerance" : 0,
+          "unit" : "percent",
+          "value" : 1
+        },
+        {
+          "higherIsBetter" : false,
+          "mustNotExceed" : 0,
+          "name" : "adversarial over budget",
+          "note" : "slowest 52.9ms",
+          "unit" : "count",
+          "value" : 0
+        },
         {
           "higherIsBetter" : true,
           "name" : "ranking deterministic",
@@ -127,7 +144,7 @@
         {
           "higherIsBetter" : true,
           "name" : "injection resistance",
-          "note" : "adversarial set is empty — B2",
+          "note" : "10 rows staged; nothing to resist until a model exists — B3",
           "unit" : "percent"
         }
       ],
@@ -140,14 +157,14 @@
           "name" : "p50 latency",
           "tolerance" : 1,
           "unit" : "milliseconds",
-          "value" : 0.066541
+          "value" : 0.066917
         },
         {
           "higherIsBetter" : false,
           "name" : "p95 latency",
           "tolerance" : 2,
           "unit" : "milliseconds",
-          "value" : 0.103416
+          "value" : 0.107125
         },
         {
           "higherIsBetter" : true,
@@ -160,11 +177,12 @@
     }
   ],
   "sets" : {
+    "adversarial" : 34,
     "category labels" : 1308,
     "distinct date phrasings" : 27,
-    "ranked" : 28,
+    "ranked" : 54,
     "scenarios" : 91,
-    "unranked" : 63
+    "unranked" : 37
   },
   "split" : "dev"
 }

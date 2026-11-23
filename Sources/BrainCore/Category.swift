@@ -111,7 +111,7 @@ public enum CategoryClassifier {
         .planning: [
             "itinerary", "tickets", "ticket", "flights", "flight", "hotel", "cab",
             "venue", "menu", "meals", "calendar", "booking", "book", "reserve",
-            "schedule", "shortlist", "itinerary",
+            "schedule", "shortlist", "plan", "planning", "planned", "arrange",
             "tay karna", "plan karna",
         ],
     ]
@@ -182,8 +182,11 @@ public enum CategoryClassifier {
         _ title: String, minMargin: Double = defaultMinMargin
     ) -> Classified<TaskCategory> {
         let lower = title.lowercased()
-        let tokens = lower.split(whereSeparator: { !$0.isLetter }).map(String.init)
-        guard let first = tokens.first else { return .unknown() }
+        let tokenList = lower.split(whereSeparator: { !$0.isLetter }).map(String.init)
+        guard let first = tokenList.first else { return .unknown() }
+        // A Set, not an Array: this is probed once per lexicon term (~400 of
+        // them), and `Array.contains` made a 60k-character capture take 230ms.
+        let tokens = Set(tokenList)
 
         var scores: [TaskCategory: Double] = [:]
         func accumulate(_ table: [TaskCategory: [String]], leading: Double, body: Double) {

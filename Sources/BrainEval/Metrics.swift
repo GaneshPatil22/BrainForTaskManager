@@ -144,6 +144,131 @@ public enum Metrics {
         return result
     }
 
+    // MARK: - Adversarial
+
+    public struct AdversarialResult: Sendable {
+        public var scored = 0
+        public var passed = 0
+        public var deferred = 0
+        /// Rows that exceeded their latency budget — the signal that a regex
+        /// has started backtracking catastrophically on large input.
+        public var tooSlow: [String] = []
+        public var failures: [String] = []
+        public var slowestMs = 0.0
+    }
+
+    /// Runs every T0 parser over each adversarial capture and checks it did
+    /// what the row says it should.
+    ///
+    /// **What this does and does not prove.** It proves the parsers survive
+    /// degenerate input, stay within a latency budget, and abstain where they
+    /// should. It does **not** prove injection resistance: with no model in the
+    /// loop there is nothing to be non-compliant. Injection rows are counted as
+    /// deferred to B3 rather than scored, because scoring them now would be
+    /// theatre (`docs/13-generated-datasets.md` on fabricated numbers).
+    public static func adversarial(
+        cases: [AdversarialCase], timeZone: TimeZone, now: Date
+    ) -> AdversarialResult {
+        let dateParser = DateParser(timeZone: timeZone)
+        let effortParser = EffortParser()
+        let dependencyParser = DependencyParser(timeZone: timeZone)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+
+        var result = AdversarialResult()
+
+        for testCase in cases {
+            guard testCase.evaluatedAt == "B2" else {
+                result.deferred += 1
+                continue
+            }
+            result.scored += 1
+            var problems: [String] = []
+
+            let start = DispatchTime.now().uptimeNanoseconds
+            let date = dateParser.parse(testCase.rawText, now: now)
+            let effort = effortParser.parse(testCase.rawText)
+            let category = CategoryClassifier.classify(testCase.rawText)
+            let dependencies = dependencyParser.parse(testCase.rawText, now: now)
+            let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000
+            result.slowestMs = max(result.slowestMs, elapsed)
+
+            if elapsed > testCase.expect.maxLatencyMs {
+                result.tooSlow.append(
+                    String(
+                        format: "%@ (%.1fms > %.0fms)", testCase.id, elapsed,
+                        testCase.expect.maxLatencyMs))
+                problems.append("too slow")
+            }
+
+            // Dates: an expectation of nil means the parser must abstain.
+            if let expectedOffset = testCase.expect.date.flatMap(Int.init) {
+                guard let date else {
+                    problems.append("expected a date, got none")
+                    result.failures.append("\(testCase.id): expected a date, got none")
+                    continue
+                }
+                let days =
+                    calendar.dateComponents(
+                        [.day], from: calendar.startOfDay(for: now),
+                        to: calendar.startOfDay(for: date.date)
+                    ).day ?? 0
+                if days != expectedOffset {
+                    problems.append("date \(days) != \(expectedOffset)")
+                }
+            } else if date != nil {
+                problems.append("expected abstention, parsed a date")
+            }
+
+            if let expected = testCase.expect.effort {
+                if effort?.bucket.rawValue != expected {
+                    problems.append("effort \(effort?.bucket.rawValue ?? "nil") != \(expected)")
+                }
+            } else if effort != nil {
+                problems.append("expected abstention, parsed effort")
+            }
+
+            if let expected = testCase.expect.category {
+                if category.value?.rawValue != expected {
+                    problems.append(
+                        "category \(category.value?.rawValue ?? "nil") != \(expected)")
+                }
+            } else if category.isKnown {
+                problems.append("expected abstention, parsed category")
+            }
+
+            if let expected = testCase.expect.dependency {
+                if dependencies.first?.targetText != expected {
+                    problems.append(
+                        "dependency \(dependencies.first?.targetText ?? "nil") != \(expected)")
+                }
+            } else if !dependencies.isEmpty {
+                problems.append("expected no dependency, found one")
+            }
+
+            // Every cited span must resolve, on every input (guard 2).
+            let lowered = testCase.rawText.lowercased()
+            if let date, date.span.resolve(in: lowered) == nil {
+                problems.append("date span does not resolve")
+            }
+            if let effort, effort.span.resolve(in: lowered) == nil {
+                problems.append("effort span does not resolve")
+            }
+            for dependency in dependencies where dependency.span.resolve(in: lowered) == nil {
+                problems.append("dependency span does not resolve")
+            }
+
+            if problems.isEmpty {
+                result.passed += 1
+            } else {
+                result.failures.append(
+                    "\(testCase.id) [\(testCase.attack)]: "
+                        + problems.joined(separator: "; "))
+            }
+        }
+        return result
+    }
+
     // MARK: - Robustness
 
     /// Same graph in, same ranking out — invariant 5 of `docs/01-domain.md`.

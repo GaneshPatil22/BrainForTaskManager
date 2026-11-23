@@ -9,6 +9,7 @@ let package = Package(
         .library(name: "BrainDatasets", targets: ["BrainDatasets"]),
         .library(name: "BrainEval", targets: ["BrainEval"]),
         .library(name: "BrainHarness", targets: ["BrainHarness"]),
+        .library(name: "BrainPipeline", targets: ["BrainPipeline"]),
         .executable(name: "brain", targets: ["BrainCLI"]),
         .executable(name: "EvalCLI", targets: ["EvalCLI"]),
     ],
@@ -27,7 +28,7 @@ let package = Package(
         .executableTarget(
             name: "BrainCLI",
             dependencies: [
-                "BrainCore", "BrainDatasets",
+                "BrainCore", "BrainDatasets", "BrainPipeline",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
@@ -35,6 +36,10 @@ let package = Package(
         // Every model call passes through here: guards, router, budget ledger,
         // cassettes. No provider SDKs — just the protocol they implement.
         .target(name: "BrainHarness", dependencies: ["BrainCore"]),
+
+        // capture -> item + suggested edges. Typed stages, each degrading to
+        // "unknown" rather than throwing: a capture is never lost.
+        .target(name: "BrainPipeline", dependencies: ["BrainCore", "BrainHarness"]),
 
         // Metrics and the scorecard. A library, not buried in the executable,
         // because the thing that reports every number must itself be tested.
@@ -52,5 +57,8 @@ let package = Package(
         .testTarget(name: "BrainCoreTests", dependencies: ["BrainCore", "BrainDatasets"]),
         .testTarget(name: "BrainEvalTests", dependencies: ["BrainEval", "BrainDatasets"]),
         .testTarget(name: "BrainHarnessTests", dependencies: ["BrainHarness", "BrainCore"]),
+        .testTarget(
+            name: "BrainPipelineTests",
+            dependencies: ["BrainPipeline", "BrainHarness", "BrainCore"]),
     ]
 )

@@ -749,3 +749,45 @@ abstention in that order. Three behaviours worth pinning, all tested:
 **FakeModel** ships four behaviours — first-allowed, always-abstains,
 misbehaves (answers `item-99999`, to prove guard 1 is not decorative) and
 always-fails. The pipeline can be exercised end to end before any key exists.
+
+### 2026-11-23 — The pipeline is wired end to end, T0 only
+`BrainPipeline`: normalise → extract → classify → link, each stage degrading to
+"unknown" rather than throwing. 13 pipeline tests.
+
+Run over Ganesh's 300 real captures:
+
+```
+  items created     300
+  captures lost       0      <- the invariant, tested directly
+  marked failed       0
+  edges suggested     0      (all unconfirmed when there are any)
+
+  tier that settled each field:
+    type      t0=294
+    category  t0=202
+    dueAt     t0=52
+    effort    t0=15
+```
+
+**Not one model call.** Everything the pipeline produced on real data came from
+deterministic rules, which is the tiering doctrine working as intended rather
+than as an aspiration.
+
+Three design points:
+
+**The original text is never modified.** `Normalizer` returns the cleaned form
+alongside the untouched original, and every `Span` indexes the original. A
+pipeline that rewrites text before parsing cannot prove where a value came
+from, and guard 2 becomes decorative. This is also why a "normalise with a
+model" layer was rejected.
+
+**PII is redacted into a separate field**, not in place. The capture keeps the
+phone number; only the copy bound for a provider loses it.
+
+**Zero edges on 300 captures is the honest result**, not a bug. These are
+independent one-liners; none references another by title. `TitleMatcher`
+returning nothing rather than a weak guess is precision over recall working.
+
+Known fidelity loss, not fixed: effort displays the canonical bucket, so a
+capture saying "15 minutes" renders as "about 20 min". The bucket is the model
+and the parse is correct; only the wording rounds.

@@ -4,7 +4,7 @@ import BrainDatasets
 import Foundation
 
 @main
-struct BrainCommand: ParsableCommand {
+struct BrainCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "brain",
         abstract: "Brain v1 Core — everything here is computed deterministically.",
@@ -12,7 +12,7 @@ struct BrainCommand: ParsableCommand {
             NextCommand.self, RankCommand.self,
             NewScenarioCommand.self, IngestCommand.self,
             AgreementCommand.self, SplitCommand.self, CategoryEvalCommand.self, SampleCommand.self,
-            CoverageCommand.self,
+            CoverageCommand.self, EnrichCommand.self,
         ],
         defaultSubcommand: NextCommand.self)
 }

@@ -41,6 +41,11 @@ struct ScenarioFile: Codable {
     let items: [ItemSpec]
     let edges: [EdgeSpec]
     var expected: Expected?
+    /// A second, independent ranking of the same scenario on a different day.
+    /// Used to measure how much the same human disagrees with themselves, which
+    /// is the ceiling on any model's achievable agreement (`docs/12-backlog.md`
+    /// B-03a). Without this number, every ranking target is a guess.
+    var secondPass: Expected?
 
     static let decoder: JSONDecoder = {
         let d = JSONDecoder()

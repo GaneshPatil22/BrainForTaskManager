@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard dogfood rank rank-status add-scenarios ingest clean
+.PHONY: help dev build test eval gate lint ci scorecard dogfood rank rank-again agreement rank-status add-scenarios ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -46,6 +46,12 @@ dogfood: ## Run the dogfood CLI against the sample dump
 
 rank: ## Rank the 30 scenarios by hand (blind, resumable)
 	@swift build 2>/dev/null; swift run brain rank
+
+rank-again: ## Second-pass ranking on a different day (finds the noise floor)
+	@swift build 2>/dev/null; swift run brain rank --again
+
+agreement: ## How much you disagree with yourself — the ceiling for any model
+	@swift build 2>/dev/null; swift run brain agreement
 
 rank-status: ## How many scenarios are ranked so far
 	@echo "ranked: $$(grep -l ranking_top3 datasets/scenarios/*.json 2>/dev/null | wc -l | tr -d ' ')/$$(ls datasets/scenarios/*.json | wc -l | tr -d ' ')"

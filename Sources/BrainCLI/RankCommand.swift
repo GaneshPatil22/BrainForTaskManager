@@ -19,6 +19,9 @@ struct RankCommand: ParsableCommand {
     @Flag(name: .long, help: "Re-rank scenarios that already have an answer.")
     var redo = false
 
+    @Flag(name: .long, help: "Second pass: re-rank already-ranked scenarios separately.")
+    var again = false
+
     @Option(name: .long, help: "How many to do in this sitting.")
     var limit: Int = 30
 
@@ -34,18 +37,41 @@ struct RankCommand: ParsableCommand {
             loaded.swapAt(i, Int(rng.next() % UInt64(i + 1)))
         }
 
-        let pending = loaded.filter { redo || $0.file.expected == nil }
+        let pending =
+            again
+            ? loaded.filter { $0.file.expected != nil && $0.file.secondPass == nil }
+            : loaded.filter { redo || $0.file.expected == nil }
         guard !pending.isEmpty else {
-            print("All \(loaded.count) scenarios are ranked. Nothing to do.")
+            print(
+                again
+                    ? "Every ranked scenario already has a second pass. Run `brain agreement`."
+                    : "All \(loaded.count) scenarios are ranked. Nothing to do.")
             return
         }
 
         let total = loaded.count
-        let alreadyDone = total - loaded.filter { $0.file.expected == nil }.count
+        let alreadyDone =
+            again
+            ? loaded.filter { $0.file.secondPass != nil }.count
+            : total - loaded.filter { $0.file.expected == nil }.count
+
+        if again {
+            print(
+                """
+
+                SECOND PASS — measuring how much you disagree with yourself.
+
+                You ranked these before. Your earlier answer is NOT shown, and
+                you should not try to remember it. Answer fresh, as you feel
+                today. Disagreeing with your past self is the useful result,
+                not a mistake — it tells us the ceiling on what any model can
+                achieve (docs/12-backlog.md, B-03a).
+                """)
+        }
         print(
             """
 
-            BLIND SCENARIO RANKING
+            \(again ? "SECOND-PASS RANKING" : "BLIND SCENARIO RANKING")
             \(pending.count) to go (\(alreadyDone)/\(total) done).
 
             For each one: if this were your list this morning, which three
@@ -141,11 +167,12 @@ struct RankCommand: ParsableCommand {
             }
 
             var file = scenario.file
-            file.expected = ScenarioFile.Expected(
+            let answer = ScenarioFile.Expected(
                 rankingTop3: picks.map { shown[$0 - 1].id },
                 rankedBy: "human",
                 rankedAt: ISO8601DateFormatter().string(from: Date()),
                 note: nil)
+            if again { file.secondPass = answer } else { file.expected = answer }
             try ScenarioLoader.save(file, to: scenario.path)
             print("  recorded: \(picks.map { shown[$0 - 1].title }.joined(separator: " → "))\n")
             return .ranked

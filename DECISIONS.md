@@ -165,3 +165,35 @@ leaving the doc aspirational.
 tasks, and reusing the dump format means there is one syntax to learn, not two.
 Absolute dates convert to day offsets on write, so a scenario means the same
 thing whenever it is read.
+
+### 2026-11-23 — Backlog file created, so good ideas stop becoming scope creep
+`docs/12-backlog.md`. Three entries so far: time-budget "what fits in this gap"
+(B-01), timers/pomodoro (B-02), role and mindset (B-03). Each records why it is
+not now and what would have to be true to start it. The five hard non-goals are
+not backlog — they are rejected.
+
+### 2026-11-23 — Role and mindset: right instinct, wrong mechanism
+Ganesh's observation is correct: the same person ranks differently on different
+days, and roles differ systematically. But **a feature that cannot be observed
+at inference time cannot improve a prediction.** Training
+`P(ranking | items, role, mindset)` and then never learning role or mindset for
+a real user means averaging over them at inference — identical to never having
+used them.
+
+Split into three uses:
+- **B-03a — measure the ceiling.** Rank the same scenarios twice on different
+  days. If self-agreement is 75%, no model can beat 75% and the ≥90% target in
+  `05-targets.md` is fiction. Nobody can supply this number but a human.
+  **Built: `make rank-again` and `make agreement`.**
+- **B-03b — condition scenario *generation* on role.** Diversifies inputs.
+  Folded into B2. But **never** condition ground-truth rankings on an imagined
+  role: ranking "as a student would" is data about our model of students, and
+  training on it bakes in a stereotype while looking like signal.
+- **B-03c — train on declared role to predict ranking.** Dead end as specified.
+  **B6 per-user personalisation already solves the real problem**, implicitly,
+  from what the person actually does rather than from a label.
+
+### 2026-11-23 — Second-pass rankings stored separately, never overwriting
+`rank --again` writes to `second_pass`, leaving `expected` untouched, and never
+shows the earlier answer. Overwriting would destroy the only data that can tell
+us the noise floor.

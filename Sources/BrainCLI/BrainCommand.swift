@@ -10,6 +10,7 @@ struct BrainCommand: ParsableCommand {
         subcommands: [
             NextCommand.self, RankCommand.self,
             NewScenarioCommand.self, IngestCommand.self,
+            AgreementCommand.self,
         ],
         defaultSubcommand: NextCommand.self)
 }

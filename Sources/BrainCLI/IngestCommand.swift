@@ -42,7 +42,7 @@ struct IngestCommand: ParsableCommand {
             guard seen.insert(id.rawValue).inserted else { duplicates += 1; continue }
             if text.count > 2000 { tooLong += 1 }
 
-            let split = Self.split(for: id)
+            let split = DatasetSplit.forReal(id: id.rawValue).rawValue
             switch split {
             case "train": counts.train += 1
             case "dev": counts.dev += 1
@@ -95,22 +95,6 @@ struct IngestCommand: ParsableCommand {
                 interval of roughly ±\(Int((1.96 * (0.09 / Double(max(counts.test, 1))).squareRoot()) * 100)) points.
                 300 captures total is the target (docs/05-targets.md).
                 """)
-        }
-    }
-
-    /// Real captures use a 50/20/30 split — weighted toward test, because the
-    /// test number is what gets reported and 30 rows proves nothing
-    /// (`docs/05-targets.md`).
-    static func split(for id: ULID) -> String {
-        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
-        for byte in Array(id.rawValue.utf8) {
-            hash ^= UInt64(byte)
-            hash = hash &* 0x0000_0100_0000_01B3
-        }
-        switch hash % 10 {
-        case 0...4: return "train"
-        case 5...6: return "dev"
-        default: return "test"
         }
     }
 }

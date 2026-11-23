@@ -73,8 +73,23 @@ What a capture becomes once it has structure. One capture may yield several.
 | `effort` | `Classified<EffortBucket>` | see below |
 | `dueAt` | `Classified<Date>` | **parsed by T0 code only** |
 | `goalId` | `Classified<ULID>` | |
+| `category` | `Classified<TaskCategory>` | **T0, derived from the title** when not supplied |
 | `embedding` | [Float]? | model-version-stamped |
 | `createdAt` / `updatedAt` | Date | |
+
+### TaskCategory
+
+What doing the task *involves* — orthogonal to `type`, which says what the
+capture *is*. Nine values, taken from the generated datasets where five
+selection policies turned out to pivot on it (`docs/13-generated-datasets.md`):
+
+`paperwork` · `errands` · `communication` · `planning` · `deepWork` ·
+`chores` · `money` · `learning` · `health`
+
+Assigned at **T0** by a keyword lexicon over the title (`Category.swift`), never
+by a model. Measured accuracy and the AI Justification Test entry are in
+`DECISIONS.md`; re-measure with `make category-eval`. Abstains rather than
+guessing, and a `category` modifier in a `.brain` file overrides it.
 
 ### EffortBucket
 

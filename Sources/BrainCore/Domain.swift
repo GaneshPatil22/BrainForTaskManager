@@ -150,6 +150,9 @@ public struct Item: Hashable, Sendable, Identifiable {
     public var effort: Classified<EffortBucket>
     public var dueAt: Classified<Date>
     public var goalId: Classified<ULID>
+    /// What doing this task involves. Orthogonal to `type`.
+    /// Derived at T0 from the title when not supplied (`Category.swift`).
+    public var category: Classified<TaskCategory>
     public let createdAt: Date
     public var updatedAt: Date
 
@@ -160,6 +163,7 @@ public struct Item: Hashable, Sendable, Identifiable {
         effort: Classified<EffortBucket> = .unknown(),
         dueAt: Classified<Date> = .unknown(),
         goalId: Classified<ULID> = .unknown(),
+        category: Classified<TaskCategory>? = nil,
         createdAt: Date, updatedAt: Date? = nil
     ) {
         self.id = id
@@ -170,6 +174,10 @@ public struct Item: Hashable, Sendable, Identifiable {
         self.effort = effort
         self.dueAt = dueAt
         self.goalId = goalId
+        // Nothing supplied: classify from the title at T0. Free, deterministic,
+        // and abstains rather than guessing.
+        let resolvedCategory = category ?? CategoryClassifier.classify(title)
+        self.category = resolvedCategory
         self.createdAt = createdAt
         self.updatedAt = updatedAt ?? createdAt
     }

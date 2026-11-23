@@ -92,6 +92,7 @@ enum DumpFormat {
             }
 
             var effort: EffortBucket = .unknown
+            var category: Classified<TaskCategory>?
             var status: ItemStatus = .open
             var due: Classified<Date> = .unknown()
             // (kind, target title) collected now, resolved to ids after the item exists.
@@ -117,6 +118,22 @@ enum DumpFormat {
                                 line: lineNumber,
                                 message: "could not parse date: \"\(text)\""))
                     }
+                } else if lower.hasPrefix("category ") {
+                    let name = String(modifier.dropFirst(9))
+                        .trimmingCharacters(in: .whitespaces)
+                        .replacingOccurrences(of: " ", with: "")
+                    if let parsed = TaskCategory.allCases.first(where: {
+                        $0.rawValue.lowercased() == name.lowercased()
+                    }) {
+                        category = Classified(parsed, confidence: 1, tier: .user)
+                    } else {
+                        issues.append(
+                            .init(
+                                line: lineNumber,
+                                message: "unknown category \"\(name)\" — one of: "
+                                    + TaskCategory.allCases.map(\.rawValue).joined(separator: ", "))
+                        )
+                    }
                 } else if lower.hasPrefix("goal ") {
                     edgeRequests.append((.serves, String(modifier.dropFirst(5))))
                 } else if lower.hasPrefix("after ") {
@@ -136,7 +153,7 @@ enum DumpFormat {
                 effort: Classified(
                     effort, confidence: effort == .unknown ? 0 : 1,
                     tier: .user),
-                dueAt: due, createdAt: now)
+                dueAt: due, category: category, createdAt: now)
             graph.insert(item)
             itemOrder.append(item.id)
             if itemIdsByTitle.updateValue(item.id, forKey: title.lowercased()) != nil {

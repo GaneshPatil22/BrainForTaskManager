@@ -146,10 +146,13 @@ money and payments       study or learning        health and self-care
 household
 ```
 
-This is a **keyword lexicon, not a model call** — a one-line regex already
-reaches 75% on `money-first`. It is T0 and passes the AI Justification Test
-trivially. It is a domain change (`Item` gains `category: Classified<Category>`),
-so it waits for a decision rather than being slipped in.
+**DONE 2026-11-23.** `Item` gained `category: Classified<TaskCategory>`, derived
+at T0 from the title by a keyword lexicon (`Sources/BrainCore/Category.swift`).
+
+Measured on 1,308 labelled titles: **80.1% accuracy on attempted, 83.6%
+coverage, 67.0% overall.** Weights and abstention margin were swept, not chosen
+by feel. Full AI Justification Test entry in `DECISIONS.md`; re-measure with
+`make category-eval`.
 
 ### B-04b — Modes are deterministic policies, not inferred states
 

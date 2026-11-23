@@ -51,6 +51,7 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
   "tests" : "all overdue",
   "user_tz" : "Asia/Kolkata"
 }

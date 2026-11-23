@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard dogfood rank rank-again agreement rank-status add-scenarios ingest clean
+.PHONY: help dev build test eval gate lint ci scorecard dogfood rank rank-again agreement split category-eval category-sweep rank-status add-scenarios ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -52,6 +52,17 @@ rank-again: ## Second-pass ranking on a different day (finds the noise floor)
 
 agreement: ## How much you disagree with yourself — the ceiling for any model
 	@swift build 2>/dev/null; swift run brain agreement
+
+category-eval: ## Measure the T0 category lexicon against labelled titles
+	@python3 scripts/category-truth.py > /tmp/category-truth.json 2>/dev/null
+	@swift build 2>/dev/null; swift run brain category-eval
+
+category-sweep: ## Coverage/accuracy curve for the category abstention margin
+	@python3 scripts/category-truth.py > /tmp/category-truth.json 2>/dev/null
+	@swift build 2>/dev/null; swift run brain category-eval --sweep
+
+split: ## Stamp dev/test splits into scenarios (deterministic from id)
+	@swift build 2>/dev/null; swift run brain split
 
 rank-status: ## How many scenarios are ranked so far
 	@echo "ranked: $$(grep -l ranking_top3 datasets/scenarios/*.json 2>/dev/null | wc -l | tr -d ' ')/$$(ls datasets/scenarios/*.json | wc -l | tr -d ' ')"

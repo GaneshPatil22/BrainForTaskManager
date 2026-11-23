@@ -242,3 +242,54 @@ regenerates it, along with `large` being rendered "about 3 hr" when
 ### 2026-11-23 — Generated data moved out of `examples/`
 `examples/` is for files a human copies and edits. 1.9 MB of generated fixtures
 is not that. Now `datasets/generated/`.
+
+### 2026-11-23 — Scenario dev/test split stamped: 21 dev / 9 test
+Assignment is a pure function of the scenario ids, so nobody chose which are
+held out. **Stratified rather than per-id hash**: a per-id hash on 30 scenarios
+landed 24/6, and a 6-scenario held-out set carries a ±24 point interval. Sorting
+by hash and cutting at 70% gives the exact proportion at any n while remaining
+deterministic.
+
+The trade-off is that adding scenarios can move one across the boundary, which
+is acceptable only while the test set has never been looked at. `brain split`
+therefore **stamps the assignment into the files and never overwrites an
+existing stamp** without `--restamp`; re-running is a no-op. Once a test number
+is reported at a phase gate, the split is frozen by construction, not by
+discipline.
+
+At 9 ranked test scenarios a measured 90% carries a ±20 point interval. That is
+directional, not decisive, and the tool says so every time it runs. More
+scenarios narrow it.
+
+### 2026-11-23 — AI Justification Test: task `category` stays at T0
+Required by `docs/09-tiering.md` before any model call could be proposed for this
+field.
+
+1. **Deterministic approach tried:** a keyword lexicon over the task title,
+   split into strong terms (objects plus unambiguous verbs) and weak terms
+   (ambiguous verbs), with a leading-position bonus and an abstention margin.
+2. **Measured, on 1,308 labelled titles** extracted from `datasets/generated/`
+   (the generators leaked category into their rationale strings, giving a free
+   validation set):
+   - **accuracy on attempted 80.1%**, **coverage 83.6%**, **accuracy overall 67.0%**
+   - strongest: planning 77.7%, errands 76.8%, communication 76.5%
+   - weakest: health 43.5%, chores 59.5%
+   - all four weights and the margin were **swept**, not chosen by feel
+     (`make category-sweep`)
+3. **Why the remainder does not yet need a model:** the residual is mostly
+   genuinely ambiguous titles ("check the pantry" vs "check the portal"), where
+   abstention is the correct output and escalation to T1/T3 is the design. A
+   model call is not justified until T0 is exhausted *and* the remaining errors
+   are shown to be model-solvable.
+4. **Tier and fallback:** T0, abstaining to `unknown`, which escalates.
+
+**A caveat that matters: the labels are themselves generator-assigned**, so 80%
+agreement is not 80% correct. The true ceiling is unknown and probably lower than
+100%, because many titles are genuinely ambiguous. Treat these as directional.
+
+**Finding worth keeping:** the intuition that the *object* should outweigh the
+*verb* ("book a dentist" vs "book a flight") is **wrong on aggregate** —
+inverting the weights drops overall accuracy from 67.0% to 64.8%. The leading
+verb is the more informative signal. "Book a dentist appointment" classifying as
+`planning` is a measured cost of the global optimum, pinned by a test so nobody
+"fixes" it and makes things worse.

@@ -148,6 +148,7 @@ Call Amma                | tiny
 |---|---|
 | `tiny` `small` `medium` `large` `xlarge` | effort (5 min → several days) |
 | `due <anything>` | `aaj`, `kal`, `parso`, `15 tarikh`, `next monday`, `in 3 days`, `15/12`, `shaam 5 baje` |
+| `category <name>` | one of paperwork, errands, communication, planning, deepWork, chores, money, learning, health — otherwise derived from the title |
 | `goal <title>` | serves a goal declared with a `goal:` line |
 | `after <title>` | that task must finish first |
 | `done` / `dropped` | already closed |
@@ -235,5 +236,9 @@ make rank          # rank scenarios (blind, resumable)
 make rank-status   # progress
 make add-scenarios FILE=...   # author scenarios from one-liners
 make ingest FILE=...          # ingest raw captures
+make split         # stamp dev/test splits onto scenarios
+make category-eval # measure the T0 category lexicon
+make category-sweep# coverage/accuracy curve for the abstention margin
+make agreement     # self-agreement ceiling (needs `make rank-again` first)
 make clean         # delete build artifacts
 ```

@@ -31,6 +31,8 @@ struct ScenarioFile: Codable {
     }
 
     let id: String
+    /// Assigned by `DatasetSplit.forScenario` from the id — never by hand.
+    var split: String?
     let description: String
     /// What dimension this scenario probes. **Never shown during ranking** —
     /// it would prime the answer.

@@ -43,6 +43,7 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
   "tests" : "same deadline, different effort",
   "user_tz" : "Asia/Kolkata"
 }

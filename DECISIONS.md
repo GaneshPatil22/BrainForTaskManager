@@ -855,3 +855,61 @@ verb — which a language model finds easy almost by definition. Read this as
 
 At 601 tokens per call, 16,000 TPM allows ~26 calls/minute and the 14,400 RPD
 cap is the real ceiling: roughly 14,000 escalations a day.
+
+### 2026-11-23 — The Decisions API, reverse-engineered
+`aistudio.google.com/docs/decisions` 404s and the model metadata only says
+`supportedGenerationMethods: ['createDecision']`. The schema below came from
+probing the live endpoint and reading its validation errors, in about eight
+calls. Recorded in `DecisionProvider.swift` because it is not findable
+elsewhere:
+
+```
+POST /v1beta/decisions
+{"model":"models/gemini-decision-1",
+ "input":[{"type":"text","text":"<capture>"}],
+ "questions":{"<key>":{"type":"choice",            // or "score", "noul"
+                       "instructions":"...",
+                       "criteria":{"task":"...",}  // a MAP, 2-255 entries
+ }}}
+```
+
+### 2026-11-23 — B3 two-track comparison. I was wrong about calibration.
+17 captures both models answered, on the escalation set where T0 scores 0%:
+
+```
+                          gemma-4-26b-a4b-it   gemini-decision-1
+  accuracy                94.1%                94.1%
+  accepted at conf >= 0.7 17/17                12/17
+  …and correct            16                   12
+  mean tokens/call        693                  281
+  ECE (lower is better)   0.059                0.203
+  mean confidence         1.00                 0.78
+  distinct confidences    1                    6
+```
+
+**What I predicted:** Decision 1 returns calibrated confidence, so guard 4
+becomes meaningful. **What the data says:** its ECE is three times *worse*.
+
+The reason matters more than the number. Gemma answers **1.00 to everything**
+and is 94% right, so its gap is only 0.06 — it is *accidentally* calibrated.
+`distinct confidences: 1` is the tell: that confidence carries no information
+at all, and no threshold can separate its good answers from its bad ones.
+Decision 1 produces six distinct values — real signal — but is systematically
+**under-confident**, so a fixed 0.7 threshold throws away five correct answers.
+
+So the honest conclusion is the reverse of the naive reading: **under-
+confidence is fixable** (temperature scaling and a fitted threshold, which is
+precisely what B5 is for); **a constant confidence is not.** ECE alone would
+have picked the wrong model, so `t2-score` now prints the distinct-confidence
+count beside it and explains the trap.
+
+**Reliability, which was not close:**
+- Gemma: 17 of 25 recorded. 10 failures, all HTTP 503, after three retries each.
+- Decision 1: **25 of 25, zero failures, 18 seconds.**
+
+Cost: 281 tokens against 693, and Decision 1's free RPD is 10,000 against
+Gemma's 14,400 — comparable headroom at under half the tokens.
+
+**No winner declared on accuracy.** 17 captures cannot separate 94.1% from
+94.1%. The reliability, token and confidence-signal differences are
+structural, and those are the ones worth acting on.

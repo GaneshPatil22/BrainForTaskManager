@@ -70,16 +70,25 @@ public struct ModelResponse: Sendable, Hashable {
     public let completionTokens: Int
     /// Raw output, kept for tracing so a bad result is replayable.
     public let raw: String
+    /// Full probability distribution over the permitted answers, where the
+    /// provider reports one.
+    ///
+    /// Needed for calibration: ECE is a scorecard metric
+    /// (`docs/04-scorecard.md`) and cannot be computed from a single
+    /// confidence number after the fact. Empty for providers that generate
+    /// text, which have no distribution to report.
+    public let probabilities: [String: Double]
 
     public init(
         answer: String?, confidence: Double, promptTokens: Int,
-        completionTokens: Int, raw: String
+        completionTokens: Int, raw: String, probabilities: [String: Double] = [:]
     ) {
         self.answer = answer
         self.confidence = min(max(confidence, 0), 1)
         self.promptTokens = promptTokens
         self.completionTokens = completionTokens
         self.raw = raw
+        self.probabilities = probabilities
     }
 
     public static let abstained = ModelResponse(

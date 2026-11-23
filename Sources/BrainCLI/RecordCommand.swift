@@ -20,6 +20,11 @@ struct RecordCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Model id, as listed by the provider.")
     var model: String = "gemma-4-26b-a4b-it"
 
+    @Option(
+        name: .long,
+        help: "generate (generateContent) or decide (the Decisions API).")
+    var api: String = "generate"
+
     @Option(name: .long, help: "How many captures to record. Required — no unbounded runs.")
     var limit: Int
 
@@ -62,10 +67,19 @@ struct RecordCommand: AsyncParsableCommand {
             : captures
         let batch = Array(pool.prefix(limit))
 
-        let limits = GoogleLimits.limits(for: model)
-        // 20s was too short: a thinking model spends 300+ tokens reasoning
-        // before it answers, and a third of the first batch timed out.
-        let provider = GoogleProvider(model: model, apiKey: key, timeout: 60)
+        // Two tracks, as B3 requires: generate-and-parse against a closed-set
+        // decision call, on the same captures so the comparison is paired.
+        let isDecision = api == "decide"
+        let limits = isDecision ? DecisionLimits.geminiDecision1 : GoogleLimits.limits(for: model)
+        let provider: any LLMProvider =
+            isDecision
+            ? DecisionProvider(
+                model: model, apiKey: key,
+                instructions: Prompts.classifyTypeSystem,
+                criteria: Prompts.typeCriteria)
+            // 20s was too short: a thinking model spends 300+ tokens reasoning
+            // before it answers, and a third of the first batch timed out.
+            : GoogleProvider(model: model, apiKey: key, timeout: 60)
         let store = CassetteStore(
             directory: URL(fileURLWithPath: cassettes), mode: .record)
         let ledger = BudgetLedger()

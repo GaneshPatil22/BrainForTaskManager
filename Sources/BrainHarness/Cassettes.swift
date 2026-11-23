@@ -31,12 +31,16 @@ public struct Cassette: Codable, Sendable {
     public let promptTokens: Int
     public let completionTokens: Int
     public let raw: String
+    /// Kept so calibration can be recomputed from cassettes without
+    /// re-calling the model.
+    public let probabilities: [String: Double]?
     public let recordedAt: String
 
     public var response: ModelResponse {
         ModelResponse(
             answer: answer, confidence: confidence, promptTokens: promptTokens,
-            completionTokens: completionTokens, raw: raw)
+            completionTokens: completionTokens, raw: raw,
+            probabilities: probabilities ?? [:])
     }
 }
 
@@ -119,6 +123,7 @@ public actor CassetteStore {
             answer: response.answer, confidence: response.confidence,
             promptTokens: response.promptTokens, completionTokens: response.completionTokens,
             raw: response.raw,
+            probabilities: response.probabilities.isEmpty ? nil : response.probabilities,
             recordedAt: ISO8601DateFormatter().string(from: Date()))
         memory[cassette.key] = cassette
         recorded += 1

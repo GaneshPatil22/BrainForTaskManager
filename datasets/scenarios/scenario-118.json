@@ -1,0 +1,78 @@
+{
+  "description" : "Declutter month",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Declutter the house"
+    }
+  ],
+  "id" : "scenario-118",
+  "items" : [
+    {
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Donate the old clothes",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Sell the old books",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Clean the kitchen drawers",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Throw the expired medicines",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+12",
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Book a cleaning service",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

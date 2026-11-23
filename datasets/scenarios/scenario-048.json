@@ -1,0 +1,73 @@
+{
+  "description" : "Audit season",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Close client audits"
+    }
+  ],
+  "id" : "scenario-048",
+  "items" : [
+    {
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Collect bank statements from client",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Reconcile the ledger",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+14",
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "File TDS return",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+3",
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Reply to income tax notice",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Renew CA practice insurance",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

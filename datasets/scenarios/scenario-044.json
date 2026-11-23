@@ -1,0 +1,72 @@
+{
+  "description" : "Creative work — Long-term goal",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Creative work"
+    }
+  ],
+  "id" : "scenario-044",
+  "items" : [
+    {
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Photograph artwork",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Update art page",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Sketch concepts",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Buy canvas",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Finish background",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -1,0 +1,72 @@
+{
+  "description" : "Study routine — Unexpected interruption",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Study routine"
+    }
+  ],
+  "id" : "scenario-126",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Write sentences",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Book conversation practice",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Review grammar",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Read article",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Track vocabulary",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

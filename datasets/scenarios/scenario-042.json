@@ -1,0 +1,72 @@
+{
+  "description" : "Work and admin — Follow-up and admin",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Work and admin"
+    }
+  ],
+  "id" : "scenario-042",
+  "items" : [
+    {
+      "due_at" : "+22",
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Learn new tool",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Prepare agenda",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Finish report",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Book health check",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Submit expense claim",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

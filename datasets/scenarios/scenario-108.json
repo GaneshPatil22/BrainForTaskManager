@@ -1,0 +1,59 @@
+{
+  "description" : "Health and paperwork",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
+    }
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-108",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Book the knee doctor",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Get blood tests done",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+22",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Pay the property tax",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Call the son in Canada",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Learn video calling",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

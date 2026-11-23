@@ -1,0 +1,72 @@
+{
+  "description" : "Exam prep — Urgent deadline",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Exam prep"
+    }
+  ],
+  "id" : "scenario-101",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Revise chapter",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Finish worksheet",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Ask teacher a doubt",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Prepare history notes",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Pack school bag",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

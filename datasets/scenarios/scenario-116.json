@@ -1,0 +1,84 @@
+{
+  "description" : "Annual day",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "blocks",
+      "to" : "i3"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Run the annual day"
+    }
+  ],
+  "id" : "scenario-116",
+  "items" : [
+    {
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Book the stage decorator",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Finalise the chief guest",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Print the invitations",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Conduct the rehearsals",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Pay the teachers' salary",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

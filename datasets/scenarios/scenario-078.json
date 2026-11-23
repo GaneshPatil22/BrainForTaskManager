@@ -1,0 +1,54 @@
+{
+  "description" : "Weekend match",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-078",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Confirm the 11 players",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Book the ground",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Buy the new ball",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Collect the match fees",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Arrange the umpire",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

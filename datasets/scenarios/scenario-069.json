@@ -1,0 +1,68 @@
+{
+  "description" : "Sunday sapling plantation along canal road",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Plant and guard 50 native saplings"
+    }
+  ],
+  "id" : "scenario-069",
+  "items" : [
+    {
+      "due_at" : "+3",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Dig 50 pits with garden tools",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+3",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Pick up neem and banyan saplings",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Arrange bamboo tree guards",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Assign watering rotation roster",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -1,0 +1,65 @@
+{
+  "description" : "Trip preparation — Busy schedule",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Trip preparation"
+    }
+  ],
+  "id" : "scenario-085",
+  "items" : [
+    {
+      "effort" : "tiny",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Make packing list",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Arrange transfer",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Share itinerary",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Compare trains",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

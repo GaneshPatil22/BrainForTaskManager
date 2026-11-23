@@ -14,13 +14,23 @@ public enum DatasetSplit: String, Sendable, Codable, CaseIterable {
 
     /// Stable, well-spread, dependency-free. Splitting needs those three
     /// properties and not cryptographic ones, so FNV-1a rather than SHA-256.
+    ///
+    /// **The finalizer is not optional.** Raw FNV-1a has weak avalanche on its
+    /// trailing bytes — the last byte is XORed and multiplied exactly once — so
+    /// ids sharing a prefix hash in near-sequential order. That silently sorted
+    /// `scenario-001…030` into one contiguous block and put every
+    /// already-ranked scenario on the same side of the split. The SplitMix64
+    /// finalizer below gives proper avalanche, so a one-character difference
+    /// changes roughly half the output bits.
     public static func hash(_ id: String) -> UInt64 {
         var value: UInt64 = 0xcbf2_9ce4_8422_2325
         for byte in Array(id.utf8) {
             value ^= UInt64(byte)
             value = value &* 0x0000_0100_0000_01B3
         }
-        return value
+        value = (value ^ (value >> 30)) &* 0xBF58_476D_1CE4_E5B9
+        value = (value ^ (value >> 27)) &* 0x94D0_49BB_1331_11EB
+        return value ^ (value >> 31)
     }
 
     /// Synthetic data: 70 / 20 / 10. Abundant, so the train split carries volume.

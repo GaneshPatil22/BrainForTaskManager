@@ -1,0 +1,54 @@
+{
+  "description" : "Two lives",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-083",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Reply to cake enquiries",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Finish the quarterly slides",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Order baking boxes",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Bake 12 cupcakes",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Ask boss for leave on Friday",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

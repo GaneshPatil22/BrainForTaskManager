@@ -1,0 +1,72 @@
+{
+  "description" : "Client project — Follow-up and admin",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Client project"
+    }
+  ],
+  "id" : "scenario-089",
+  "items" : [
+    {
+      "due_at" : "+22",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Back up files",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Send logo draft",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Ask client feedback",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Export final assets",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Update portfolio",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -1,0 +1,72 @@
+{
+  "description" : "Client project — Unexpected interruption",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Client project"
+    }
+  ],
+  "id" : "scenario-110",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Prepare invoice",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Export final assets",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Update portfolio",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Follow up payment",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Back up files",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

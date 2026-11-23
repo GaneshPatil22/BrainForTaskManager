@@ -1,0 +1,72 @@
+{
+  "description" : "Work setup — Weekend catch-up",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Work setup"
+    }
+  ],
+  "id" : "scenario-062",
+  "items" : [
+    {
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Plan focus blocks",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Adjust chair",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Back up files",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Finish deliverable",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Clear desk",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

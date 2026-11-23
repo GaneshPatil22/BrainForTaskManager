@@ -1,0 +1,72 @@
+{
+  "description" : "Client project — Weekend catch-up",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Client project"
+    }
+  ],
+  "id" : "scenario-111",
+  "items" : [
+    {
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Export final assets",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Update portfolio",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Research typography",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Back up files",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Send logo draft",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

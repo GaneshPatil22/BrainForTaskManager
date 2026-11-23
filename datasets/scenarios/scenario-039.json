@@ -1,0 +1,58 @@
+{
+  "description" : "Intern tasks",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i5"
+    }
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-039",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Make the weekly report",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Research the competitors",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Clean the spreadsheet",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Ask the mentor for feedback",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Share the learning in the team meeting",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

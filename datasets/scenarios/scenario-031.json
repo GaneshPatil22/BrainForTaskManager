@@ -1,0 +1,54 @@
+{
+  "description" : "Hospital rotation",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-031",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Write the discharge summaries",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Prepare for the case presentation",
+      "type" : "task"
+    },
+    {
+      "effort" : "xlarge",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Study for NEET PG",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Apply for the leave",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Get the logbook signed",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

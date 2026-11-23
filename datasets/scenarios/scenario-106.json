@@ -1,0 +1,68 @@
+{
+  "description" : "Apartment Diwali or winter cultural night",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Host memorable society evening"
+    }
+  ],
+  "id" : "scenario-106",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finalize kids dance and skit lineup",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Book sound system and fairy lights",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Collect stall fees from home bakers",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+3",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Assign volunteer emcee and stage team",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

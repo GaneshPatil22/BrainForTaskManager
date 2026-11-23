@@ -1,0 +1,72 @@
+{
+  "description" : "Study routine — Long-term goal",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Study routine"
+    }
+  ],
+  "id" : "scenario-125",
+  "items" : [
+    {
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Read article",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Track vocabulary",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Review flashcards",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Write sentences",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Book conversation practice",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

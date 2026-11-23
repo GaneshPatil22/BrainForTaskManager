@@ -31,7 +31,13 @@ struct SplitCommand: ParsableCommand {
         var ranked: [String: Int] = [:]
         var changed = 0
 
-        let assigned = DatasetSplit.stratify(ids: loaded.map(\.file.id))
+        // Stratify ranked and unranked scenarios *independently*. Pooling them
+        // lets every ranked scenario land on one side by chance, which leaves
+        // nothing to tune against (or nothing to validate on).
+        let rankedIds = loaded.filter { $0.file.expected != nil }.map(\.file.id)
+        let blankIds = loaded.filter { $0.file.expected == nil }.map(\.file.id)
+        let assigned = DatasetSplit.stratify(ids: rankedIds)
+            .merging(DatasetSplit.stratify(ids: blankIds)) { current, _ in current }
 
         for scenario in loaded {
             // An existing stamp wins: once a test number has been reported the

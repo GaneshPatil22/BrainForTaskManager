@@ -1,0 +1,72 @@
+{
+  "description" : "Thesis — Weekend catch-up",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Thesis"
+    }
+  ],
+  "id" : "scenario-105",
+  "items" : [
+    {
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Clean dataset",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Update citations",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Draft methodology",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Back up files",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Read papers",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

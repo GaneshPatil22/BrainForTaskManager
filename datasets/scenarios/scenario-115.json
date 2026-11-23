@@ -1,0 +1,47 @@
+{
+  "description" : "Mandi and money",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-115",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Subah 4 baje mandi jaana",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+22",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Weighing scale ka certificate",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Loan ki kisht dena",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Beta ke liye school bag lena",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

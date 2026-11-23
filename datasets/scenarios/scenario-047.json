@@ -1,0 +1,78 @@
+{
+  "description" : "Rabi season",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Sow wheat on time"
+    }
+  ],
+  "id" : "scenario-047",
+  "items" : [
+    {
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Test the soil",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Buy wheat seeds",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Hire the tractor",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Check PM-Kisan payment status",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+3",
+      "effort" : "large",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Repair the borewell pipe",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

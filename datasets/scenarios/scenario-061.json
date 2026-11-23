@@ -1,0 +1,59 @@
+{
+  "description" : "Ideas everywhere",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-061",
+  "items" : [
+    {
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Start a blog on gardening",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Learn the guitar",
+      "type" : "task"
+    },
+    {
+      "effort" : "xlarge",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Make a budget app",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Write to the old teacher",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Try the 5 am club",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "small",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Buy a tripod",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -1,0 +1,54 @@
+{
+  "description" : "Chaat stall",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-058",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Buy potatoes and chutney ingredients",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+22",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Get the license renewed",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Pay the municipal fee",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Buy a new gas cylinder",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Add a UPI scanner",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

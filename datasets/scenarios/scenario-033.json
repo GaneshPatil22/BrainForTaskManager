@@ -1,0 +1,119 @@
+{
+  "description" : "Exam week panic",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i4"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i8",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Pass all four subjects"
+    }
+  ],
+  "id" : "scenario-033",
+  "items" : [
+    {
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Revise DBMS",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Revise operating systems",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Revise networks",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Solve last year's DBMS paper",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Collect the hall ticket",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Charge the calculator",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i7",
+      "status" : "open",
+      "title" : "Sleep 7 hours",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i8",
+      "status" : "open",
+      "title" : "Ask a friend for notes",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "tiny",
+      "id" : "i9",
+      "status" : "open",
+      "title" : "Pay the exam fee",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -1,0 +1,72 @@
+{
+  "description" : "Classroom — Long-term goal",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Classroom"
+    }
+  ],
+  "id" : "scenario-057",
+  "items" : [
+    {
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Restock supplies",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Review student progress",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Prepare lesson",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Message parents",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Print worksheets",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

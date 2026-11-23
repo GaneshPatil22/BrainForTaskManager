@@ -1,0 +1,85 @@
+{
+  "description" : "CAT prep",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "blocks",
+      "to" : "i4"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Score 95 percentile in CAT"
+    }
+  ],
+  "id" : "scenario-059",
+  "items" : [
+    {
+      "effort" : "xlarge",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finish the quant basics",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Do daily reading comprehension",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+6",
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Take the weekend mock",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Analyse the mock",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Pay the test series fee",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

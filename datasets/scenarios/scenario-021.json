@@ -56,7 +56,7 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
-  "split" : "test",
+  "split" : "dev",
   "tests" : "domestic admin",
   "user_tz" : "Asia/Kolkata"
 }

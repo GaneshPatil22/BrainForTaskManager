@@ -1,0 +1,58 @@
+{
+  "description" : "Pre-wedding shoot",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "blocks",
+      "to" : "i4"
+    }
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-084",
+  "items" : [
+    {
+      "due_at" : "+2",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Scout location",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Charge camera and lenses",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Edit last week's photos",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Send gallery to client",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Book a cab for the shoot",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

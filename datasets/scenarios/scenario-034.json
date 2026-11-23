@@ -1,0 +1,94 @@
+{
+  "description" : "Three clients one me",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i6"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Keep every client happy"
+    }
+  ],
+  "id" : "scenario-034",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Send the draft to client A",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Fix the bugs for client B",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Reply to client C",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Send the monthly invoices",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Block the calendar for deep work",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Raise the rate with client A",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i7",
+      "status" : "open",
+      "title" : "Update the contract template",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -49,7 +49,7 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
-  "split" : "test",
+  "split" : "dev",
   "tests" : "the dreaded overdue thing",
   "user_tz" : "Asia/Kolkata"
 }

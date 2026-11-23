@@ -1,0 +1,84 @@
+{
+  "description" : "Masters in Germany",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i5"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Apply to German universities"
+    }
+  ],
+  "id" : "scenario-068",
+  "items" : [
+    {
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Give the IELTS exam",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Write the SOP",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Ask professors for LORs",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Translate the documents",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Submit uni-assist application",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

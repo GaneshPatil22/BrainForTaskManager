@@ -1,0 +1,73 @@
+{
+  "description" : "Race prep",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Finish the half marathon"
+    }
+  ],
+  "id" : "scenario-040",
+  "items" : [
+    {
+      "due_at" : "+6",
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Run the 15 km long run",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Buy new running shoes",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Book the physio check",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Plan the race-day breakfast",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+12",
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Collect the race bib",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -1,0 +1,80 @@
+{
+  "description" : "Investor meeting",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Close the seed round"
+    }
+  ],
+  "id" : "scenario-100",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finish the pitch deck",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Update the financial model",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Send deck to the investor",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Reply to the lawyer",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+3",
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Book flight to Bengaluru",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

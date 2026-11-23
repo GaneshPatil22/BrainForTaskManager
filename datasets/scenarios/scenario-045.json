@@ -1,0 +1,80 @@
+{
+  "description" : "Festive orders",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Deliver all festive orders"
+    }
+  ],
+  "id" : "scenario-045",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Stitch Anita's blouse",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Take measurements for 3 new clients",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Buy lace and buttons",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Iron and pack finished orders",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Pay the helper's salary",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

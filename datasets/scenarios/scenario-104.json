@@ -1,0 +1,77 @@
+{
+  "description" : "Work and admin — Fresh start",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Work and admin"
+    }
+  ],
+  "id" : "scenario-104",
+  "items" : [
+    {
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finish report",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Submit expense claim",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Book health check",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Learn new tool",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Plan priorities",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

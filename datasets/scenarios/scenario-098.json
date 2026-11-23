@@ -1,0 +1,72 @@
+{
+  "description" : "Thesis — Urgent deadline",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Thesis"
+    }
+  ],
+  "id" : "scenario-098",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Read papers",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Write summary",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Ask supervisor feedback",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Update citations",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Draft methodology",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

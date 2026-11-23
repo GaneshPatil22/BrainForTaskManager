@@ -1,0 +1,47 @@
+{
+  "description" : "Duty and personal",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-071",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Submit the case diary",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Apply for the casual leave",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Attend the court hearing",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Renew the gun licence record",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

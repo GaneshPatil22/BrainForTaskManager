@@ -1,0 +1,61 @@
+{
+  "description" : "Hostel life",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-052",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Do the laundry",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Submit physics assignment",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Call parents",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Buy a new lock for the almirah",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Study for the maths quiz",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Clean the room",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

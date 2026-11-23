@@ -1,0 +1,54 @@
+{
+  "description" : "Articleship life",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-099",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finish the client's GST filing",
+      "type" : "task"
+    },
+    {
+      "effort" : "xlarge",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Prepare for CA inter exam",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Collect the audit working papers",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Ask the principal for leave",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Register for the coaching test series",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

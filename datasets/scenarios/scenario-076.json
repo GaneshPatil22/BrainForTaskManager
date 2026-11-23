@@ -1,0 +1,58 @@
+{
+  "description" : "Flat problems",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "blocks",
+      "to" : "i5"
+    }
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-076",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "tiny",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Ask the owner to fix the geyser",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+8",
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Pay the rent",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Collect the rent receipts",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Look for a new flat",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Give notice for vacating",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

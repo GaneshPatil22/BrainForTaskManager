@@ -1,0 +1,72 @@
+{
+  "description" : "Campus event — Follow-up and admin",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Campus event"
+    }
+  ],
+  "id" : "scenario-073",
+  "items" : [
+    {
+      "due_at" : "+22",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Prepare attendee list",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Confirm venue",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Design poster",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Collect registrations",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Arrange speakers",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

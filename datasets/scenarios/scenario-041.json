@@ -1,0 +1,59 @@
+{
+  "description" : "Jobs this week",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "blocks",
+      "to" : "i1"
+    }
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-041",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Fix the leak at Sector 5",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Buy pipes and fittings",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Quote for bathroom fitting",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Collect pending payment from Gupta ji",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Service the drill machine",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

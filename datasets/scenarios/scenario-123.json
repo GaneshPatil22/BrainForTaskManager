@@ -1,0 +1,53 @@
+{
+  "description" : "NEET dropper grind",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-123",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finish NCERT biology ch 8",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Solve 100 physics MCQs",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Fix sleep schedule",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+7",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Pay coaching fee installment",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Book doctor appointment for eyes",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

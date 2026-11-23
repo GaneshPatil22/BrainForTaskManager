@@ -1,0 +1,57 @@
+{
+  "description" : "After the layoff",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i5"
+    }
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-066",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Update resume",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Tell old colleagues I am looking",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "File for PF withdrawal",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Cancel unused subscriptions",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Apply for 5 roles",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

@@ -1,0 +1,68 @@
+{
+  "description" : "College fest cultural rehearsal clash",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Balance fest and coursework"
+    }
+  ],
+  "id" : "scenario-102",
+  "items" : [
+    {
+      "due_at" : "+0",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Attend dance rehearsal at 6 pm",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Finish tutorial sheet in morning",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Confirm costume size with team",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Inform prof if leaving early",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

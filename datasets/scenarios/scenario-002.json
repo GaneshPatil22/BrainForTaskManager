@@ -59,7 +59,7 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
-  "split" : "dev",
+  "split" : "test",
   "tests" : "deadline vs. leverage",
   "user_tz" : "Asia/Kolkata"
 }

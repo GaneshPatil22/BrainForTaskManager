@@ -1,0 +1,54 @@
+{
+  "description" : "Clinic admin",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-049",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Order stock of syringes",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Review pending lab reports",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Hire a new receptionist",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Update clinic website timing",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+27",
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "File GST return",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

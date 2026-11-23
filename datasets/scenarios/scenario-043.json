@@ -1,0 +1,78 @@
+{
+  "description" : "Running the shop and home",
+  "edges" : [
+
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-043",
+  "items" : [
+    {
+      "due_at" : "+7",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Pay the staff salary",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Restock the best sellers",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Fix the AC",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+27",
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "File the GST return",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Take daughter for the dental check",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+12",
+      "effort" : "small",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Buy a gift for the wedding",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+22",
+      "effort" : "medium",
+      "id" : "i7",
+      "status" : "open",
+      "title" : "Renew the shop insurance",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i8",
+      "status" : "open",
+      "title" : "Clean the storeroom",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

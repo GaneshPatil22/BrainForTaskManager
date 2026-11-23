@@ -293,3 +293,37 @@ inverting the weights drops overall accuracy from 67.0% to 64.8%. The leading
 verb is the more informative signal. "Book a dentist appointment" classifying as
 `planning` is a measured cost of the global optimum, pinned by a test so nobody
 "fixes" it and makes things worse.
+
+### 2026-11-23 — Real bug: the dataset split was not random
+`DatasetSplit.hash` used raw FNV-1a. Its trailing bytes have weak avalanche —
+the last byte is XORed and multiplied exactly once — so ids sharing a prefix
+hashed in near-sequential order. The effect was invisible until the scenario
+set grew: **all 30 already-ranked scenarios landed in `test`**, leaving nothing
+to tune against. That would have silently biased every split in the project,
+including the real-capture splits.
+
+Fixed with a SplitMix64 finalizer, so a one-character change moves ~half the
+output bits. Two regression tests pin it: rank/sequence correlation must stay
+below 0.2, and mean flipped bits between adjacent ids must sit near 32.
+
+### 2026-11-23 — Ranked and unranked scenarios are stratified independently
+Pooling them let chance put every ranked scenario on one side. Splitting each
+group 70/30 separately guarantees both sides carry human-ranked ground truth.
+Now 21 ranked dev / 9 ranked test, with the 100 imported blanks at 70/30.
+
+### 2026-11-23 — 100 generated scenarios imported for human ranking
+The generated *task lists* are sound; only the answer key was worthless. So the
+answers are stripped and a human ranks them instead.
+
+Random sampling would have wasted that effort. Of 897 generated scenarios:
+- **353 rejected** — fewer than 4 startable tasks, so the answer is near-forced
+- **281 rejected** — all four candidate policies (leverage, deadline-first,
+  quick-win-first, unblocker-first) pick the same top task, so a human answer
+  cannot discriminate between designs
+- 263 survived; 100 selected, round-robin across structural traits
+  (blocked chains, deadline conflicts, goals, mixed effort, mixed category) so
+  no single shape dominates
+
+That is active learning (§5.7 of the brief): rank the cases the system is least
+sure about. **Only ~29% of the generated set was worth a human's time**, which
+is the argument against ranking all 800+.

@@ -1,0 +1,59 @@
+{
+  "description" : "Hospital days",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
+    }
+  ],
+  "goals" : [
+
+  ],
+  "id" : "scenario-035",
+  "items" : [
+    {
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Book the oncologist follow-up",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Arrange the blood donor",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Claim the insurance",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Cook the soft diet food",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Ask the boss for work from home",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "test",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

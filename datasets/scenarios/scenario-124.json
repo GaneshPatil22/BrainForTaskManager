@@ -1,0 +1,78 @@
+{
+  "description" : "Himalayan trek",
+  "edges" : [
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i4"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    }
+  ],
+  "goals" : [
+    {
+      "id" : "g1",
+      "title" : "Complete the Kedarkantha trek"
+    }
+  ],
+  "id" : "scenario-124",
+  "items" : [
+    {
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Book the trek slot",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Buy the trekking shoes",
+      "type" : "task"
+    },
+    {
+      "effort" : "large",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Train with stair climbing",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Get the fitness certificate",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+22",
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Pack the rucksack",
+      "type" : "task"
+    }
+  ],
+  "now" : "2026-11-23T09:00:00+05:30",
+  "split" : "dev",
+  "tests" : "authored by Ganesh",
+  "user_tz" : "Asia/Kolkata"
+}

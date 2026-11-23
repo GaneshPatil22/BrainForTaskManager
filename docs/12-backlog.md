@@ -171,3 +171,66 @@ behaviours**, which is a more honest starting point for a UI than twenty.
 
 **Start when** Brain v1 is frozen and there is a UI with somewhere to put a mode
 switch. Until then the taxonomy is recorded, not built.
+
+---
+
+## B-05 — Recurring tasks
+
+**Idea (Ganesh, 2026-11-23).** Users create repeating items:
+
+| Example | Pattern |
+|---|---|
+| ₹10k ICICI SIP on the 15th | day-of-month |
+| ₹1.5k SBI SIP on the 20th | day-of-month |
+| Monthly plan on the first Sunday | nth weekday of month |
+| Previous-month review, first Sunday of the next month | nth weekday, offset period |
+| Previous and next quarter review, first week of a new quarter | quarterly, week-of-period |
+
+### The fork that decides everything else
+
+**One item that moves its due date, or a series of instances?**
+
+| | One moving item | A series of instances |
+|---|---|---|
+| Graph | one node, edges stay put | a node per occurrence; what do edges attach to? |
+| History | no record of past completions | full record — "did I miss November's SIP?" |
+| Ranking | one row, never clutters | the list fills with future occurrences unless filtered |
+| Storage | trivial | needs generation, pruning, a horizon |
+
+Neither is obviously right. "Did I skip a SIP?" is a real question, which argues
+for instances; a list drowning in future occurrences argues against. The likely
+answer is **one template plus materialised instances within a horizon**, but
+that is a decision to make deliberately, not drift into.
+
+### Why this is mostly T0
+
+Recurrence is a grammar and calendar arithmetic — `DateParser` already handles
+"15 tarikh". The repeating forms are the same grammar with a quantifier:
+"har 15 tarikh", "every first Sunday", "har mahine 20 ko". **No model needed**,
+which puts it squarely in T0 and means it passes the AI Justification Test
+without argument.
+
+The genuinely fiddly parts are calendar edge cases, not language:
+- the 31st in a 30-day month, and 29 February
+- "first Sunday" when the month starts on a Sunday
+- quarter boundaries against an Indian financial year (April–March) rather than
+  the calendar year — worth asking which the user means
+- a timezone-correct "first week", given everything resolves in the user's zone
+
+### What it touches
+
+- `Item` gains a recurrence rule, or a new `RecurrenceTemplate` entity
+- `status` needs a per-occurrence notion of done
+- ranking needs a horizon filter so next month's SIP is not competing with today
+- the scoring formula needs a view on whether a recurring item's leverage
+  differs from a one-off's
+
+### Interaction already visible
+
+PII stripping (guard 10) redacts amounts, so "pay ₹10k SIP" becomes
+"pay [amount] SIP" before it reaches a model. That is correct and harmless —
+the original is kept locally and the amount is not needed for classification —
+but worth knowing before someone reports it as a bug.
+
+**Start when** Brain v1 is frozen and the one-item-vs-series question is
+answered. The grammar work could land earlier if it is useful standalone.

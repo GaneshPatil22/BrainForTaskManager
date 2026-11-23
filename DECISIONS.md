@@ -612,3 +612,19 @@ defaulted to 1.0, so behaviour is identical; it exists because effort is a
 divisor and no weighted term could undo its bias. Scorecard is unmoved
 (top-3 71.6%, top-1 24.3%) and the three hand-computed worked examples in
 `docs/02-scoring-spec.md` still pass.
+
+### 2026-11-23 — Recurring tasks recorded as B-05, not built
+Ganesh's examples cover three distinct patterns: day-of-month (SIP on the
+15th), nth-weekday-of-month (first Sunday), and quarterly week-of-period.
+
+Recorded rather than started, with the fork that decides the rest made
+explicit: **one item whose due date moves, or a series of instances?** "Did I
+miss November's SIP?" argues for instances; a list drowning in future
+occurrences argues against. Probably a template plus materialised instances
+within a horizon — but that is a decision to take deliberately.
+
+Worth noting it is **T0, not AI**: recurrence is the date grammar plus a
+quantifier ("har 15 tarikh"), and the hard parts are calendar edge cases — the
+31st in a 30-day month, "first Sunday" when a month starts on one, and whether
+"quarter" means the calendar year or the Indian financial year. That last one
+is a question for Ganesh when we build it.

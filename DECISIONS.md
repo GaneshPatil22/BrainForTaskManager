@@ -654,3 +654,41 @@ would be fitting noise, and the diagnosis ran just in time to avoid it.
 ceiling we cannot tell whether 71.6% is already above the human noise floor
 (stop) or well below it (keep working). Ten minutes of `make rank-again`
 decides which.
+
+### 2026-11-23 — 300 real captures arrived, and they demolished a guess
+First contact with Ganesh's actual writing. `make coverage` is new, read-only,
+and reports **coverage not accuracy** since real captures are unlabelled:
+
+```
+                     before   after
+  type recognised     46.7%   98.0%
+  nothing recognised  18.0%    1.0%
+  category            67.3%   67.3%
+  date found          17.3%   17.3%
+```
+
+**The cause: we were tuned to a spelling he does not use.** Our Hinglish
+imperative rule was a list — "karna hai", "karna h". In 300 real captures
+`karna` appears **once**; `krna`/`krni` appear **108 times**. The synthetic set
+and all three generated `*-300` files used the textbook spelling, so nothing
+caught it. Only real data could.
+
+**The fix is morphology, not more spellings.** The pattern
+`<verb ending na|ni|ne> + copula h|hai` matches krna, karna, lena, dena,
+banana, dekhna, kharidna — every infinitive, including the ones nobody has
+written down yet. A spelling list can only cover spellings someone thought of.
+
+Checked for a precision trade on the **labelled** synthetic set: type accuracy
+80.7% → 81.0%, unfamiliar-verb slice 56.4% → 57.1%. Both marginally up, so 51
+points of real-world coverage cost nothing.
+
+Also added 22 English verbs that appeared in real captures and fell through to
+`note` — research, explore, discuss, publish, settle, sell, attend, visit.
+
+**Honest limit:** 95.7% of real captures now classify as `task`. The file
+genuinely is mostly tasks, but with no labels this is *recognition*, not
+*correctness*. We can say we produce a type, not that it is the right one.
+
+**B-05 validated by the data:** 25 captures carry recurrence markers —
+"Har month" ×16, "Har Sunday" ×3, "Har 6 months", "Har 3 months", "Har Friday",
+"Har 15 days". The feature request was not hypothetical.

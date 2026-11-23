@@ -35,7 +35,7 @@ struct IngestCommand: ParsableCommand {
         var tooLong = 0
 
         for line in raw.components(separatedBy: .newlines) {
-            let text = line.trimmingCharacters(in: .whitespaces)
+            let text = CoverageCommand.stripListNumbering(line)
             guard !text.isEmpty, !text.hasPrefix("#") else { continue }
             // Ids derive from content, so re-running ingest is idempotent and
             // a capture keeps its split forever.

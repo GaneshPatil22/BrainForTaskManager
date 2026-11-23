@@ -20,6 +20,15 @@
       "to" : "g1"
     }
   ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T17:16:59Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i3",
+      "i2",
+      "i4"
+    ]
+  },
   "goals" : [
     {
       "id" : "g1",

@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios ingest clean
+.PHONY: help dev build test eval gate lint ci scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios coverage ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -73,6 +73,10 @@ rank-status: ## How many scenarios are ranked so far
 add-scenarios: ## Add your own scenarios:  make add-scenarios FILE=examples/my-scenarios.brain
 	@test -n "$(FILE)" || (echo "usage: make add-scenarios FILE=path/to/file.brain"; exit 1)
 	swift run brain add-scenarios "$(FILE)"
+
+coverage: ## What T0 reads from real captures:  make coverage FILE=~/Desktop/captures.txt
+	@test -n "$(FILE)" || (echo "usage: make coverage FILE=path/to/captures.txt"; exit 1)
+	@swift build 2>/dev/null; swift run brain coverage "$(FILE)"
 
 ingest: ## Ingest raw captures:  make ingest FILE=~/Desktop/captures.txt
 	@test -n "$(FILE)" || (echo "usage: make ingest FILE=path/to/captures.txt"; exit 1)

@@ -77,14 +77,25 @@ public struct TypeClassifier: Sendable {
 
     static let ideaMarkers = ["idea:", "thought:", "what if", "kya agar", "soch raha", "maybe we"]
 
-    /// Hinglish marks the imperative at the *end* ("... karna hai"), English at
+    /// Hinglish marks the imperative at the *end* ("... krna h"), English at
     /// the start ("call the plumber"). Both are checked, because a parser that
-    /// only knows English word order silently classifies half our captures as
-    /// notes.
+    /// only knows English word order silently files half our captures as notes.
+    ///
+    /// **This is a morphological rule, not a word list**, and that matters.
+    /// The first version listed spellings — "karna hai", "karna h" — and on 300
+    /// real captures it matched **once**. Ganesh writes `krna h`, 108 times.
+    /// A list of spellings can only ever cover the spellings someone thought
+    /// of; the pattern `<verb>na|ni|ne` + copula `h|hai` covers krna, karna,
+    /// lena, dena, banana, dekhna, jaana and every other infinitive, including
+    /// the ones nobody has written yet.
+    static let hinglishImperativePattern =
+        #"\b\w*n[aei]\s+h(?:ai|ain|e)?\b"#
+
+    /// Infinitives that stand alone without a copula, and common short forms.
     static let hinglishImperatives = [
-        "karna hai", "karna h", "karni hai", "karne hai", "lena hai", "dena hai",
-        "bhejna hai", "lana hai", "jana hai", "dekhna hai", "bharna hai", "milna hai",
-        "karna", "bhejna", "lana",
+        "krna", "krni", "krne", "karna", "karni", "karne",
+        "lena", "dena", "bhejna", "lana", "jana", "jaana", "dekhna",
+        "bharna", "milna", "banana", "likhna", "padhna",
     ]
 
     /// Verbs that start an instruction. Deliberately broad — the cost of a miss
@@ -109,10 +120,20 @@ public struct TypeClassifier: Sendable {
         "walk", "run", "stretch", "meditate", "rest", "sleep", "nap",
         "add", "remove", "move", "copy", "share", "post", "upload", "set", "setup",
         "find", "search", "look", "try", "fill", "close", "open", "cancel", "renew",
+        // Added after reading 300 real captures: these all appeared and all
+        // fell through to "note".
+        "research", "explore", "discuss", "organise", "organize", "publish",
+        "settle", "sell", "listen", "watch", "join", "attend", "visit", "meet",
+        "learn", "practice", "improve", "reduce", "increase", "sort", "fix",
+        "need", "want", "plan",
     ]
 
     static func imperativeSpan(in text: String) -> Span? {
-        // Hinglish verb-final first: "sabzi lana hai" has no leading verb.
+        // Hinglish verb-final first: "sabzi lana h" has no leading verb.
+        // Morphology before word list — see the note above.
+        if let match = DateParser.firstMatch(hinglishImperativePattern, text) {
+            return DateParser.span(match)
+        }
         for marker in hinglishImperatives {
             guard let range = text.range(of: marker) else { continue }
             let start = text.distance(from: text.startIndex, to: range.lowerBound)

@@ -60,6 +60,31 @@ struct TypeClassifierTests {
         expect("clean the kitchen kal shaam 5 baje", .reminder)
     }
 
+    /// Regression test from 300 real captures. The first version of this rule
+    /// was a list of spellings — "karna hai", "karna h" — and on Ganesh's own
+    /// writing it matched exactly **once**. He writes `krna h`, 108 times.
+    /// Type recognition on real text was 46.7%; with the morphological rule it
+    /// is 98.0%, at no cost to precision on the labelled set.
+    @Test("Real Hinglish spellings, not the ones we guessed")
+    func realHinglishSpellings() {
+        expect("Kal aashar card ke liye call krna h.", .task)
+        expect("Aunty se kaam ka rate final krna h.", .task)
+        expect("Baby ke vaccination dates check krke calendar me add krna h.", .task)
+        expect("timing confirm krni h", .task)
+        expect("Har 3 months me apne clothes check krne h", .task)
+        expect("Apne ghar ke maintenance tasks ki list banana h", .task)
+        expect("Nitin se paise lena h", .task)
+    }
+
+    /// The point of morphology over a word list: it covers infinitives nobody
+    /// has written down yet.
+    @Test("An unlisted infinitive still reads as an imperative")
+    func unlistedInfinitive() {
+        for text in ["kitaab kharidna h", "gaana sunna h", "report chhapna h"] {
+            expect(text, .task)
+        }
+    }
+
     @Test("A short verbless fragment is a note")
     func notes() {
         expect("pricing for the template pack", .note)

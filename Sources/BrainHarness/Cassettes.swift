@@ -74,20 +74,33 @@ public actor CassetteStore {
         }
     }
 
+    /// Cassette identity is **(model, request)**, not request alone.
+    ///
+    /// Keying on the request alone meant recording with one model and then
+    /// "recording" with a second returned the first one's answers as cache
+    /// hits — which would have made the B3 two-track comparison compare a
+    /// model against itself. Caught on the first live call.
+    static func key(_ request: ModelRequest, model: String) -> String {
+        var hasher = FNV1a()
+        hasher.combine(model)
+        hasher.combine(request.cacheKey)
+        return String(format: "%016llx", hasher.value)
+    }
+
     /// Returns the recorded response, or throws `.cassetteMiss` in replay mode.
-    public func replay(_ request: ModelRequest) throws -> ModelResponse {
+    public func replay(_ request: ModelRequest, model: String) throws -> ModelResponse {
         loadIfNeeded()
-        guard let cassette = memory[request.cacheKey] else {
+        guard let cassette = memory[Self.key(request, model: model)] else {
             misses += 1
-            throw ProviderError.cassetteMiss(key: request.cacheKey)
+            throw ProviderError.cassetteMiss(key: Self.key(request, model: model))
         }
         hits += 1
         return cassette.response
     }
 
-    public func lookup(_ request: ModelRequest) -> ModelResponse? {
+    public func lookup(_ request: ModelRequest, model: String) -> ModelResponse? {
         loadIfNeeded()
-        if let cassette = memory[request.cacheKey] {
+        if let cassette = memory[Self.key(request, model: model)] {
             hits += 1
             return cassette.response
         }
@@ -101,7 +114,7 @@ public actor CassetteStore {
         guard mode == .record else { return }
         loadIfNeeded()
         let cassette = Cassette(
-            key: request.cacheKey, capability: request.capability.rawValue,
+            key: Self.key(request, model: model), capability: request.capability.rawValue,
             promptVersion: request.promptVersion, model: model,
             answer: response.answer, confidence: response.confidence,
             promptTokens: response.promptTokens, completionTokens: response.completionTokens,

@@ -1,0 +1,12 @@
+{
+  "answer" : "reminder",
+  "capability" : "classifyType",
+  "completionTokens" : 345,
+  "confidence" : 1,
+  "key" : "2bf9e2e8a694e30e",
+  "model" : "gemma-4-26b-a4b-it",
+  "promptTokens" : 178,
+  "promptVersion" : "v1",
+  "raw" : "reminder",
+  "recordedAt" : "2026-11-23T17:57:29Z"
+}

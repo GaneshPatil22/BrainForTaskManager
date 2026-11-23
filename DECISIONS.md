@@ -791,3 +791,67 @@ returning nothing rather than a weak guess is precision over recall working.
 Known fidelity loss, not fixed: effort displays the canonical bucket, so a
 capture saying "15 minutes" renders as "about 20 min". The bucket is the model
 and the parse is correct; only the wording rounds.
+
+### 2026-11-23 — First live calls. The wiring works; three bugs found doing it.
+`GoogleProvider` calls `generateContent`. Model ids were taken from the live
+`models` listing for this account, not from documentation that has moved twice
+this year: `gemma-4-26b-a4b-it`, `gemma-4-31b-it`, `gemini-3.1-flash-lite`,
+`gemini-3.5-flash-lite`. **`gemini-decision-1` is not a `generateContent`
+model** — it is a separate Decisions API, so the B3 second track needs its own
+adapter rather than a model-id swap.
+
+**Bug 1 — cassette identity did not include the model.** Recording with
+`gemma-4-26b` and then running `gemma-4-31b` reported "already had 1": the
+second model read the first one's answers as cache hits. That would have made
+the B3 two-track comparison **compare a model against itself**. Caught on the
+second live call. Identity is now `(model, request)`.
+
+**Bug 2 — Gemma 4 is a thinking model, and we recorded its reasoning.** The
+reply carries the working in a part flagged `"thought": true`, then the answer
+in a separate part. Joining all parts produced a cassette containing a bullet
+list of the model's deliberation instead of the word `task`. Thought parts are
+now filtered out.
+
+**Bug 3 — token estimation was nine times under.** A 27-token prompt produced
+223 thinking tokens and a 1-token answer: 251 total. The ledger was reserving
+27. Over a run that walks straight into 429s. Thinking **cannot be disabled**
+on this model (`"Thinking budget is not supported"`), so the estimate now adds
+a measured 350-token allowance and `completionTokens` includes
+`thoughtsTokenCount`.
+
+Response parsing was extracted from `complete` into a testable `parse`, because
+that is precisely where both output bugs lived and network code cannot be unit
+tested. Six adapter tests now pin them against captured payloads.
+
+### 2026-11-23 — The free tier is unreliable, and that is a design input
+Of 25 attempted recordings, **10 failed with HTTP 503 "model experiencing high
+load" after three retries each** — a 40% failure rate on a quiet afternoon.
+Timeouts needed raising from 20s to 60s because a thinking model spends 300+
+tokens before answering.
+
+This is not a reason to abandon the free tier; it is the reason the fallback
+ladder and circuit breaker exist, and it argues for recording cassettes well
+ahead of needing them rather than on demand.
+
+### 2026-11-23 — First T2 number, on the only set where it matters
+`brain t2-score` measures the model on the captures **T0 abstained on**, where
+T0 scores 0% by construction. Scoring it over the whole dataset would flatter
+it with 390 captures the rules already handle for free.
+
+```
+  captures T0 could not type   25
+  of those, recorded           15
+  T0 accuracy on this set     0.0%   (it abstained)
+  T2 accuracy on this set   100.0%
+  rejected by guards             0
+  tokens                       601/call
+```
+
+**15 calls decides nothing**, and the command says so itself rather than
+letting the number stand unqualified. The escalation set is also synthetic with
+labels true by construction, and the signal T0 missed is mostly an unfamiliar
+verb — which a language model finds easy almost by definition. Read this as
+"the wiring works end to end", not "the model is good".
+
+At 601 tokens per call, 16,000 TPM allows ~26 calls/minute and the 14,400 RPD
+cap is the real ceiling: roughly 14,000 escalations a day.

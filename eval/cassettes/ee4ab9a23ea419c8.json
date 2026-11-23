@@ -1,0 +1,12 @@
+{
+  "answer" : "task",
+  "capability" : "classifyType",
+  "completionTokens" : 725,
+  "confidence" : 1,
+  "key" : "ee4ab9a23ea419c8",
+  "model" : "gemma-4-26b-a4b-it",
+  "promptTokens" : 169,
+  "promptVersion" : "v1",
+  "raw" : "task",
+  "recordedAt" : "2026-11-23T18:00:07Z"
+}

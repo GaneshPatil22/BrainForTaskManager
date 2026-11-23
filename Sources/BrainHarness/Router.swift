@@ -130,10 +130,12 @@ public actor ModelRouter {
                 let response: ModelResponse
                 do {
                     if mode == .replay, let cassettes {
-                        response = try await cassettes.replay(request)
+                        response = try await cassettes.replay(request, model: rung.model)
                         trace.cassetteHit = true
                     } else {
-                        if let cassettes, let cached = await cassettes.lookup(request) {
+                        if let cassettes,
+                            let cached = await cassettes.lookup(request, model: rung.model)
+                        {
                             response = cached
                             trace.cassetteHit = true
                         } else {

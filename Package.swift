@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "BrainEval", targets: ["BrainEval"]),
         .library(name: "BrainHarness", targets: ["BrainHarness"]),
         .library(name: "BrainPipeline", targets: ["BrainPipeline"]),
+        .library(name: "BrainAdapters", targets: ["BrainAdapters"]),
         .executable(name: "brain", targets: ["BrainCLI"]),
         .executable(name: "EvalCLI", targets: ["EvalCLI"]),
     ],
@@ -28,7 +29,7 @@ let package = Package(
         .executableTarget(
             name: "BrainCLI",
             dependencies: [
-                "BrainCore", "BrainDatasets", "BrainPipeline",
+                "BrainCore", "BrainDatasets", "BrainPipeline", "BrainAdapters",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
@@ -36,6 +37,10 @@ let package = Package(
         // Every model call passes through here: guards, router, budget ledger,
         // cassettes. No provider SDKs — just the protocol they implement.
         .target(name: "BrainHarness", dependencies: ["BrainCore"]),
+
+        // Provider implementations. The only target that knows a vendor
+        // exists; everything else talks to LLMProvider.
+        .target(name: "BrainAdapters", dependencies: ["BrainCore", "BrainHarness"]),
 
         // capture -> item + suggested edges. Typed stages, each degrading to
         // "unknown" rather than throwing: a capture is never lost.
@@ -57,6 +62,8 @@ let package = Package(
         .testTarget(name: "BrainCoreTests", dependencies: ["BrainCore", "BrainDatasets"]),
         .testTarget(name: "BrainEvalTests", dependencies: ["BrainEval", "BrainDatasets"]),
         .testTarget(name: "BrainHarnessTests", dependencies: ["BrainHarness", "BrainCore"]),
+        .testTarget(
+            name: "BrainAdaptersTests", dependencies: ["BrainAdapters", "BrainHarness"]),
         .testTarget(
             name: "BrainPipelineTests",
             dependencies: ["BrainPipeline", "BrainHarness", "BrainCore"]),

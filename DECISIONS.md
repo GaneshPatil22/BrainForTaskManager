@@ -1213,3 +1213,47 @@ recorded here so the server's CI does not discover it at deploy time.
 Added `make ci-linux`. It uses a separate `--scratch-path .build-linux`,
 because SwiftPM would otherwise mix two triples' artifacts under `.build` and
 flip the `debug` symlink between them. Gitignored.
+
+## 2026-11-24 — The CI image: python3, make, and two latent bugs
+
+Following the Linux check, `python3` is now in a purpose-built image rather
+than worked around.
+
+**This was not a convenience fix.** `.github/workflows/ci.yml` declared
+`container: swift:6.4.3-noble` and ran `make eval`. That image has no python3,
+so the category labels could not be generated and the eval — and therefore the
+regression gate — would have failed outright. CI is manual-trigger only
+(ADR-0006), so it had never been run and the breakage was invisible. It also
+has no `make`, so the container could not run the project's own targets
+either.
+
+`Dockerfile.ci` is `swift:6.4.3-noble` plus `python3` and `make`, with a build
+-time assertion on all three tools so a missing one fails the image build
+rather than a later CI run. The scripts are standard-library only, so there is
+no pip step and nothing to pin beyond the interpreter.
+
+**`make ci-linux` now runs the real `make ci`**, not a hand-copied
+approximation of it. A `SCRATCH` variable supplies `--scratch-path` so the
+container's artifacts never share `.build` with the host's; empty on the host,
+so host behaviour is unchanged. Local and CI can no longer drift, which is the
+whole point of ADR-0006's "identical local targets".
+
+### Two latent bugs found while wiring it up
+
+**The `split` input was cosmetic.** The workflow offered a dev/test choice and
+every target hardcoded `--split dev`. Choosing `test` would have evaluated dev
+and uploaded the result labelled `scorecard-test` — a wrong number with a
+convincing name. Added `SPLIT ?= dev`, threaded through eval, gate, scorecard,
+diagnose and promote-baseline.
+
+**The labels rule hid its own failures.** It ended in `2>/dev/null`, which
+suppressed the informative label count *and* any real error, leaving an empty
+file the eval would then have measured nothing against. Suppression removed
+and a non-empty assertion added.
+
+**`make dev` was broken.** It ran `docker compose up -d` against a
+`docker-compose.yml` that does not exist; the ml-service it refers to is B5.
+Now prints what is actually true and exits non-zero.
+
+Verified: `make ci` passes on macOS and `make ci-linux` passes in the
+container, same metrics, same gate.

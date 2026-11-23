@@ -15,26 +15,25 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    container: swift:6.4.3-noble
     steps:
       - uses: actions/checkout@v5
 
-      - name: Lint
-        run: make lint
+      # Not `container: swift:6.4.3-noble`. That image has neither python3
+      # nor make, so `make eval` — and therefore the gate — could not run at
+      # all. CI is manual-trigger only, so this had never been exercised.
+      - name: Build CI image
+        run: make ci-image
 
-      - name: Test
-        run: make test
-
-      # Replay mode: offline, deterministic, free. No API keys needed —
-      # category labels are derived from the committed corpus.
-      - name: Eval
-        run: make eval
-
-      - name: Regression gate
-        run: make gate
+      # The same `make ci` a developer runs locally, in the same image.
+      # Replay mode: offline, deterministic, free. No API keys — category
+      # labels are derived from the committed corpus.
+      - name: CI (lint, test, eval, regression gate)
+        run: make ci-linux SPLIT=${{ inputs.split }}
 
       - name: Scorecard
-        run: make scorecard
+        run: |
+          docker run --rm -v "$PWD":/src -w /src brain-ci:6.4.3 \
+            make scorecard SCRATCH=.build-linux SPLIT=${{ inputs.split }}
 
       - uses: actions/upload-artifact@v4
         if: always()

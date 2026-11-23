@@ -1,0 +1,26 @@
+# The CI image: the official Swift image plus a Python interpreter.
+#
+# Why this exists
+# ---------------
+# The eval derives its category labels from the committed corpus with
+# `scripts/category-truth.py`. `swift:6.4.3-noble` ships no python3 at all, so
+# `make eval` — and therefore the whole regression gate — could not run inside
+# the container the GitHub workflow declared. CI is manual-trigger only
+# (ADR-0006), so this had never been exercised and would have failed the first
+# time it was.
+#
+# The scripts are standard-library only (json, re, glob, collections, hashlib,
+# random, sys, os), so there is no pip install step and nothing to pin beyond
+# the interpreter itself.
+#
+# `make` is here for the same reason: the Swift image does not ship it, so the
+# container could not run the project's own targets and CI would have had to
+# re-implement them — which is how local and CI drift apart.
+FROM swift:6.4.3-noble
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Fail the build, not a later CI run, if either tool is missing.
+RUN swift --version && python3 --version && make --version | head -1

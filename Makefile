@@ -1,42 +1,60 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci ci-linux scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios enrich guard-eval coverage ingest clean
+.PHONY: help dev build test eval gate lint ci ci-image ci-linux scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios enrich guard-eval coverage ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-dev: ## Start the dev containers (Swift + ml-service)
-	docker compose up -d
+# Set SCRATCH to build into a separate directory. The Linux container does
+# this so two triples' artifacts never share .build and flip its debug symlink.
+SCRATCH ?=
+S := $(if $(SCRATCH),--scratch-path $(SCRATCH),)
+
+# Which dataset split the eval, gate and scorecard run against. The CI
+# workflow offers this as a choice; before this existed the choice was
+# cosmetic — every target hardcoded dev and the artifact was still labelled
+# with whatever you picked.
+SPLIT ?= dev
+
+dev: ## Not yet: the ml-service container arrives with B5
+	@echo "No docker-compose.yml yet. The only container Brain needs today is"
+	@echo "the CI image — see 'make ci-linux'. The Swift + ml-service compose"
+	@echo "stack arrives with B5 (own model), per docs/00-charter.md."
+	@exit 1
 
 build: ## Build the Swift package
-	swift build
+	swift build $(S)
 
 test: ## Unit + property tests
-	swift test
+	swift test $(S)
 
 # Category labels are derived from the committed corpus, so the eval needs no
 # network and no API key.
 LABELS := /tmp/category-truth.json
+# stderr is NOT suppressed: it carries the label count, and hiding it also hid
+# a missing interpreter and any parse error behind an empty file the eval would
+# then have measured nothing against.
 $(LABELS): scripts/category-truth.py datasets/generated
-	@python3 scripts/category-truth.py > $(LABELS) 2>/dev/null
+	@python3 scripts/category-truth.py > $(LABELS)
+	@test -s $(LABELS) || { echo "category labels are empty; the eval would measure nothing"; rm -f $(LABELS); exit 1; }
 
 eval: $(LABELS) ## Full eval suite, replay mode — offline, deterministic, free
-	swift run EvalCLI run --split dev --cassettes replay
+	swift run $(S) EvalCLI run --split $(SPLIT) --cassettes replay
 
 diagnose: ## Explain the ranking disagreements (read-only, no tuning)
-	swift run EvalCLI diagnose --split dev
+	swift run EvalCLI diagnose --split $(SPLIT)
 
 gate: $(LABELS) ## Regression gate vs. the committed baseline
-	swift run EvalCLI gate --split dev --cassettes replay
+	swift run $(S) EvalCLI gate --split $(SPLIT) --cassettes replay
 
 scorecard: $(LABELS) ## Print the scorecard table
-	swift run EvalCLI scorecard --split dev
+	swift run $(S) EvalCLI scorecard --split $(SPLIT)
 
 promote-baseline: $(LABELS) ## Store the current scorecard as baseline. REASON="..."
 	@test -n "$(REASON)" || (echo 'usage: make promote-baseline REASON="why"'; exit 1)
-	swift run EvalCLI promote-baseline --split dev --reason "$(REASON)"
+	swift run EvalCLI promote-baseline --split $(SPLIT) --reason "$(REASON)"
 
 dogfood: ## Run the dogfood CLI against the sample dump
 	swift run brain next examples/sample.brain
@@ -96,22 +114,14 @@ ideas: ## Print the parked-ideas index. Nothing here is in v1.
 # The deploy target is Linux; the dev machine is arm64 macOS. Foundation
 # differs between them (DateFormatter, TimeZone, URLSession), so "passes on my
 # Mac" is not evidence it will run in production.
-#
-# A separate scratch path on purpose: SwiftPM would otherwise mix two triples'
-# artifacts under .build and flip the debug symlink between them.
-#
-# The swift image has no python3, so the category labels — which the eval
-# derives from the committed corpus — are generated on the host and mounted
-# read-only. A real Linux CI must either add python3 to the image or commit
-# the labels file.
-LINUX_IMAGE := swift:6.4.3-noble
-ci-linux: $(LABELS) ## Build, test, lint, eval and gate inside the Linux container
-	docker run --rm \
-	  -v "$(PWD)":/src -v $(LABELS):$(LABELS):ro -w /src $(LINUX_IMAGE) bash -c '\
-	    set -e; \
-	    swift format lint --recursive --strict Sources/ Tests/; \
-	    swift test --scratch-path .build-linux; \
-	    swift run --scratch-path .build-linux EvalCLI gate --split dev --cassettes replay'
+CI_IMAGE := brain-ci:6.4.3
+
+ci-image: ## Build the CI image (Swift + python3)
+	docker build -q -f Dockerfile.ci -t $(CI_IMAGE) .
+
+ci-linux: ci-image ## Run the exact same `make ci`, inside the Linux container
+	docker run --rm -v "$(PWD)":/src -w /src $(CI_IMAGE) \
+	  make ci SCRATCH=.build-linux SPLIT=$(SPLIT)
 
 lint: ## Format check
 	swift format lint --recursive Sources Tests

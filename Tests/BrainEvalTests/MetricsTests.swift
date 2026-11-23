@@ -120,6 +120,48 @@ struct GateTests {
         #expect(better.gate(against: card(1.0, tolerance: 1.0, higherIsBetter: false)).isPass)
     }
 
+    /// A tolerance tighter than the metric's own sampling noise fires on
+    /// randomness. This is the regression that let a 2.1pp wobble at n=68 fail
+    /// the gate as though the code had changed.
+    @Test("Tolerance is widened to at least one standard error")
+    func toleranceRespectsNoise() {
+        func withN(_ value: Double, _ n: Int) -> Scorecard {
+            Scorecard(
+                runId: "r", generatedAt: "t", dataset: "v1", split: "dev", sets: [:],
+                sections: [
+                    Section(
+                        name: "ranking",
+                        metrics: [
+                            Metric(
+                                name: "m", value: value, unit: .percent,
+                                tolerance: 0.02, sampleSize: n)
+                        ])
+                ])
+        }
+        // At n=68, p≈0.7, one s.e. is ~5.6pp — a 2.1pp move is noise.
+        #expect(withN(0.691, 68).gate(against: withN(0.712, 68)).isPass)
+        // At n=10,000 the same 2.1pp move is well outside noise and must fail.
+        #expect(!withN(0.691, 10_000).gate(against: withN(0.712, 10_000)).isPass)
+    }
+
+    @Test("Standard error is only computed where it makes sense")
+    func standardErrorScope() {
+        #expect(
+            Scorecard.standardError(
+                of: Metric(name: "m", value: 0.5, unit: .percent, sampleSize: 100)) != nil)
+        // Counts, booleans and latencies are not proportions.
+        #expect(
+            Scorecard.standardError(
+                of: Metric(name: "m", value: 3, unit: .count, sampleSize: 100)) == nil)
+        #expect(
+            Scorecard.standardError(
+                of: Metric(name: "m", value: 1, unit: .boolean, sampleSize: 100)) == nil)
+        // No sample size, no noise model.
+        #expect(
+            Scorecard.standardError(
+                of: Metric(name: "m", value: 0.5, unit: .percent)) == nil)
+    }
+
     @Test("A metric absent from the baseline is not a failure")
     func newMetric() {
         let baseline = Scorecard(

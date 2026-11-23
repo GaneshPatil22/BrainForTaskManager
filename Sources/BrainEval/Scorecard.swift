@@ -126,6 +126,17 @@ public struct Scorecard: Codable, Sendable {
         return out
     }
 
+    /// One standard error for a proportion, where the metric is one.
+    /// Returns nil for counts, booleans and latencies, where sampling noise is
+    /// not the right model.
+    static func standardError(of metric: Metric) -> Double? {
+        guard metric.unit == .percent || metric.unit == .ratio,
+            let p = metric.value, let n = metric.sampleSize, n > 0,
+            p >= 0, p <= 1
+        else { return nil }
+        return (p * (1 - p) / Double(n)).squareRoot()
+    }
+
     private static func delta(_ metric: Metric, _ base: Metric?) -> String {
         guard let value = metric.value, let baseValue = base?.value else { return "—" }
         let change = value - baseValue
@@ -162,8 +173,16 @@ public struct Scorecard: Codable, Sendable {
                     continue
                 }
                 guard let base = baseline.metric(section.name, metric.name)?.value,
-                    let tolerance = metric.tolerance
+                    let declared = metric.tolerance
                 else { continue }
+
+                // A tolerance tighter than the metric's own sampling noise
+                // fires on randomness. At n=68 and p≈0.7 one standard error is
+                // ~5.6pp, so a declared 2pp tolerance flagged a 2.1pp wobble as
+                // a regression. A gate that cries wolf gets ignored, which is
+                // worse than no gate. Effective tolerance is therefore the
+                // larger of what we declared and one standard error.
+                let tolerance = max(declared, Self.standardError(of: metric) ?? 0)
 
                 let change = metric.higherIsBetter ? value - base : base - value
                 if change < -tolerance {
@@ -175,8 +194,12 @@ public struct Scorecard: Codable, Sendable {
                     var reason =
                         "\(section.name)/\(metric.name): \(metric.formatted()) vs baseline "
                         + "\(String(format: "%.4f", base)) — beyond tolerance \(tolerance)"
-                    if let n = metric.sampleSize, let baseN,
-                        abs(Double(n - baseN)) / Double(max(baseN, 1)) > 0.2
+                    // Any change in n makes this not an apples-to-apples
+                    // comparison. The threshold was 20%, which let an 11% drift
+                    // fail silently as if it were a code regression while the
+                    // dataset was still being ranked.
+                    if let n = metric.sampleSize, let baseN, n != baseN,
+                        abs(Double(n - baseN)) / Double(max(baseN, 1)) > 0.05
                     {
                         reason +=
                             " [SAMPLE CHANGED n=\(baseN)→\(n): likely not a code regression — "

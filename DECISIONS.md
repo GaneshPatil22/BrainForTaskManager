@@ -540,3 +540,27 @@ Guards 5 (deterministic dates) and 6 (cycle rejection) are deliberately absent
 from `GuardConfig`: they are invariants enforced in `BrainCore`, not features to
 toggle and measure. A configuration where a model supplies a date is not one we
 want to be able to run.
+
+### 2026-11-23 — Correction: the previous commit claimed `make ci` passes. It did not.
+Commit `3efc6d8` ("B3: the harness guards") says "make ci passes" in its
+message. The gate failed immediately afterwards. I checked `swift test` and
+assumed the rest followed. Recorded rather than quietly fixed, because a commit
+message that overstates verification is worse than one that says nothing.
+
+### 2026-11-23 — Gate tolerances must respect the metric's own sampling noise
+The failure above was real, and the cause was my tolerance design. Ranking
+top-3 moved 71.2% → 69.1% with n going 66 → 68 — a 2.1pp wobble against a
+declared 2pp tolerance, on a metric whose 95% interval is ±12pp.
+
+**One standard error at n=68, p≈0.7 is about 5.6pp.** A 2pp tolerance was
+inside the noise, so the gate was flagging randomness as regression. A gate
+that cries wolf gets ignored, which is worse than having no gate.
+
+Effective tolerance is now `max(declared, 1 standard error)`, computed only for
+proportions — counts, booleans and latencies are not sampled that way. The
+failure message says when it has been widened and why. As n grows the widening
+shrinks on its own, so the gate tightens automatically as the dataset improves
+rather than needing a hand-tuned constant.
+
+Also lowered the sample-change annotation from a 20% move to 5%: an 11% drift
+had previously slipped through unannotated and looked like a code regression.

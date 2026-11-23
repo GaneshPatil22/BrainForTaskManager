@@ -1,0 +1,62 @@
+{
+  "id": "scenario-005",
+  "description": "A multi-day task serving a goal, against three quick wins.",
+  "tests": "big goal work vs. quick wins",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [
+    {
+      "id": "g1",
+      "title": "Launch the course"
+    }
+  ],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Write the course outline",
+      "type": "task",
+      "effort": "xlarge",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Reply to three student emails",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Update the pricing page",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Post on LinkedIn",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

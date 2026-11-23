@@ -1,0 +1,44 @@
+{
+  "id": "scenario-017",
+  "description": "Identical items except for effort. Pure tie-break.",
+  "tests": "tie-break on effort",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Task A",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Task B",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Task C",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Task D",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

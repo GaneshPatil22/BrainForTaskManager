@@ -1,0 +1,44 @@
+{
+  "id": "scenario-026",
+  "description": "A single long-overdue item among fresh, pleasant ones.",
+  "tests": "the dreaded overdue thing",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Reply to the tax notice",
+      "type": "task",
+      "effort": "medium",
+      "due_at": "-21",
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Try the new coffee place",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Push the blog post",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+2",
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Update the CV",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

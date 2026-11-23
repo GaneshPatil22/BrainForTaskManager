@@ -1,0 +1,63 @@
+{
+  "id": "scenario-009",
+  "description": "A diamond: two parallel paths converge on one deliverable.",
+  "tests": "diamond dependency",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Draft the copy",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Design the graphics",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Assemble the deck",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+4",
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Present to the board",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+5",
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

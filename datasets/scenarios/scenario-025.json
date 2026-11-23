@@ -1,0 +1,68 @@
+{
+  "id": "scenario-025",
+  "description": "A goal with no deadline served by three items of different size.",
+  "tests": "goal service, no deadlines",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [
+    {
+      "id": "g1",
+      "title": "Start selling the template pack"
+    }
+  ],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Write the sales page",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Set up the payment link",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Record the intro video",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Tidy the desk",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

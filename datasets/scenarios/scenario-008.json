@@ -1,0 +1,44 @@
+{
+  "id": "scenario-008",
+  "description": "Everything is overdue. Which overdue thing first?",
+  "tests": "all overdue",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "File the GST return",
+      "type": "task",
+      "effort": "small",
+      "due_at": "-5",
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Renew the insurance",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "-1",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Send the signed NDA",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "-3",
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Finish the quarterly report",
+      "type": "task",
+      "effort": "large",
+      "due_at": "-2",
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

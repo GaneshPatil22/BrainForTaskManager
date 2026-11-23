@@ -1,0 +1,43 @@
+{
+  "id": "scenario-011",
+  "description": "A tiny task due today, blocked by a multi-day task.",
+  "tests": "blocked quick win",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Collect all the receipts",
+      "type": "task",
+      "effort": "xlarge",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Submit the expense claim",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+0",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Water the plants",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

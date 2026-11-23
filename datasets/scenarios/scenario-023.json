@@ -1,0 +1,69 @@
+{
+  "id": "scenario-023",
+  "description": "The only startable item is the least appealing one.",
+  "tests": "forced single choice",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Ask the client for the brand assets",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Design the homepage",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Design the pricing page",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Build the components",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i1",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "i4",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

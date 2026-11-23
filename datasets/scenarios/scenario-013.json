@@ -1,0 +1,51 @@
+{
+  "id": "scenario-013",
+  "description": "A blocker that is already done — the dependent is startable.",
+  "tests": "satisfied dependency",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Get design approval",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "done"
+    },
+    {
+      "id": "i2",
+      "title": "Build the landing page",
+      "type": "task",
+      "effort": "medium",
+      "due_at": "+3",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Buy groceries",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Fix the leaking tap",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

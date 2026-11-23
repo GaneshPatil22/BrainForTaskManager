@@ -1,0 +1,62 @@
+{
+  "id": "scenario-018",
+  "description": "Goal work with a far deadline vs. admin with a near one.",
+  "tests": "near admin vs. far goal",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [
+    {
+      "id": "g1",
+      "title": "Raise a seed round"
+    }
+  ],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Build the MVP",
+      "type": "task",
+      "effort": "xlarge",
+      "due_at": "+25",
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Renew the company registration",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+2",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Write the investor update",
+      "type": "task",
+      "effort": "medium",
+      "due_at": "+4",
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Order a new laptop charger",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

@@ -1,0 +1,44 @@
+{
+  "id": "scenario-010",
+  "description": "Nothing has a due date, nothing is linked, efforts differ.",
+  "tests": "effort-only ordering",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Read the Postgres docs on indexes",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Clean up the downloads folder",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Back up the photos",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Unsubscribe from newsletters",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

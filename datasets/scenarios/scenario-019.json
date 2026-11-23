@@ -1,0 +1,57 @@
+{
+  "id": "scenario-019",
+  "description": "Several unconfirmed AI-suggested links are present.",
+  "tests": "unconfirmed links must not move the answer",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Clean up the old branches",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Write the deployment runbook",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Set up monitoring",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Pay the AWS bill",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+1",
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": false
+    },
+    {
+      "from": "i1",
+      "to": "i2",
+      "kind": "blocks",
+      "confirmed": false
+    }
+  ],
+  "expected": null
+}

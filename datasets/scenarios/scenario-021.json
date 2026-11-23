@@ -1,0 +1,52 @@
+{
+  "id": "scenario-021",
+  "description": "Home maintenance, all small, one with a hard deadline.",
+  "tests": "domestic admin",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Service the AC",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+9",
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Replace the water filter",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Get the car insured",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+1",
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Fix the doorbell",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i5",
+      "title": "Deep clean the kitchen",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

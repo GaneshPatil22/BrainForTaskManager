@@ -1,0 +1,44 @@
+{
+  "id": "scenario-020",
+  "description": "A mix of done, dropped and open items.",
+  "tests": "closed items must be invisible",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Ship the newsletter",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "done"
+    },
+    {
+      "id": "i2",
+      "title": "Research competitors",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "dropped"
+    },
+    {
+      "id": "i3",
+      "title": "Update the portfolio site",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Reply to the recruiter",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+1",
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

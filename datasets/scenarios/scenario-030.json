@@ -1,0 +1,44 @@
+{
+  "id": "scenario-030",
+  "description": "Nothing is linked, nothing is due, everything is medium.",
+  "tests": "no signal at all",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Refactor the settings screen",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Write unit tests for the parser",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Update the dependencies",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Improve the error messages",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

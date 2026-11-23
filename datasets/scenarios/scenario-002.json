@@ -1,0 +1,57 @@
+{
+  "id": "scenario-002",
+  "description": "An overdue bill against a task that unblocks two others.",
+  "tests": "deadline vs. leverage",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Pay the electricity bill",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "-2",
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Write the API spec",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Build the endpoints",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Write the client SDK",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "i4",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

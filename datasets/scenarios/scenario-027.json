@@ -1,0 +1,74 @@
+{
+  "id": "scenario-027",
+  "description": "Everything serves the same goal; only effort differs.",
+  "tests": "one goal, graded effort",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [
+    {
+      "id": "g1",
+      "title": "Raise a seed round"
+    }
+  ],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Draft the pitch deck",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "List 20 target investors",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Clean up the cap table sheet",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Pick a meeting scheduler",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i4",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

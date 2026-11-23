@@ -1,0 +1,57 @@
+{
+  "id": "scenario-028",
+  "description": "A chain where the second step has the hard deadline.",
+  "tests": "deadline mid-chain",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Gather the bank statements",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "File the ITR",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+4",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Archive the paperwork",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Reply to Slack threads",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

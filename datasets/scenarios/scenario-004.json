@@ -1,0 +1,77 @@
+{
+  "id": "scenario-004",
+  "description": "A long chain. Only the head can actually be started.",
+  "tests": "chain head selection",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Pick a domain name",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Point the DNS",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Get the TLS cert",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Deploy the staging site",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i5",
+      "title": "Share the link with the client",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+2",
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i4",
+      "to": "i5",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

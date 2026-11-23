@@ -1,0 +1,99 @@
+{
+  "id": "scenario-016",
+  "description": "A task unblocking five items, but it is multi-day.",
+  "tests": "expensive hub",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Rewrite the auth system",
+      "type": "task",
+      "effort": "xlarge",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Add Google login",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Add phone login",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Add session timeout",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i5",
+      "title": "Add password reset",
+      "type": "task",
+      "effort": "small",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i6",
+      "title": "Remove the legacy login",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i7",
+      "title": "Answer the support ticket",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+0",
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i1",
+      "to": "i3",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i1",
+      "to": "i4",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i1",
+      "to": "i5",
+      "kind": "blocks",
+      "confirmed": true
+    },
+    {
+      "from": "i1",
+      "to": "i6",
+      "kind": "blocks",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

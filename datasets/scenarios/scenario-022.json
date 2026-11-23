@@ -1,0 +1,78 @@
+{
+  "id": "scenario-022",
+  "description": "Learning goal competing with paid client work.",
+  "tests": "learning vs. earning",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [
+    {
+      "id": "g1",
+      "title": "Become employable in systems work"
+    },
+    {
+      "id": "g2",
+      "title": "Hit this month's income"
+    }
+  ],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Finish the Rust tutorial",
+      "type": "task",
+      "effort": "large",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Deliver the client dashboard",
+      "type": "task",
+      "effort": "large",
+      "due_at": "+3",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Invoice the client",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Read one paper",
+      "type": "task",
+      "effort": "medium",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i4",
+      "to": "g1",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i2",
+      "to": "g2",
+      "kind": "serves",
+      "confirmed": true
+    },
+    {
+      "from": "i3",
+      "to": "g2",
+      "kind": "serves",
+      "confirmed": true
+    }
+  ],
+  "expected": null
+}

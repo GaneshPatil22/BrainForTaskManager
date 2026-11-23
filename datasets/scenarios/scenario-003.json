@@ -1,0 +1,52 @@
+{
+  "id": "scenario-003",
+  "description": "Everything is small and nothing is linked. Pure deadline ordering.",
+  "tests": "deadline ordering with no graph",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Reply to Priya about the invoice",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+0",
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Renew the domain",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+3",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Submit the reimbursement form",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+1",
+      "status": "open"
+    },
+    {
+      "id": "i4",
+      "title": "Cancel the gym trial",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+7",
+      "status": "open"
+    },
+    {
+      "id": "i5",
+      "title": "Call the dentist",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": null,
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

@@ -1,0 +1,36 @@
+{
+  "id": "scenario-024",
+  "description": "Two items due today, very different sizes.",
+  "tests": "same deadline, different effort",
+  "now": "2026-11-23T09:00:00+05:30",
+  "user_tz": "Asia/Kolkata",
+  "goals": [],
+  "items": [
+    {
+      "id": "i1",
+      "title": "Submit the tax documents",
+      "type": "task",
+      "effort": "large",
+      "due_at": "+0",
+      "status": "open"
+    },
+    {
+      "id": "i2",
+      "title": "Confirm the dinner booking",
+      "type": "task",
+      "effort": "tiny",
+      "due_at": "+0",
+      "status": "open"
+    },
+    {
+      "id": "i3",
+      "title": "Push the config change",
+      "type": "task",
+      "effort": "small",
+      "due_at": "+2",
+      "status": "open"
+    }
+  ],
+  "edges": [],
+  "expected": null
+}

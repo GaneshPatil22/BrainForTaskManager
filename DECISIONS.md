@@ -1046,3 +1046,42 @@ time the server starts.
 then `make agreement`, which decide whether top-3 at 71.4% sits at the human
 noise floor or genuinely short of it. Diagnostic only. If agreement comes back
 near 71%, the formula is at the ceiling and `docs/05-targets.md` should say so.
+
+## 2026-11-24 — Server starts now; Brain B5–B7 continue in parallel
+
+**Amends the charter.** `00-charter.md` puts "Brain v1 freeze" before any
+server work. Ganesh's decision: the server starts now, and B5, B6 and B7 carry
+on in parallel. The freeze line was a sequencing preference, not a technical
+dependency, so it is replaced rather than quietly ignored.
+
+**Why nothing blocks.** The server uses Brain only through its interfaces
+("enrich this capture", "rank this graph"). Each remaining phase changes what is
+behind them:
+
+- **B5 (own model, T1)** adds one rung to the ladder. Until it lands, the
+  production ladder is T0 → T3 → T2 → degrade. Picking up T1 later is a config
+  change plus a Brain version bump.
+- **B6 (personalisation)** learns from confirms and rejects. The server stores
+  every user correction from day one, so B6 gets real data rather than waiting
+  for it.
+- **B7 (soak and adversarial)** tests Brain harder and does not change its
+  interface.
+
+**Cost accepted.** Each Brain change the server needs is a tag plus a bump in
+Server (ADR-0003). Brain is tagged `0.4.0` at the end of B4.
+
+**Two server facts found while planning, recorded so they are not rediscovered:**
+
+1. `hummingbird-auth` 2.5.0 has no JWT support (checked against its source:
+   bcrypt, basic auth, OTP only). JWKS verification for ADR-0007 uses
+   `vapor/jwt-kit` (5.9.1 on 2026-11-24), a standalone library. **This is not
+   a move to Vapor.** The server stays on Hummingbird (ADR-0001).
+2. `BudgetLedger` keeps its counts in memory. On a server a restart resets the
+   daily count to zero, and we overspend the free tier without knowing. Before
+   the enrichment worker makes live calls (server step S4), Brain gets a small
+   storage hook so the server can keep the counts in Postgres. Then Brain is
+   re-tagged.
+
+**Still open:** whether the shared docs move out of `Brain/docs/` now (ADR-0003
+says "when Server starts"). They stay in Brain until a second component needs
+them.

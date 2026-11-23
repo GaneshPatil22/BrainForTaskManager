@@ -1,44 +1,52 @@
 {
-  "id": "scenario-030",
-  "description": "Nothing is linked, nothing is due, everything is medium.",
-  "tests": "no signal at all",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Nothing is linked, nothing is due, everything is medium.",
+  "edges" : [
+
+  ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:43:42Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i3",
+      "i1",
+      "i2"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-030",
+  "items" : [
     {
-      "id": "i1",
-      "title": "Refactor the settings screen",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Refactor the settings screen",
+      "type" : "task"
     },
     {
-      "id": "i2",
-      "title": "Write unit tests for the parser",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Write unit tests for the parser",
+      "type" : "task"
     },
     {
-      "id": "i3",
-      "title": "Update the dependencies",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Update the dependencies",
+      "type" : "task"
     },
     {
-      "id": "i4",
-      "title": "Improve the error messages",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Improve the error messages",
+      "type" : "task"
     }
   ],
-  "edges": [],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "no signal at all",
+  "user_tz" : "Asia/Kolkata"
 }

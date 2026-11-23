@@ -1,57 +1,64 @@
 {
-  "id": "scenario-019",
-  "description": "Several unconfirmed AI-suggested links are present.",
-  "tests": "unconfirmed links must not move the answer",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Several unconfirmed AI-suggested links are present.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Clean up the old branches",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : false,
+      "from" : "i2",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i2",
-      "title": "Write the deployment runbook",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Set up monitoring",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Pay the AWS bill",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": "+1",
-      "status": "open"
+      "confirmed" : false,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:58:52Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i3",
+      "i2"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-019",
+  "items" : [
     {
-      "from": "i2",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": false
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Clean up the old branches",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": false
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Write the deployment runbook",
+      "type" : "task"
+    },
+    {
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Set up monitoring",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+1",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Pay the AWS bill",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "unconfirmed links must not move the answer",
+  "user_tz" : "Asia/Kolkata"
 }

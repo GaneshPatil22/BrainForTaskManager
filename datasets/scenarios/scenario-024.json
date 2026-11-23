@@ -1,36 +1,48 @@
 {
-  "id": "scenario-024",
-  "description": "Two items due today, very different sizes.",
-  "tests": "same deadline, different effort",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Two items due today, very different sizes.",
+  "edges" : [
+
+  ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:49:53Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i2",
+      "i3",
+      "i1"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-024",
+  "items" : [
     {
-      "id": "i1",
-      "title": "Submit the tax documents",
-      "type": "task",
-      "effort": "large",
-      "due_at": "+0",
-      "status": "open"
+      "due_at" : "+0",
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Submit the tax documents",
+      "type" : "task"
     },
     {
-      "id": "i2",
-      "title": "Confirm the dinner booking",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": "+0",
-      "status": "open"
+      "due_at" : "+0",
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Confirm the dinner booking",
+      "type" : "task"
     },
     {
-      "id": "i3",
-      "title": "Push the config change",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+2",
-      "status": "open"
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Push the config change",
+      "type" : "task"
     }
   ],
-  "edges": [],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "same deadline, different effort",
+  "user_tz" : "Asia/Kolkata"
 }

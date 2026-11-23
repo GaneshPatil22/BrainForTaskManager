@@ -1,62 +1,66 @@
 {
-  "id": "scenario-005",
-  "description": "A multi-day task serving a goal, against three quick wins.",
-  "tests": "big goal work vs. quick wins",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [
+  "description" : "A multi-day task serving a goal, against three quick wins.",
+  "edges" : [
     {
-      "id": "g1",
-      "title": "Launch the course"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
     }
   ],
-  "items": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T07:01:01Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i1",
+      "i3"
+    ]
+  },
+  "goals" : [
     {
-      "id": "i1",
-      "title": "Write the course outline",
-      "type": "task",
-      "effort": "xlarge",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i2",
-      "title": "Reply to three student emails",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Update the pricing page",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Post on LinkedIn",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "id" : "g1",
+      "title" : "Launch the course"
     }
   ],
-  "edges": [
+  "id" : "scenario-005",
+  "items" : [
     {
-      "from": "i1",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "xlarge",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Write the course outline",
+      "type" : "task"
     },
     {
-      "from": "i3",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Reply to three student emails",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Update the pricing page",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Post on LinkedIn",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "big goal work vs. quick wins",
+  "user_tz" : "Asia/Kolkata"
 }

@@ -1,52 +1,61 @@
 {
-  "id": "scenario-021",
-  "description": "Home maintenance, all small, one with a hard deadline.",
-  "tests": "domestic admin",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Home maintenance, all small, one with a hard deadline.",
+  "edges" : [
+
+  ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:59:37Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i2",
+      "i5"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-021",
+  "items" : [
     {
-      "id": "i1",
-      "title": "Service the AC",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+9",
-      "status": "open"
+      "due_at" : "+9",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Service the AC",
+      "type" : "task"
     },
     {
-      "id": "i2",
-      "title": "Replace the water filter",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Replace the water filter",
+      "type" : "task"
     },
     {
-      "id": "i3",
-      "title": "Get the car insured",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+1",
-      "status": "open"
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Get the car insured",
+      "type" : "task"
     },
     {
-      "id": "i4",
-      "title": "Fix the doorbell",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Fix the doorbell",
+      "type" : "task"
     },
     {
-      "id": "i5",
-      "title": "Deep clean the kitchen",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Deep clean the kitchen",
+      "type" : "task"
     }
   ],
-  "edges": [],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "domestic admin",
+  "user_tz" : "Asia/Kolkata"
 }

@@ -1,79 +1,83 @@
 {
-  "id": "scenario-001",
-  "description": "One task unblocks several; the rest are unrelated errands.",
-  "tests": "hub vs. volume",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "One task unblocks several; the rest are unrelated errands.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Finalise the client contract",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     },
     {
-      "id": "i2",
-      "title": "Send the kickoff email",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i3",
-      "title": "Book the venue",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Order business cards",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i5",
-      "title": "Buy milk",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i6",
-      "title": "Water the plants",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i4"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:56:55Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i6",
+      "i5"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-001",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finalise the client contract",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Send the kickoff email",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i4",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Book the venue",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Order business cards",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Buy milk",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Water the plants",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "hub vs. volume",
+  "user_tz" : "Asia/Kolkata"
 }

@@ -1,99 +1,102 @@
 {
-  "id": "scenario-014",
-  "description": "Wide fan-out versus a deep chain of the same total size.",
-  "tests": "wide vs. deep",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Wide fan-out versus a deep chain of the same total size.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Write the shared component",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     },
     {
-      "id": "i2",
-      "title": "Use it on the home page",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i3",
-      "title": "Use it on the pricing page",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i4"
     },
     {
-      "id": "i4",
-      "title": "Use it on the about page",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i5",
+      "kind" : "blocks",
+      "to" : "i6"
     },
     {
-      "id": "i5",
-      "title": "Set up the CI pipeline",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i6",
-      "title": "Add the test stage",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i7",
-      "title": "Add the deploy stage",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i6",
+      "kind" : "blocks",
+      "to" : "i7"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:45:49Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i5",
+      "i6",
+      "i1"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-014",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Write the shared component",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Use it on the home page",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i4",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Use it on the pricing page",
+      "type" : "task"
     },
     {
-      "from": "i5",
-      "to": "i6",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Use it on the about page",
+      "type" : "task"
     },
     {
-      "from": "i6",
-      "to": "i7",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Set up the CI pipeline",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Add the test stage",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i7",
+      "status" : "open",
+      "title" : "Add the deploy stage",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "wide vs. deep",
+  "user_tz" : "Asia/Kolkata"
 }

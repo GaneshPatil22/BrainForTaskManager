@@ -1,57 +1,64 @@
 {
-  "id": "scenario-028",
-  "description": "A chain where the second step has the hard deadline.",
-  "tests": "deadline mid-chain",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "A chain where the second step has the hard deadline.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Gather the bank statements",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     },
     {
-      "id": "i2",
-      "title": "File the ITR",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+4",
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Archive the paperwork",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Reply to Slack threads",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "blocks",
+      "to" : "i3"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:48:31Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i2",
+      "i3"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-028",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Gather the bank statements",
+      "type" : "task"
     },
     {
-      "from": "i2",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "due_at" : "+4",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "File the ITR",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Archive the paperwork",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Reply to Slack threads",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "deadline mid-chain",
+  "user_tz" : "Asia/Kolkata"
 }

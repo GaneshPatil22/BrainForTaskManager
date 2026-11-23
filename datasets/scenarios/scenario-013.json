@@ -1,51 +1,58 @@
 {
-  "id": "scenario-013",
-  "description": "A blocker that is already done — the dependent is startable.",
-  "tests": "satisfied dependency",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "A blocker that is already done — the dependent is startable.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Get design approval",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "done"
-    },
-    {
-      "id": "i2",
-      "title": "Build the landing page",
-      "type": "task",
-      "effort": "medium",
-      "due_at": "+3",
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Buy groceries",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Fix the leaking tap",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:42:53Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i3",
+      "i2"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-013",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "done",
+      "title" : "Get design approval",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+3",
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Build the landing page",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Buy groceries",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Fix the leaking tap",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "satisfied dependency",
+  "user_tz" : "Asia/Kolkata"
 }

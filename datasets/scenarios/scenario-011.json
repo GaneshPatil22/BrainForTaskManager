@@ -1,43 +1,51 @@
 {
-  "id": "scenario-011",
-  "description": "A tiny task due today, blocked by a multi-day task.",
-  "tests": "blocked quick win",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "A tiny task due today, blocked by a multi-day task.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Collect all the receipts",
-      "type": "task",
-      "effort": "xlarge",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i2",
-      "title": "Submit the expense claim",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": "+0",
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Water the plants",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:57:40Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i2",
+      "i3"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-011",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "xlarge",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Collect all the receipts",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+0",
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Submit the expense claim",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Water the plants",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "blocked quick win",
+  "user_tz" : "Asia/Kolkata"
 }

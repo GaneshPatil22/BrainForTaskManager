@@ -1,78 +1,83 @@
 {
-  "id": "scenario-022",
-  "description": "Learning goal competing with paid client work.",
-  "tests": "learning vs. earning",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [
+  "description" : "Learning goal competing with paid client work.",
+  "edges" : [
     {
-      "id": "g1",
-      "title": "Become employable in systems work"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
     },
     {
-      "id": "g2",
-      "title": "Hit this month's income"
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g2"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g2"
     }
   ],
-  "items": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:57:26Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i2",
+      "i1",
+      "i3"
+    ]
+  },
+  "goals" : [
     {
-      "id": "i1",
-      "title": "Finish the Rust tutorial",
-      "type": "task",
-      "effort": "large",
-      "due_at": null,
-      "status": "open"
+      "id" : "g1",
+      "title" : "Become employable in systems work"
     },
     {
-      "id": "i2",
-      "title": "Deliver the client dashboard",
-      "type": "task",
-      "effort": "large",
-      "due_at": "+3",
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Invoice the client",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Read one paper",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "id" : "g2",
+      "title" : "Hit this month's income"
     }
   ],
-  "edges": [
+  "id" : "scenario-022",
+  "items" : [
     {
-      "from": "i1",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Finish the Rust tutorial",
+      "type" : "task"
     },
     {
-      "from": "i4",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "due_at" : "+3",
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Deliver the client dashboard",
+      "type" : "task"
     },
     {
-      "from": "i2",
-      "to": "g2",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Invoice the client",
+      "type" : "task"
     },
     {
-      "from": "i3",
-      "to": "g2",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Read one paper",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "learning vs. earning",
+  "user_tz" : "Asia/Kolkata"
 }

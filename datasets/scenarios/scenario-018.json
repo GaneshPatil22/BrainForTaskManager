@@ -1,62 +1,69 @@
 {
-  "id": "scenario-018",
-  "description": "Goal work with a far deadline vs. admin with a near one.",
-  "tests": "near admin vs. far goal",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [
+  "description" : "Goal work with a far deadline vs. admin with a near one.",
+  "edges" : [
     {
-      "id": "g1",
-      "title": "Raise a seed round"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
     }
   ],
-  "items": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T07:01:22Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i1",
+      "i2"
+    ]
+  },
+  "goals" : [
     {
-      "id": "i1",
-      "title": "Build the MVP",
-      "type": "task",
-      "effort": "xlarge",
-      "due_at": "+25",
-      "status": "open"
-    },
-    {
-      "id": "i2",
-      "title": "Renew the company registration",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+2",
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Write the investor update",
-      "type": "task",
-      "effort": "medium",
-      "due_at": "+4",
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Order a new laptop charger",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "id" : "g1",
+      "title" : "Raise a seed round"
     }
   ],
-  "edges": [
+  "id" : "scenario-018",
+  "items" : [
     {
-      "from": "i1",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "due_at" : "+25",
+      "effort" : "xlarge",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Build the MVP",
+      "type" : "task"
     },
     {
-      "from": "i3",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Renew the company registration",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+4",
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Write the investor update",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Order a new laptop charger",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "near admin vs. far goal",
+  "user_tz" : "Asia/Kolkata"
 }

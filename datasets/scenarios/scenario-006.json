@@ -1,63 +1,69 @@
 {
-  "id": "scenario-006",
-  "description": "The highest-leverage task is itself blocked by something trivial.",
-  "tests": "blocked hub, trivial unblocker",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "The highest-leverage task is itself blocked by something trivial.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Get the login credentials from IT",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     },
     {
-      "id": "i2",
-      "title": "Migrate the database",
-      "type": "task",
-      "effort": "large",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i3",
-      "title": "Switch the app to the new DB",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Decommission the old server",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "blocks",
+      "to" : "i4"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:51:59Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i2",
+      "i3"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-006",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Get the login credentials from IT",
+      "type" : "task"
     },
     {
-      "from": "i2",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Migrate the database",
+      "type" : "task"
     },
     {
-      "from": "i3",
-      "to": "i4",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Switch the app to the new DB",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Decommission the old server",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "blocked hub, trivial unblocker",
+  "user_tz" : "Asia/Kolkata"
 }

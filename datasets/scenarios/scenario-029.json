@@ -1,81 +1,84 @@
 {
-  "id": "scenario-029",
-  "description": "Many tiny items and one medium one that unblocks two of them.",
-  "tests": "small hub among noise",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Many tiny items and one medium one that unblocks two of them.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Decide the pricing tiers",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     },
     {
-      "id": "i2",
-      "title": "Update the pricing page",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Update the Stripe products",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Water the plants",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i5",
-      "title": "Take out the bins",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i6",
-      "title": "Reply to Rahul",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i7",
-      "title": "Charge the headphones",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:48:59Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i5",
+      "i1"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-029",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Decide the pricing tiers",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Update the pricing page",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Update the Stripe products",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Water the plants",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Take out the bins",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Reply to Rahul",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i7",
+      "status" : "open",
+      "title" : "Charge the headphones",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "small hub among noise",
+  "user_tz" : "Asia/Kolkata"
 }

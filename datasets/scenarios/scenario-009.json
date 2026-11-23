@@ -1,63 +1,71 @@
 {
-  "id": "scenario-009",
-  "description": "A diamond: two parallel paths converge on one deliverable.",
-  "tests": "diamond dependency",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "A diamond: two parallel paths converge on one deliverable.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Draft the copy",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i2",
-      "title": "Design the graphics",
-      "type": "task",
-      "effort": "large",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i3",
-      "title": "Assemble the deck",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+4",
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Present to the board",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": "+5",
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "blocks",
+      "to" : "i4"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:51:26Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i2",
+      "i1",
+      "i3"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-009",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Draft the copy",
+      "type" : "task"
     },
     {
-      "from": "i2",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Design the graphics",
+      "type" : "task"
     },
     {
-      "from": "i3",
-      "to": "i4",
-      "kind": "blocks",
-      "confirmed": true
+      "due_at" : "+4",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Assemble the deck",
+      "type" : "task"
+    },
+    {
+      "due_at" : "+5",
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Present to the board",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "diamond dependency",
+  "user_tz" : "Asia/Kolkata"
 }

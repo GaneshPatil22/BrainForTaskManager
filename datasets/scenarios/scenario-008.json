@@ -1,44 +1,56 @@
 {
-  "id": "scenario-008",
-  "description": "Everything is overdue. Which overdue thing first?",
-  "tests": "all overdue",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Everything is overdue. Which overdue thing first?",
+  "edges" : [
+
+  ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:59:18Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i2",
+      "i3"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-008",
+  "items" : [
     {
-      "id": "i1",
-      "title": "File the GST return",
-      "type": "task",
-      "effort": "small",
-      "due_at": "-5",
-      "status": "open"
+      "due_at" : "-5",
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "File the GST return",
+      "type" : "task"
     },
     {
-      "id": "i2",
-      "title": "Renew the insurance",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": "-1",
-      "status": "open"
+      "due_at" : "-1",
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Renew the insurance",
+      "type" : "task"
     },
     {
-      "id": "i3",
-      "title": "Send the signed NDA",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": "-3",
-      "status": "open"
+      "due_at" : "-3",
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Send the signed NDA",
+      "type" : "task"
     },
     {
-      "id": "i4",
-      "title": "Finish the quarterly report",
-      "type": "task",
-      "effort": "large",
-      "due_at": "-2",
-      "status": "open"
+      "due_at" : "-2",
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Finish the quarterly report",
+      "type" : "task"
     }
   ],
-  "edges": [],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "all overdue",
+  "user_tz" : "Asia/Kolkata"
 }

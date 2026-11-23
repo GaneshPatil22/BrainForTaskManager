@@ -1,74 +1,78 @@
 {
-  "id": "scenario-027",
-  "description": "Everything serves the same goal; only effort differs.",
-  "tests": "one goal, graded effort",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [
+  "description" : "Everything serves the same goal; only effort differs.",
+  "edges" : [
     {
-      "id": "g1",
-      "title": "Raise a seed round"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "serves",
+      "to" : "g1"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "serves",
+      "to" : "g1"
     }
   ],
-  "items": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:52:33Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i3",
+      "i2"
+    ]
+  },
+  "goals" : [
     {
-      "id": "i1",
-      "title": "Draft the pitch deck",
-      "type": "task",
-      "effort": "large",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i2",
-      "title": "List 20 target investors",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i3",
-      "title": "Clean up the cap table sheet",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i4",
-      "title": "Pick a meeting scheduler",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "id" : "g1",
+      "title" : "Raise a seed round"
     }
   ],
-  "edges": [
+  "id" : "scenario-027",
+  "items" : [
     {
-      "from": "i1",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "large",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Draft the pitch deck",
+      "type" : "task"
     },
     {
-      "from": "i2",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "List 20 target investors",
+      "type" : "task"
     },
     {
-      "from": "i3",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Clean up the cap table sheet",
+      "type" : "task"
     },
     {
-      "from": "i4",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Pick a meeting scheduler",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "one goal, graded effort",
+  "user_tz" : "Asia/Kolkata"
 }

@@ -1,74 +1,80 @@
 {
-  "id": "scenario-012",
-  "description": "One task serves three goals at once.",
-  "tests": "multi-goal service",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [
+  "description" : "One task serves three goals at once.",
+  "edges" : [
     {
-      "id": "g1",
-      "title": "Understand user behaviour"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g1"
     },
     {
-      "id": "g2",
-      "title": "Reduce churn"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g2"
     },
     {
-      "id": "g3",
-      "title": "Ship v2"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "serves",
+      "to" : "g3"
+    },
+    {
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "serves",
+      "to" : "g3"
     }
   ],
-  "items": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:50:10Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i2",
+      "i3",
+      "i1"
+    ]
+  },
+  "goals" : [
     {
-      "id": "i1",
-      "title": "Set up the analytics dashboard",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "id" : "g1",
+      "title" : "Understand user behaviour"
     },
     {
-      "id": "i2",
-      "title": "Fix the signup bug",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+1",
-      "status": "open"
+      "id" : "g2",
+      "title" : "Reduce churn"
     },
     {
-      "id": "i3",
-      "title": "Write release notes",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "id" : "g3",
+      "title" : "Ship v2"
     }
   ],
-  "edges": [
+  "id" : "scenario-012",
+  "items" : [
     {
-      "from": "i1",
-      "to": "g1",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Set up the analytics dashboard",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "g2",
-      "kind": "serves",
-      "confirmed": true
+      "due_at" : "+1",
+      "effort" : "small",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Fix the signup bug",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "g3",
-      "kind": "serves",
-      "confirmed": true
-    },
-    {
-      "from": "i2",
-      "to": "g3",
-      "kind": "serves",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Write release notes",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "multi-goal service",
+  "user_tz" : "Asia/Kolkata"
 }

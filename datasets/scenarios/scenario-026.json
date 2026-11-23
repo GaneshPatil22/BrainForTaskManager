@@ -1,44 +1,54 @@
 {
-  "id": "scenario-026",
-  "description": "A single long-overdue item among fresh, pleasant ones.",
-  "tests": "the dreaded overdue thing",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "A single long-overdue item among fresh, pleasant ones.",
+  "edges" : [
+
+  ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:44:02Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i3",
+      "i4",
+      "i2"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-026",
+  "items" : [
     {
-      "id": "i1",
-      "title": "Reply to the tax notice",
-      "type": "task",
-      "effort": "medium",
-      "due_at": "-21",
-      "status": "open"
+      "due_at" : "-21",
+      "effort" : "medium",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Reply to the tax notice",
+      "type" : "task"
     },
     {
-      "id": "i2",
-      "title": "Try the new coffee place",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "effort" : "tiny",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Try the new coffee place",
+      "type" : "task"
     },
     {
-      "id": "i3",
-      "title": "Push the blog post",
-      "type": "task",
-      "effort": "small",
-      "due_at": "+2",
-      "status": "open"
+      "due_at" : "+2",
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Push the blog post",
+      "type" : "task"
     },
     {
-      "id": "i4",
-      "title": "Update the CV",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "effort" : "medium",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Update the CV",
+      "type" : "task"
     }
   ],
-  "edges": [],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "the dreaded overdue thing",
+  "user_tz" : "Asia/Kolkata"
 }

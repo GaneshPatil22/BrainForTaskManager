@@ -1,69 +1,75 @@
 {
-  "id": "scenario-023",
-  "description": "The only startable item is the least appealing one.",
-  "tests": "forced single choice",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "The only startable item is the least appealing one.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Ask the client for the brand assets",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     },
     {
-      "id": "i2",
-      "title": "Design the homepage",
-      "type": "task",
-      "effort": "large",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i3",
-      "title": "Design the pricing page",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i2",
+      "kind" : "blocks",
+      "to" : "i4"
     },
     {
-      "id": "i4",
-      "title": "Build the components",
-      "type": "task",
-      "effort": "large",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i3",
+      "kind" : "blocks",
+      "to" : "i4"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:58:34Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i2",
+      "i3"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-023",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "tiny",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Ask the client for the brand assets",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "large",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Design the homepage",
+      "type" : "task"
     },
     {
-      "from": "i2",
-      "to": "i4",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Design the pricing page",
+      "type" : "task"
     },
     {
-      "from": "i3",
-      "to": "i4",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Build the components",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "forced single choice",
+  "user_tz" : "Asia/Kolkata"
 }

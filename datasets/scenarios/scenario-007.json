@@ -1,99 +1,102 @@
 {
-  "id": "scenario-007",
-  "description": "Two independent hubs of different size and effort.",
-  "tests": "hub vs. hub",
-  "now": "2026-11-23T09:00:00+05:30",
-  "user_tz": "Asia/Kolkata",
-  "goals": [],
-  "items": [
+  "description" : "Two independent hubs of different size and effort.",
+  "edges" : [
     {
-      "id": "i1",
-      "title": "Define the data model",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i2"
     },
     {
-      "id": "i2",
-      "title": "Write the migration",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i1",
+      "kind" : "blocks",
+      "to" : "i3"
     },
     {
-      "id": "i3",
-      "title": "Update the seeders",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "blocks",
+      "to" : "i5"
     },
     {
-      "id": "i4",
-      "title": "Record the demo video",
-      "type": "task",
-      "effort": "large",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "blocks",
+      "to" : "i6"
     },
     {
-      "id": "i5",
-      "title": "Cut the trailer",
-      "type": "task",
-      "effort": "medium",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i6",
-      "title": "Write the launch post",
-      "type": "task",
-      "effort": "small",
-      "due_at": null,
-      "status": "open"
-    },
-    {
-      "id": "i7",
-      "title": "Email the list",
-      "type": "task",
-      "effort": "tiny",
-      "due_at": null,
-      "status": "open"
+      "confirmed" : true,
+      "from" : "i4",
+      "kind" : "blocks",
+      "to" : "i7"
     }
   ],
-  "edges": [
+  "expected" : {
+    "ranked_at" : "2026-11-23T06:55:45Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i5",
+      "i6"
+    ]
+  },
+  "goals" : [
+
+  ],
+  "id" : "scenario-007",
+  "items" : [
     {
-      "from": "i1",
-      "to": "i2",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "small",
+      "id" : "i1",
+      "status" : "open",
+      "title" : "Define the data model",
+      "type" : "task"
     },
     {
-      "from": "i1",
-      "to": "i3",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i2",
+      "status" : "open",
+      "title" : "Write the migration",
+      "type" : "task"
     },
     {
-      "from": "i4",
-      "to": "i5",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "small",
+      "id" : "i3",
+      "status" : "open",
+      "title" : "Update the seeders",
+      "type" : "task"
     },
     {
-      "from": "i4",
-      "to": "i6",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "large",
+      "id" : "i4",
+      "status" : "open",
+      "title" : "Record the demo video",
+      "type" : "task"
     },
     {
-      "from": "i4",
-      "to": "i7",
-      "kind": "blocks",
-      "confirmed": true
+      "effort" : "medium",
+      "id" : "i5",
+      "status" : "open",
+      "title" : "Cut the trailer",
+      "type" : "task"
+    },
+    {
+      "effort" : "small",
+      "id" : "i6",
+      "status" : "open",
+      "title" : "Write the launch post",
+      "type" : "task"
+    },
+    {
+      "effort" : "tiny",
+      "id" : "i7",
+      "status" : "open",
+      "title" : "Email the list",
+      "type" : "task"
     }
   ],
-  "expected": null
+  "now" : "2026-11-23T09:00:00+05:30",
+  "tests" : "hub vs. hub",
+  "user_tz" : "Asia/Kolkata"
 }

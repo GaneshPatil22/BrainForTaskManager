@@ -1,0 +1,35 @@
+# ---- Secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- Private user data: LOCAL ONLY ----
+# Real captures are Ganesh's private thoughts. A private repo is not the
+# same as not-on-a-server. Synthetic data IS committed; real data never is.
+datasets/real/
+datasets/**/*.real.jsonl
+
+# ---- Swift ----
+.build/
+.swiftpm/
+*.xcodeproj
+*.xcworkspace
+Package.resolved
+
+# ---- Python (training/, ml-service/) ----
+__pycache__/
+*.py[cod]
+.venv/
+.uv/
+
+# ---- Eval artifacts ----
+eval/runs/
+eval/traces/
+*.scorecard.local.json
+
+# ---- macOS / editors ----
+.DS_Store
+.vscode/
+.idea/

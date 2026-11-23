@@ -1,0 +1,42 @@
+# Manual trigger only — nothing runs on push or PR. See ADR-0006.
+# Run from the Actions tab, or:  gh workflow run ci.yml
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      split:
+        description: "Dataset split to evaluate"
+        required: false
+        default: "dev"
+        type: choice
+        options: [dev, test]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    container: swift:6.4.3-noble
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Lint
+        run: swift format lint --recursive Sources Tests
+
+      - name: Test
+        run: swift test
+
+      # Replay mode: offline, deterministic, free. No API keys needed.
+      - name: Eval
+        run: swift run EvalCLI run --split ${{ inputs.split }} --cassettes replay
+
+      - name: Regression gate
+        run: swift run EvalCLI gate --split ${{ inputs.split }} --baseline eval/baselines/${{ inputs.split }}.json
+
+      - name: Scorecard
+        run: swift run EvalCLI scorecard --split ${{ inputs.split }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scorecard-${{ inputs.split }}
+          path: eval/runs/

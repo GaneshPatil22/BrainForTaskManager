@@ -27,13 +27,13 @@ trust. An honest question costs one tap and buys a label.
 | Normalise text (NFC, whitespace, emoji, case) | **T0** | A model here would be absurd |
 | Extract URLs / phone / amounts / OTPs | **T0** | Regex. Also the PII strip before anything leaves |
 | **Parse dates** — "kal", "parso", "next Monday", "15 tarikh ko", "month end", "subah 9 baje" | **T0 always** | A grammar, not a model. An LLM parsing dates is the `2+2` mistake in its purest form |
-| Parse explicit effort — "20 min", "2 ghante", "jaldi" | **T0** | If the user said how long, read it. Don't infer it |
+| Parse explicit effort — "20 min", "2 ghante", "jaldi" | **T0 ✓** | If the user said how long, read it. Don't infer it |
 | Classify type (task/idea/note/reminder/link) | **T0 → T1 → T2** | T0: URL-only → `link`; leading imperative verb → `task`; imperative + parsed date → `reminder`; "what if"/"idea:"/"kya agar" → `idea`. Only abstentions climb |
 | Embed | **T1** | Local container. Never an API — 1,000 RPD would cap us at ~50 users (ADR-0005) |
 | Retrieve ~10 candidates | **T0** | Vector search + filters. The model never searches |
 | **Duplicate detection** | **T0 mostly** | Exact match after normalisation → duplicate. Cosine > 0.95 → duplicate. Trigram/Jaccard overlap → duplicate. Only the ambiguous band (~0.80–0.95) climbs |
 | `relates` edges | **T0** | A relates edge *is* similarity in a band. Low-stakes and reversible. No model needed |
-| `blocks` edges — **explicit** | **T0** | "after X", "once X is done", "X ke baad", "waiting for", "blocked by" + fuzzy title match → deterministic edge |
+| `blocks` edges — **explicit** | **T0 ✓** | "after X", "once X is done", "X ke baad", "waiting for", "blocked by" + fuzzy title match → deterministic edge |
 | `blocks` edges — **implicit** | **T2** | ← **the one place a model genuinely earns its keep.** Semantic dependency with no textual signal |
 | Goal assignment | **T0 → T1 → T3** | Goal keyword in text → T0; kNN over past corrections → T1; novel → ask. Rarely T2 |
 | Cycle rejection | **T0 always** | Graph algorithm. Non-negotiable |

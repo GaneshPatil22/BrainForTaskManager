@@ -47,6 +47,8 @@ anywhere yet.** That's by design (`docs/09-tiering.md`).
 | Find blocked items and their blockers | included |
 | Refuse to create a dependency cycle | enforced; try it below |
 | Parse English and Hinglish dates | used by every command |
+| Read effort from the text — "2 ghante", "20 mins", "jaldi" | automatic |
+| Read dependencies from the text — "X ke baad", "once X is done" | automatic |
 | Rank scenarios blind | `make rank` |
 | Author scenarios from one-liners | `make add-scenarios FILE=...` |
 | Ingest raw captures | `make ingest FILE=...` |

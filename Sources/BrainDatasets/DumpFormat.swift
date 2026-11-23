@@ -54,6 +54,8 @@ public enum DumpFormat {
                 UInt64(now.timeIntervalSince1970 * 1000)
             })
         let dateParser = DateParser(timeZone: timeZone)
+        let effortParser = EffortParser()
+        let dependencyParser = DependencyParser(timeZone: timeZone)
         var graph = BrainGraph()
         var issues: [ParseIssue] = []
 
@@ -62,6 +64,9 @@ public enum DumpFormat {
         var itemIdsByTitle: [String: ULID] = [:]
         var pending: [PendingEdge] = []
         var itemOrder: [ULID] = []
+        /// (line, item, title) for items that declared no `after`, so their
+        /// titles can be scanned for blocking phrases once all titles are known.
+        var inferredCandidates: [(Int, ULID, String)] = []
         var goalOrder: [ULID] = []
 
         for (index, rawLine) in contents.components(separatedBy: .newlines).enumerated() {
@@ -146,13 +151,21 @@ public enum DumpFormat {
                 }
             }
 
+            // T0 fallback: if effort was not declared, read it from the title.
+            // "If the user said how long, read it" (docs/09-tiering.md).
+            var effortConfidence = effort == .unknown ? 0.0 : 1.0
+            var effortTier: Tier = .user
+            if effort == .unknown, let parsed = effortParser.parse(title) {
+                effort = parsed.bucket
+                effortConfidence = parsed.confidence
+                effortTier = .t0
+            }
+
             let item = Item(
                 id: generator.next(), title: title,
                 type: Classified(.task, confidence: 1.0, tier: .user),
                 status: status,
-                effort: Classified(
-                    effort, confidence: effort == .unknown ? 0 : 1,
-                    tier: .user),
+                effort: Classified(effort, confidence: effortConfidence, tier: effortTier),
                 dueAt: due, category: category, createdAt: now)
             graph.insert(item)
             itemOrder.append(item.id)
@@ -162,11 +175,51 @@ public enum DumpFormat {
                         line: lineNumber,
                         message: "duplicate title \"\(title)\" — later one wins for `after`"))
             }
+            if !edgeRequests.contains(where: { $0.0 == .blocks }) {
+                inferredCandidates.append((lineNumber, item.id, title))
+            }
             for (kind, target) in edgeRequests {
                 pending.append(
                     PendingEdge(
                         targetTitle: target, itemId: item.id,
                         kind: kind, line: lineNumber))
+            }
+        }
+
+        // T0 fallback: read blocking phrases out of titles that declared none,
+        // then resolve each referent against the other items. An unmatched
+        // referent produces no edge at all — precision over recall.
+        let allTitles = itemIdsByTitle.map { (id: $0.value, title: $0.key) }
+        for (lineNumber, itemId, title) in inferredCandidates {
+            guard !pending.contains(where: { $0.itemId == itemId && $0.kind == .blocks }) else {
+                continue
+            }
+            // Exclude the item itself *before* matching. Its own title
+            // contains the referent, so it can win the tie and then be
+            // discarded — losing the real match along with it.
+            let others = allTitles.filter { $0.id != itemId }
+            for reference in dependencyParser.parse(title, now: now) {
+                guard let match = TitleMatcher.bestMatch(reference.targetText, in: others)
+                else { continue }
+                do {
+                    try graph.addEdge(
+                        Edge(
+                            id: generator.next(), from: match.id, to: itemId, kind: .blocks,
+                            confidence: reference.confidence * match.score,
+                            // Unconfirmed: the user wrote the phrase, but the
+                            // *parse* may be wrong, and invariant 3 reserves
+                            // `confirmed` for a human (docs/01-domain.md).
+                            // Blocking still applies structurally — the item is
+                            // correctly excluded from `next`. Only the leverage
+                            // credit waits for a confirming tap.
+                            source: .t0Rule, confirmed: false))
+                } catch {
+                    issues.append(
+                        .init(
+                            line: lineNumber,
+                            message: "inferred dependency on \"\(reference.targetText)\" "
+                                + "would create a cycle — dropped"))
+                }
             }
         }
 

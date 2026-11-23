@@ -110,17 +110,19 @@ public struct DateParser: Sendable {
             second: endOfDay.second, of: date) ?? date
     }
 
-    static func firstMatch(_ pattern: String, _ text: String) -> NSTextCheckingResult? {
+    public static func firstMatch(_ pattern: String, _ text: String) -> NSTextCheckingResult? {
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
         else { return nil }
         return regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text))
     }
 
-    static func span(_ result: NSTextCheckingResult) -> Span {
+    public static func span(_ result: NSTextCheckingResult) -> Span {
         Span(start: result.range.location, end: result.range.location + result.range.length)
     }
 
-    static func group(_ result: NSTextCheckingResult, _ index: Int, _ text: String) -> String? {
+    public static func group(_ result: NSTextCheckingResult, _ index: Int, _ text: String)
+        -> String?
+    {
         guard index < result.numberOfRanges,
             let range = Range(result.range(at: index), in: text)
         else { return nil }

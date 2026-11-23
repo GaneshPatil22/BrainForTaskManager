@@ -365,3 +365,46 @@ directional. **Top-1 at 35.7% is the interesting number** — our first pick is
 usually not Ganesh's first pick, even though his is usually in our top three.
 That is a real signal about the weights, and the right thing to investigate once
 the full 91 dev scenarios are ranked. Tuning on 28 would be fitting noise.
+
+### 2026-11-23 — The two missing Hinglish T0 rules are implemented
+Both were named in `docs/09-tiering.md` and neither existed. There was no
+duration parsing at all — not even English "20 min".
+
+**`EffortParser`** — English and Hinglish durations, fixed phrases
+("aadha ghanta", "poora din", "half an hour") and low-confidence qualitative
+hints ("jaldi", "quick"). Bucket boundaries are the **geometric** midpoints of
+the bucket minutes (10 / 35 / 120 / 480), matching the log-scale denominator in
+`Scoring.effortDenominator`; arithmetic midpoints would sit in the wrong places.
+Boundary values round *up*, the conservative choice — over-estimating effort
+lowers leverage, so a borderline task is never over-promoted.
+
+**`DependencyParser`** — "after X", "once X is done", "waiting for X",
+"blocked by X", "needs X first", plus Hinglish "X ke baad", "X hone ke baad",
+"X ka intezaar". Hinglish puts the referent *before* the marker and English
+after it; one `Position` field handles both word orders.
+
+**`TitleMatcher`** resolves a referent to an item, deliberately conservatively:
+below threshold it returns nothing, so an unmatched reference produces **no
+edge** rather than a wrong one.
+
+Three things worth recording:
+
+1. **"due in 2 days" is a deadline, not a duration.** Without a date-lead-in
+   guard, every relative due date also registered as xlarge effort. Both
+   parsers now cross-check against the date grammar.
+2. **The date cross-check needed two parts.** Checking the referent alone missed
+   "after 3 days" (the grammar needs the "in"/"after" prefix, already consumed).
+   Checking anything date-shaped would have rejected "after the client meeting
+   on monday", a genuine dependency. So: a bare-duration pattern, **plus** a
+   date match covering ≥60% of the referent. Both cases are pinned by tests.
+3. **A self-matching title shadowed the real target.** An item's own title
+   contains its referent, so it tied with the real match, won on id order, and
+   was then discarded by an `!= itemId` check — losing the genuine edge with it.
+   Callers must exclude self *before* matching. Regression test added.
+
+Inferred edges are `source: .t0Rule, confirmed: false`. The user wrote the
+phrase, but the *parse* may be wrong, and invariant 3 reserves `confirmed` for a
+human. Blocking still applies structurally — the item is correctly excluded from
+`next` — only the leverage credit waits for a confirming tap.
+
+99 tests green.

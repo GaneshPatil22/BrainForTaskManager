@@ -89,6 +89,10 @@ ingest: ## Ingest raw captures:  make ingest FILE=~/Desktop/captures.txt
 	@test -n "$(FILE)" || (echo "usage: make ingest FILE=path/to/captures.txt"; exit 1)
 	swift run brain ingest "$(FILE)"
 
+ideas: ## Print the parked-ideas index. Nothing here is in v1.
+	@sed -n '/^| id |/,/^$$/p' docs/12-backlog.md
+	@echo "Full detail: docs/12-backlog.md"
+
 lint: ## Format check
 	swift format lint --recursive Sources Tests
 

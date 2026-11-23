@@ -4,6 +4,22 @@ Nothing here is in Brain v1. This file exists so good ideas are not lost and do
 not become scope creep. Each entry says what it is, why it is not now, and what
 would have to be true to start it.
 
+**Everything parked lives here. `make ideas` prints this index.**
+
+| id | idea | tier | gated on |
+|---|---|---|---|
+| B-01 | Time-budget: "what fits in this gap" | T0 | v1 frozen |
+| B-02 | Timers: pomodoro, multiple concurrent | T0 | v1 frozen |
+| B-03 | Role and mindset as signals | mixed | B-03a is nearly free; B-03c is a dead end |
+| B-04 | Task `category` and the mode taxonomy | T0 | v1 frozen |
+| B-05 | Recurring tasks (SIPs, monthly reviews) | T0 | one-item-vs-series question |
+| B-06 | Views, each toggleable | mostly T0 | ranking validated (`make agreement`) |
+| B-06a | 1-3-5 board (1 big, 3 small, 5 quick) | T0 | after B-06d |
+| B-06b | Quick-wins list (the long one) | T0 | cheapest in B-06 |
+| B-06c | Journal | T0 + new type | needs its own argument |
+| B-06d | Daily review and next-day planning | T0 | **highest value — generates training signal** |
+| B-06e | Weekend / long-pending view | T0, except suggestions | split it; suggestion engine is a new claim |
+
 Entries B-01 through B-05 are single features. B-06 is a cluster of *views*:
 ways of showing the same data, each one something the user can switch off.
 

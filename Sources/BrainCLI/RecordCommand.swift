@@ -37,6 +37,9 @@ struct RecordCommand: AsyncParsableCommand {
     @Flag(name: .long, help: "Only captures the T0 rules could not type — the real escalation set.")
     var escalationsOnly = false
 
+    @Flag(name: .long, help: "Record the adversarial injection rows instead of captures.")
+    var injections = false
+
     func run() async throws {
         guard let key = ProcessInfo.processInfo.environment["GOOGLE_AI_API_KEY"],
             !key.isEmpty
@@ -65,7 +68,25 @@ struct RecordCommand: AsyncParsableCommand {
             escalationsOnly
             ? captures.filter { !classifier.classify($0.rawText, now: now).isKnown }
             : captures
-        let batch = Array(pool.prefix(limit))
+        // Injection rows exist to be sent at a model: until one is in the
+        // loop there is nothing to be non-compliant with, which is why they
+        // were staged rather than scored (`docs/03-dataset-schema.md`).
+        var batch = Array(pool.prefix(limit))
+        if injections {
+            let adversarial = try AdversarialLoader.load(
+                directory: URL(fileURLWithPath: "datasets/adversarial"))
+            batch =
+                adversarial
+                .filter { $0.attack == "prompt_injection" }
+                .prefix(limit)
+                .map {
+                    SyntheticCapture(
+                        id: $0.id, rawText: $0.rawText, source: "text", userTz: "Asia/Kolkata",
+                        labels: .init(
+                            type: nil, effort: nil, dueAt: nil, category: nil, dependency: nil),
+                        spans: [:], labelSource: "adversarial")
+                }
+        }
 
         // Two tracks, as B3 requires: generate-and-parse against a closed-set
         // decision call, on the same captures so the comparison is paired.

@@ -1,34 +1,34 @@
 {
   "dataset" : "v1",
-  "generatedAt" : "2026-11-23T14:50:22Z",
-  "runId" : "01M84E5YFDF411DX2GB57EJD7H",
+  "generatedAt" : "2026-11-23T18:46:23Z",
+  "runId" : "01M84VP3CTTQ5Z8FF7K00D0EVY",
   "sections" : [
     {
       "metrics" : [
         {
           "higherIsBetter" : true,
           "name" : "human pick in top-3",
-          "note" : "±12pp at 95%",
-          "sampleSize" : 66,
+          "note" : "±10pp at 95%",
+          "sampleSize" : 91,
           "tolerance" : 0.02,
           "unit" : "percent",
-          "value" : 0.7121212121212122
+          "value" : 0.7142857142857143
         },
         {
           "higherIsBetter" : true,
           "name" : "human pick is our top-1",
-          "sampleSize" : 66,
+          "sampleSize" : 91,
           "tolerance" : 0.03,
           "unit" : "percent",
-          "value" : 0.24242424242424243
+          "value" : 0.23076923076923078
         },
         {
           "higherIsBetter" : true,
           "name" : "NDCG@5",
-          "sampleSize" : 66,
+          "sampleSize" : 91,
           "tolerance" : 0.03,
           "unit" : "ratio",
-          "value" : 0.7390397782713867
+          "value" : 0.7424994682654407
         }
       ],
       "name" : "ranking"
@@ -45,9 +45,21 @@
         },
         {
           "higherIsBetter" : true,
+          "name" : "T0 settled",
+          "note" : "fields resolved with no model at all — drive this up",
+          "sampleSize" : 1725,
+          "tolerance" : 0.05,
+          "unit" : "percent",
+          "value" : 0.6202898550724638
+        },
+        {
+          "higherIsBetter" : false,
           "name" : "T2 rate (costs quota)",
-          "note" : "no model calls exist yet — B3",
-          "unit" : "percent"
+          "note" : "drive this down — it is the only thing that costs quota",
+          "sampleSize" : 1725,
+          "tolerance" : 0.05,
+          "unit" : "percent",
+          "value" : 0
         }
       ],
       "name" : "tiering"
@@ -83,7 +95,7 @@
           "sampleSize" : 415,
           "tolerance" : 0.02,
           "unit" : "percent",
-          "value" : 0.8072289156626506
+          "value" : 0.8096385542168675
         },
         {
           "higherIsBetter" : true,
@@ -92,7 +104,7 @@
           "sampleSize" : 163,
           "tolerance" : 0.03,
           "unit" : "percent",
-          "value" : 0.5644171779141104
+          "value" : 0.5705521472392638
         },
         {
           "higherIsBetter" : true,
@@ -145,6 +157,33 @@
     {
       "metrics" : [
         {
+          "higherIsBetter" : false,
+          "mustNotExceed" : 0,
+          "name" : "captures lost",
+          "note" : "invariant — a capture is never lost, whatever fails",
+          "sampleSize" : 415,
+          "unit" : "count",
+          "value" : 0
+        },
+        {
+          "higherIsBetter" : false,
+          "mustNotExceed" : 0,
+          "name" : "hallucinated-ID rate",
+          "note" : "every recorded answer was inside the option set",
+          "sampleSize" : 52,
+          "unit" : "percent",
+          "value" : 0
+        },
+        {
+          "higherIsBetter" : false,
+          "name" : "answers needing rescue",
+          "note" : "guard 3 normalised these rather than discarding them",
+          "sampleSize" : 52,
+          "tolerance" : 0.05,
+          "unit" : "percent",
+          "value" : 0
+        },
+        {
           "higherIsBetter" : true,
           "name" : "adversarial handled",
           "note" : "10 injection rows deferred to B3",
@@ -157,7 +196,7 @@
           "higherIsBetter" : false,
           "mustNotExceed" : 0,
           "name" : "adversarial over budget",
-          "note" : "slowest 51.7ms",
+          "note" : "slowest 51.9ms",
           "unit" : "count",
           "value" : 0
         },
@@ -178,23 +217,11 @@
         },
         {
           "higherIsBetter" : true,
-          "mustNotExceed" : 0,
-          "name" : "hallucinated-ID rate",
-          "note" : "no model calls exist yet — B3",
-          "unit" : "percent"
-        },
-        {
-          "higherIsBetter" : true,
-          "mustNotExceed" : 0,
-          "name" : "captures lost",
-          "note" : "no pipeline yet — B3",
-          "unit" : "count"
-        },
-        {
-          "higherIsBetter" : true,
-          "name" : "injection resistance",
-          "note" : "10 rows staged; nothing to resist until a model exists — B3",
-          "unit" : "percent"
+          "name" : "injection containment",
+          "note" : "STRUCTURAL, not behavioural — a closed-set answer has no vocabulary to comply in. Holds only while no tools exist.",
+          "sampleSize" : 10,
+          "unit" : "percent",
+          "value" : 1
         }
       ],
       "name" : "robustness"
@@ -206,20 +233,31 @@
           "name" : "p50 latency",
           "tolerance" : 1,
           "unit" : "milliseconds",
-          "value" : 0.066833
+          "value" : 0.067459
         },
         {
           "higherIsBetter" : false,
           "name" : "p95 latency",
           "tolerance" : 2,
           "unit" : "milliseconds",
-          "value" : 0.100208
+          "value" : 0.101709
+        },
+        {
+          "higherIsBetter" : false,
+          "name" : "tokens per escalation",
+          "note" : "the real currency on a free tier — rupees are zero and say nothing about whether we can afford to run",
+          "sampleSize" : 52,
+          "tolerance" : 50,
+          "unit" : "count",
+          "value" : 418
         },
         {
           "higherIsBetter" : true,
-          "name" : "cost per capture (Rs)",
-          "note" : "no model calls exist yet — B3",
-          "unit" : "ratio"
+          "name" : "escalations\/day affordable",
+          "note" : "at the measured token cost, against the verified free-tier caps",
+          "tolerance" : 500,
+          "unit" : "count",
+          "value" : 10000
         }
       ],
       "name" : "systems"
@@ -229,10 +267,11 @@
     "adversarial" : 34,
     "category labels" : 1308,
     "distinct date phrasings" : 27,
-    "ranked" : 66,
+    "ranked" : 91,
+    "recorded answers" : 52,
     "scenarios" : 91,
     "synthetic captures" : 415,
-    "unranked" : 25
+    "unranked" : 0
   },
   "split" : "dev"
 }

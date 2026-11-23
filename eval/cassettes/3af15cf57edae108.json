@@ -1,0 +1,19 @@
+{
+  "answer" : "link",
+  "capability" : "classifyType",
+  "completionTokens" : 0,
+  "confidence" : 0.5731359251295388,
+  "key" : "3af15cf57edae108",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "idea" : 0.07860746867642142,
+    "link" : 0.5731359251295388,
+    "note" : 0.15313087752795498,
+    "reminder" : 0.030622669897648242,
+    "task" : 0.16450305876843657
+  },
+  "promptTokens" : 283,
+  "promptVersion" : "v1",
+  "raw" : "link",
+  "recordedAt" : "2026-11-23T18:44:42Z"
+}

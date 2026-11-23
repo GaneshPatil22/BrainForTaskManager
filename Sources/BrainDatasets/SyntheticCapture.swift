@@ -15,6 +15,17 @@ public struct SyntheticCapture: Codable, Sendable {
         public let dueAt: Int?
         public let category: String?
         public let dependency: String?
+
+        public init(
+            type: String?, effort: String?, dueAt: Int?, category: String?,
+            dependency: String?
+        ) {
+            self.type = type
+            self.effort = effort
+            self.dueAt = dueAt
+            self.category = category
+            self.dependency = dependency
+        }
     }
 
     public let id: String
@@ -26,6 +37,19 @@ public struct SyntheticCapture: Codable, Sendable {
     /// injected, because the offsets are no longer trustworthy.
     public let spans: [String: [Int]]
     public let labelSource: String
+
+    public init(
+        id: String, rawText: String, source: String, userTz: String,
+        labels: Labels, spans: [String: [Int]], labelSource: String
+    ) {
+        self.id = id
+        self.rawText = rawText
+        self.source = source
+        self.userTz = userTz
+        self.labels = labels
+        self.spans = spans
+        self.labelSource = labelSource
+    }
 }
 
 public enum SyntheticLoader {

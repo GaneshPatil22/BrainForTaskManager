@@ -2,10 +2,11 @@ import ArgumentParser
 import BrainCore
 import BrainDatasets
 import BrainEval
+import BrainPipeline
 import Foundation
 
 @main
-struct EvalCLI: ParsableCommand {
+struct EvalCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "EvalCLI",
         abstract: "Run the eval suite, print the scorecard, enforce the regression gate.",
@@ -56,7 +57,7 @@ struct EvalOptions: ParsableArguments {
 
 enum Runner {
 
-    static func build(_ options: EvalOptions) throws -> Scorecard {
+    static func build(_ options: EvalOptions) async throws -> Scorecard {
         let all = try ScenarioLoader.loadAll(in: URL(fileURLWithPath: options.scenarios))
         let inSplit = all.filter { ($0.file.split ?? "dev") == options.split }
         let ranked = inSplit.filter { $0.file.expected != nil }
@@ -94,50 +95,25 @@ enum Runner {
             ]
         }
 
-        // --- T0 coverage ---------------------------------------------------
-        let coverage = Metrics.t0Coverage(scenarios: inSplit)
-        let t0Metrics: [Metric] = [
-            Metric(
-                name: "category resolved at T0",
-                value: coverage.items == 0
-                    ? nil : Double(coverage.categoryResolved) / Double(coverage.items),
-                unit: .percent, tolerance: 0.05, sampleSize: coverage.items),
-            Metric(
-                name: "T2 rate (costs quota)", value: nil, unit: .percent,
-                note: "no model calls exist yet — B3"),
-        ]
-
-        // --- Category ------------------------------------------------------
-        var categoryMetrics: [Metric] = []
-        if let data = try? Data(contentsOf: URL(fileURLWithPath: options.categoryLabels)),
-            let labels = try? JSONDecoder().decode([String: String].self, from: data)
-        {
-            let result = Metrics.category(labels: labels)
-            sets["category labels"] = result.total
-            categoryMetrics = [
-                Metric(
-                    name: "accuracy on attempted",
-                    value: result.attempted == 0
-                        ? nil : Double(result.correct) / Double(result.attempted),
-                    unit: .percent, tolerance: 0.02, sampleSize: result.attempted),
-                Metric(
-                    name: "coverage", value: Double(result.attempted) / Double(result.total),
-                    unit: .percent, tolerance: 0.05, sampleSize: result.total,
-                    note: "labels are generator-assigned — agreement, not correctness"),
-            ]
-        } else {
-            categoryMetrics = [
-                Metric(
-                    name: "accuracy on attempted", value: nil, unit: .percent,
-                    note: "no labels — run scripts/category-truth.py")
-            ]
-        }
-
         // --- Synthetic captures: the T0 baseline -----------------------------
         let captures =
             (try? SyntheticLoader.load(
                 directory: URL(fileURLWithPath: options.synthetic), split: options.split)) ?? []
         sets["synthetic captures"] = captures.count
+
+        // --- Pipeline and recorded answers -----------------------------------
+        let pipelineResult = await Metrics.pipeline(
+            texts: captures.map(\.rawText),
+            timeZone: TimeZone(identifier: "Asia/Kolkata")!, now: SyntheticLoader.now)
+        let audit = Metrics.auditCassettes(
+            directory: URL(fileURLWithPath: "eval/cassettes"),
+            allowed: ItemType.allCases.map(\.rawValue))
+        sets["recorded answers"] = audit.answers
+
+        let lost = pipelineResult.captures - pipelineResult.items
+        let t0Settled = pipelineResult.byTier[.t0] ?? 0
+        let t2Settled = pipelineResult.byTier[.t2] ?? 0
+
         let ext = Metrics.extraction(
             captures: captures, timeZone: TimeZone(identifier: "Asia/Kolkata")!,
             now: SyntheticLoader.now)
@@ -182,6 +158,56 @@ enum Runner {
                     unit: .percent, tolerance: 0.0, sampleSize: ext.spansChecked),
             ]
 
+        // --- T0 coverage ---------------------------------------------------
+        let coverage = Metrics.t0Coverage(scenarios: inSplit)
+        let t0Metrics: [Metric] = [
+            Metric(
+                name: "category resolved at T0",
+                value: coverage.items == 0
+                    ? nil : Double(coverage.categoryResolved) / Double(coverage.items),
+                unit: .percent, tolerance: 0.05, sampleSize: coverage.items),
+            Metric(
+                name: "T0 settled",
+                value: pipelineResult.fieldsConsidered == 0
+                    ? nil : Double(t0Settled) / Double(pipelineResult.fieldsConsidered),
+                unit: .percent, tolerance: 0.05,
+                sampleSize: pipelineResult.fieldsConsidered,
+                note: "fields resolved with no model at all — drive this up"),
+            Metric(
+                name: "T2 rate (costs quota)",
+                value: pipelineResult.fieldsConsidered == 0
+                    ? nil : Double(t2Settled) / Double(pipelineResult.fieldsConsidered),
+                unit: .percent, tolerance: 0.05, higherIsBetter: false,
+                sampleSize: pipelineResult.fieldsConsidered,
+                note: "drive this down — it is the only thing that costs quota"),
+        ]
+
+        // --- Category ------------------------------------------------------
+        var categoryMetrics: [Metric] = []
+        if let data = try? Data(contentsOf: URL(fileURLWithPath: options.categoryLabels)),
+            let labels = try? JSONDecoder().decode([String: String].self, from: data)
+        {
+            let result = Metrics.category(labels: labels)
+            sets["category labels"] = result.total
+            categoryMetrics = [
+                Metric(
+                    name: "accuracy on attempted",
+                    value: result.attempted == 0
+                        ? nil : Double(result.correct) / Double(result.attempted),
+                    unit: .percent, tolerance: 0.02, sampleSize: result.attempted),
+                Metric(
+                    name: "coverage", value: Double(result.attempted) / Double(result.total),
+                    unit: .percent, tolerance: 0.05, sampleSize: result.total,
+                    note: "labels are generator-assigned — agreement, not correctness"),
+            ]
+        } else {
+            categoryMetrics = [
+                Metric(
+                    name: "accuracy on attempted", value: nil, unit: .percent,
+                    note: "no labels — run scripts/category-truth.py")
+            ]
+        }
+
         // --- Dates ---------------------------------------------------------
         let corpusFiles =
             (try? FileManager.default.contentsOfDirectory(
@@ -207,6 +233,13 @@ enum Runner {
         let adversarialCases =
             (try? AdversarialLoader.load(directory: URL(fileURLWithPath: options.adversarial)))
             ?? []
+        let injectionResult = await Metrics.injection(
+            cases: adversarialCases,
+            directory: URL(fileURLWithPath: "eval/cassettes"),
+            allowed: ItemType.allCases.map(\.rawValue),
+            systemPrompt: Prompts.classifyTypeSystem,
+            promptVersion: Prompts.version,
+            model: "gemini-decision-1")
         let adv = Metrics.adversarial(
             cases: adversarialCases, timeZone: TimeZone(identifier: "Asia/Kolkata")!,
             now: SyntheticLoader.now)
@@ -214,6 +247,27 @@ enum Runner {
 
         // --- Robustness ------------------------------------------------------
         let robustness: [Metric] = [
+            Metric(
+                name: "captures lost",
+                value: pipelineResult.captures == 0 ? nil : Double(lost),
+                unit: .count, mustNotExceed: 0, higherIsBetter: false,
+                sampleSize: pipelineResult.captures,
+                note: "invariant — a capture is never lost, whatever fails"),
+            Metric(
+                name: "hallucinated-ID rate",
+                value: audit.answers == 0 ? nil : Double(audit.outOfSet) / Double(audit.answers),
+                unit: .percent, mustNotExceed: 0, higherIsBetter: false,
+                sampleSize: audit.answers,
+                note: audit.examples.isEmpty
+                    ? "every recorded answer was inside the option set"
+                    : "out of set: " + audit.examples.prefix(2).joined(separator: " | ")),
+            Metric(
+                name: "answers needing rescue",
+                value: audit.answers == 0
+                    ? nil : Double(audit.neededNormalising) / Double(audit.answers),
+                unit: .percent, tolerance: 0.05, higherIsBetter: false,
+                sampleSize: audit.answers,
+                note: "guard 3 normalised these rather than discarding them"),
             Metric(
                 name: "adversarial handled",
                 value: adv.scored == 0 ? nil : Double(adv.passed) / Double(adv.scored),
@@ -237,15 +291,15 @@ enum Runner {
                 value: Double(Metrics.cycleCount(scenarios: inSplit)),
                 unit: .count, mustNotExceed: 0, higherIsBetter: false,
                 note: "invariant — any value above 0 fails unconditionally"),
+
             Metric(
-                name: "hallucinated-ID rate", value: nil, unit: .percent,
-                mustNotExceed: 0, note: "no model calls exist yet — B3"),
-            Metric(
-                name: "captures lost", value: nil, unit: .count,
-                mustNotExceed: 0, note: "no pipeline yet — B3"),
-            Metric(
-                name: "injection resistance", value: nil, unit: .percent,
-                note: "\(adv.deferred) rows staged; nothing to resist until a model exists — B3"),
+                name: "injection containment",
+                value: injectionResult.recorded == 0
+                    ? nil
+                    : Double(injectionResult.contained) / Double(injectionResult.recorded),
+                unit: .percent, mustNotExceed: nil, sampleSize: injectionResult.recorded,
+                note: "STRUCTURAL, not behavioural — a closed-set answer has no "
+                    + "vocabulary to comply in. Holds only while no tools exist."),
         ]
 
         // --- Systems ---------------------------------------------------------
@@ -258,8 +312,20 @@ enum Runner {
                 name: "p95 latency", value: timing.p95, unit: .milliseconds,
                 tolerance: 2.0, higherIsBetter: false),
             Metric(
-                name: "cost per capture (Rs)", value: nil, unit: .ratio,
-                note: "no model calls exist yet — B3"),
+                name: "tokens per escalation",
+                value: audit.answers == 0 ? nil : Double(audit.totalTokens / audit.answers),
+                unit: .count, tolerance: 50, higherIsBetter: false,
+                sampleSize: audit.answers,
+                note: "the real currency on a free tier — rupees are zero and "
+                    + "say nothing about whether we can afford to run"),
+            Metric(
+                name: "escalations/day affordable",
+                value: audit.answers == 0
+                    ? nil
+                    // Decision 1: 10,000 RPD, 50,000 TPM. Whichever binds first.
+                    : Double(min(10_000, 50_000 * 60 * 24 / max(audit.totalTokens / audit.answers, 1))),
+                unit: .count, tolerance: 500,
+                note: "at the measured token cost, against the verified free-tier caps"),
         ]
 
         return Scorecard(
@@ -292,38 +358,38 @@ enum Runner {
 
 // MARK: - Commands
 
-struct Run: ParsableCommand {
+struct Run: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "run", abstract: "Run the suite and print the scorecard.")
     @OptionGroup var options: EvalOptions
 
-    func run() throws {
+    func run() async throws {
         try options.validateSplit(isGate: false)
-        let card = try Runner.build(options)
+        let card = try await Runner.build(options)
         print(card.render(baseline: Runner.loadBaseline(options.split)))
     }
 }
 
-struct Scorecard_: ParsableCommand {
+struct Scorecard_: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "scorecard", abstract: "Print the scorecard table.")
     @OptionGroup var options: EvalOptions
 
-    func run() throws {
+    func run() async throws {
         try options.validateSplit(isGate: false)
-        let card = try Runner.build(options)
+        let card = try await Runner.build(options)
         print(card.render(baseline: Runner.loadBaseline(options.split)))
     }
 }
 
-struct Gate: ParsableCommand {
+struct Gate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "gate",
         abstract: "Fail if any key metric has regressed beyond tolerance.")
     @OptionGroup var options: EvalOptions
 
-    func run() throws {
-        let card = try Runner.build(options)
+    func run() async throws {
+        let card = try await Runner.build(options)
         guard let baseline = Runner.loadBaseline(options.split) else {
             print(card.render(baseline: nil))
             print(
@@ -353,7 +419,7 @@ struct Gate: ParsableCommand {
     }
 }
 
-struct PromoteBaseline: ParsableCommand {
+struct PromoteBaseline: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "promote-baseline",
         abstract: "Store the current scorecard as the baseline. A deliberate act.")
@@ -362,8 +428,8 @@ struct PromoteBaseline: ParsableCommand {
     @Option(name: .long, help: "Why this baseline is being promoted. Required.")
     var reason: String
 
-    func run() throws {
-        let card = try Runner.build(options)
+    func run() async throws {
+        let card = try await Runner.build(options)
         let url = Runner.baselineURL(options.split)
         try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

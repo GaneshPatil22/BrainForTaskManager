@@ -48,7 +48,9 @@ let package = Package(
 
         // Metrics and the scorecard. A library, not buried in the executable,
         // because the thing that reports every number must itself be tested.
-        .target(name: "BrainEval", dependencies: ["BrainCore", "BrainDatasets"]),
+        .target(
+            name: "BrainEval",
+            dependencies: ["BrainCore", "BrainDatasets", "BrainHarness", "BrainPipeline"]),
 
         // The eval runner. Lives in Swift so it tests the code that ships.
         .executableTarget(

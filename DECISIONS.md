@@ -913,3 +913,38 @@ Gemma's 14,400 — comparable headroom at under half the tokens.
 **No winner declared on accuracy.** 17 captures cannot separate 94.1% from
 94.1%. The reliability, token and confidence-signal differences are
 structural, and those are the ones worth acting on.
+
+### 2026-11-24 — B3 complete. Every metric is now measured.
+The scorecard had been reporting four metrics as "not measured — no model
+calls exist yet" long after model calls existed. **A metric nobody wired up
+and a metric that cannot be computed look identical in a report**, which made
+the scorecard quietly wrong. All now measured:
+
+```
+  captures lost              0        n=415   invariant holds on real text
+  hallucinated-ID rate       0.0%     n=52    every answer inside the option set
+  answers needing rescue     0.0%     n=52    guard 3 never had to normalise
+  injection containment    100.0%     n=10    structural, see below
+  T0 settled                62.0%     n=1725
+  T2 rate                    0.0%     n=1725
+  tokens per escalation      418      n=52
+  escalations/day affordable 10,000
+```
+
+**`hallucinated-ID rate 0.0%` is the headline exit target, and it is now a
+measurement rather than an aspiration.**
+
+Two framings worth keeping honest:
+
+**Injection containment is structural, not behavioural.** The model did not
+"resist" anything. With a closed-set call it has no vocabulary in which to
+comply — the answer is a key from the option set, so "ignore previous
+instructions" can at worst produce the wrong *type*. That is a stronger
+property than a model choosing to behave, but it is a different claim, and the
+metric says so. It holds only while no tools are exposed; if that changes the
+number stops meaning anything.
+
+**Cost is reported in tokens, not rupees.** On a free tier the rupee figure is
+zero and says nothing about whether we can afford to run. 418 tokens per
+escalation against Decision 1's caps gives ~10,000 escalations a day — that is
+the number that constrains us.

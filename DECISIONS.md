@@ -1016,3 +1016,30 @@ rather than left as an unexamined default.
 Gemma remains ungateable at any threshold: it answers 1.00 to everything
 (1 distinct value), so its confidence carries no information. Its low ECE is
 accidental, as recorded on 2026-11-23.
+
+## 2026-11-24 — Open questions carried into the server phase
+
+Brain is complete through B4 and `make ci` passes. Recording what is settled
+and what is not, so the server phase starts from the record rather than from
+memory.
+
+**Settled, and written down:** Hummingbird 2 (ADR-0001), free-tier inference
+with disclosure (ADR-0002), one repo per component (ADR-0003), Supabase with
+asymmetric JWT (ADR-0007), manual-trigger CI (ADR-0006). Hosting research is
+above — Hostinger's ₹779 is a promo, Hetzner has no ARM outside the EU.
+
+**Agreed in conversation but never recorded, and so not yet a decision:**
+
+*Do not hand-roll the job queue.* Ganesh's call, and the reasoning was that a
+queue is exactly the kind of component where a hand-rolled version looks fine
+until it loses work under load. **The replacement was never chosen.** The
+candidates worth comparing when the server starts are Postgres-backed (pgmq,
+Graphile Worker) against a Swift-native worker, and the deciding question is
+whether we are willing to run a second process. Nothing has been verified
+about any of them — per the standing rule, check the current docs and the
+package source before committing, do not assume from memory.
+
+**Still open from Brain, and not blocking the server:** `make rank-again`
+then `make agreement`, which decide whether top-3 at 71.4% sits at the human
+noise floor or genuinely short of it. Diagnostic only. If agreement comes back
+near 71%, the formula is at the ceiling and `docs/05-targets.md` should say so.

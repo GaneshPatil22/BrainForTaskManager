@@ -80,3 +80,58 @@ carries the statistical weight. The scorecard never merges the two.
 not-on-a-server. Only synthetic data is committed.
 
 ### 2026-11-23 — B0 complete. Awaiting approval of 01, 02, 03, 04, 06, 09.
+
+---
+
+### 2026-11-23 — B1 begins. Core is dependency-free on purpose
+`BrainCore` has **zero package dependencies**. Property tests use a seeded
+`SplitMix64` rather than a property-testing library, so every failure is
+reproducible from its seed and printed in the failure message. No flaky tests.
+
+### 2026-11-23 — `next` is the top **startable** item, not the top ranked
+Found by scenario test S2, which initially asserted the wrong thing. A blocked
+item can legitimately rank first — a two-minute form due today, stuck behind a
+multi-day document hunt — but recommending something the user cannot start is
+worse than recommending nothing. `ranked` still shows it, marked, with its
+blockers. `BrainOutputs` gained a `startable` list; `next` is its head.
+
+### 2026-11-23 — The formula promotes unblockers for free
+Discovered while fixing S2: a blocker transitively reaches everything its
+dependent reaches, **plus the dependent itself**, so it almost always outranks
+it without any special-casing. Constructing a genuinely blocked top-ranker
+requires effort or deadline asymmetry. This is emergent, not designed, and is
+worth knowing before anyone "fixes" it.
+
+### 2026-11-23 — "kal" and "parso" resolve to the future, with lower confidence
+Both words mean their past and future counterparts in Hindi ("kal" is yesterday
+*and* tomorrow). In a capture the future reading dominates, so we take it — and
+drop confidence from 0.95 to 0.8 so the ambiguity is visible to the cascade
+rather than hidden. Asserted by test.
+
+### 2026-11-23 — Hinglish period words are mapped explicitly, not approximated
+"raat 12 baje" is midnight, "dopahar 12 baje" is noon, "raat 2 baje" is 2 a.m.
+My first implementation got all three wrong by treating the periods as plain
+AM/PM. Each is now spelled out in `DateParser.hour(period:rawHour:)`. This is
+precisely the class of thing a model gets subtly wrong and code gets exactly
+right — the argument for T0, in one function.
+
+### 2026-11-23 — A bare "N baje" is a heuristic and is scored as one
+With no period word, 8–11 reads as morning and everything else as evening
+("5 baje" → 17:00, "9 baje" → 09:00). Confidence 0.7, deliberately below every
+other date rule, so the cascade can escalate it rather than trust it.
+
+### 2026-11-23 — A date with no time is due at end of day
+"kal" means *by* the end of tomorrow, not at midnight. Weekdays resolve to the
+next occurrence strictly after today; "next Monday" is ambiguous even to native
+speakers, so it carries lower confidence rather than a hidden guess.
+
+### 2026-11-23 — swift-format owns formatting
+`.swift-format` sets 4-space indent and a 100-column limit; the rest is the
+formatter's business. Hand-aligning and then arguing with the linter is waste.
+
+### 2026-11-23 — `make eval` / `make gate` skip loudly until B2
+EvalCLI does not exist yet. They print a SKIP line and exit 0 rather than
+failing the build or, worse, passing silently. CI calls the same Make targets,
+so `make ci` and GitHub Actions cannot diverge.
+
+### 2026-11-23 — B1 complete: 59 tests, Core + dogfood CLI, no AI anywhere.

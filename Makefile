@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard clean
+.PHONY: help dev build test eval gate lint ci scorecard dogfood clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -16,14 +16,33 @@ build: ## Build the Swift package
 test: ## Unit + property tests
 	swift test
 
+# EvalCLI arrives in B2. Until then these skip loudly rather than fail the
+# build or, worse, pass silently and make `make ci` green for the wrong reason.
+HAVE_EVAL := $(shell swift package dump-package 2>/dev/null | grep -c '"EvalCLI"')
+
 eval: ## Full eval suite, replay mode — offline, deterministic, free
+ifeq ($(HAVE_EVAL),0)
+	@echo "SKIP eval     — EvalCLI lands in B2 (docs/00-charter.md)"
+else
 	swift run EvalCLI run --split dev --cassettes replay
+endif
 
 gate: ## Regression gate vs. the committed baseline
+ifeq ($(HAVE_EVAL),0)
+	@echo "SKIP gate     — EvalCLI lands in B2 (docs/00-charter.md)"
+else
 	swift run EvalCLI gate --split dev --baseline eval/baselines/dev.json
+endif
 
 scorecard: ## Print the scorecard table
+ifeq ($(HAVE_EVAL),0)
+	@echo "SKIP scorecard — EvalCLI lands in B2 (docs/00-charter.md)"
+else
 	swift run EvalCLI scorecard --split dev
+endif
+
+dogfood: ## Run the dogfood CLI against the sample dump
+	swift run brain examples/sample.brain
 
 lint: ## Format check
 	swift format lint --recursive Sources Tests

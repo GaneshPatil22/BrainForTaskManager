@@ -1,0 +1,19 @@
+# Dogfood sample. Everything here is computed deterministically — no AI.
+goal: Ship Brain v1
+goal: Stay on top of admin
+
+# --- Brain v1 work ---
+Freeze the domain model      | small  | goal Ship Brain v1
+Write the graph code         | medium | after Freeze the domain model | goal Ship Brain v1
+Write the scoring code       | medium | after Freeze the domain model | goal Ship Brain v1
+Build the eval harness       | large  | after Write the scoring code  | goal Ship Brain v1
+Collect 300 real captures    | medium | due agle hafte               | goal Ship Brain v1
+
+# --- Admin ---
+File GST return              | small  | due kal      | goal Stay on top of admin
+Call the plumber             | tiny
+Renew domain                 | tiny   | due 15 tarikh
+Reply to landlord            | tiny   | due aaj
+Read that long paper         | large
+Sort out old invoices        | xlarge | goal Stay on top of admin
+Archive 2025 notes           | small  | done

@@ -29,11 +29,16 @@ assigned to tiers, and why most of it never reaches a model at all.
 
 ## Status
 
-**Phase B0 — specification.** No executable code yet, by design.
-Phase plan and gates: [`docs/00-charter.md`](docs/00-charter.md).
+**Phase B1 complete** — pure Core and the dogfood CLI, 59 tests green.
+No AI anywhere yet, by design. Phase plan: [`docs/00-charter.md`](docs/00-charter.md).
 
-## Running things
+## Start here
 
-CI is **manual-trigger only** — nothing runs on push. Locally:
+    make help          # every command
+    make dogfood       # see it rank a task list
+    make rank          # rank the 30 scenarios (blind)
 
-    make help
+Full walkthrough — what works, what does not, and how to prove each guarantee
+yourself: **[`docs/11-using-it.md`](docs/11-using-it.md)**.
+
+CI is manual-trigger only; nothing runs on push.

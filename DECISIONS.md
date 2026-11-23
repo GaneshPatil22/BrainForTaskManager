@@ -158,3 +158,10 @@ capture keeps its split forever; adding more data never reshuffles existing rows
 Splitting needs stable, well-spread and dependency-free, not cryptographic.
 `docs/03-dataset-schema.md` updated to match the implementation rather than
 leaving the doc aspirational.
+
+### 2026-11-23 — Scenarios are authored as one-liners, not JSON
+`brain add-scenarios` reuses the same `.brain` format as the dogfood CLI, with
+`scenario:` lines as separators. Nobody should hand-write JSON to describe four
+tasks, and reusing the dump format means there is one syntax to learn, not two.
+Absolute dates convert to day offsets on write, so a scenario means the same
+thing whenever it is read.

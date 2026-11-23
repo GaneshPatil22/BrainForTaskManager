@@ -7,7 +7,10 @@ struct BrainCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "brain",
         abstract: "Brain v1 Core — everything here is computed deterministically.",
-        subcommands: [NextCommand.self, RankCommand.self, IngestCommand.self],
+        subcommands: [
+            NextCommand.self, RankCommand.self,
+            NewScenarioCommand.self, IngestCommand.self,
+        ],
         defaultSubcommand: NextCommand.self)
 }
 

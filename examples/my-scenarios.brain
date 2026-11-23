@@ -1,0 +1,27 @@
+# Your own scenarios. Write as many as you like, then run:
+#     make add-scenarios FILE=examples/my-scenarios.brain
+#
+# Rules:
+#   - each scenario starts with a `scenario:` line
+#   - then one task per line, same format as examples/sample.brain
+#   - at least 2 open tasks per scenario, or it is skipped
+#   - "today" is always Monday 23 Nov 2026, so `due kal` means Tue 24th
+#
+# Modifiers after the title, separated by | :
+#   tiny | small | medium | large | xlarge     effort
+#   due <anything>     aaj, kal, parso, 15 tarikh, next monday, in 3 days, 15/12
+#   goal <title>       must match a `goal:` line in the same scenario
+#   after <title>      that task must finish first
+#   done               already finished
+
+scenario: Hotfix versus the flights
+Ship the hotfix           | medium | due aaj
+Book flights for Diwali   | small  | due in 2 days
+Call Amma                 | tiny
+
+scenario: Everything waits on the client
+goal: Ship the client site
+Ask client for brand assets | tiny
+Design the homepage         | large | after Ask client for brand assets | goal Ship the client site
+Build the components        | large | after Design the homepage | goal Ship the client site
+Invoice the client          | tiny  | due 15 tarikh

@@ -29,6 +29,10 @@ enum DumpFormat {
     struct Result: Sendable {
         let graph: BrainGraph
         let issues: [ParseIssue]
+        /// Items and goals in the order they appeared in the file. Dictionaries
+        /// lose that, and anything regenerating the file needs it back.
+        let itemOrder: [ULID]
+        let goalOrder: [ULID]
     }
 
     /// Edges are wired in a second pass so `after` may name an item defined
@@ -57,6 +61,8 @@ enum DumpFormat {
         var goalIdsByTitle: [String: ULID] = [:]
         var itemIdsByTitle: [String: ULID] = [:]
         var pending: [PendingEdge] = []
+        var itemOrder: [ULID] = []
+        var goalOrder: [ULID] = []
 
         for (index, rawLine) in contents.components(separatedBy: .newlines).enumerated() {
             let lineNumber = index + 1
@@ -72,6 +78,7 @@ enum DumpFormat {
                 let goal = Goal(id: generator.next(), title: title, createdAt: now)
                 graph.insert(goal)
                 goalIdsByTitle[title.lowercased()] = goal.id
+                goalOrder.append(goal.id)
                 continue
             }
 
@@ -131,6 +138,7 @@ enum DumpFormat {
                     tier: .user),
                 dueAt: due, createdAt: now)
             graph.insert(item)
+            itemOrder.append(item.id)
             if itemIdsByTitle.updateValue(item.id, forKey: title.lowercased()) != nil {
                 issues.append(
                     .init(
@@ -178,10 +186,26 @@ enum DumpFormat {
                 case .relates, .duplicate:
                     continue
                 }
+            } catch let error as GraphError {
+                // Report titles, not ULIDs — the raw ids mean nothing to a reader.
+                let message: String
+                switch error {
+                case .wouldCreateCycle:
+                    message =
+                        "\"\(edge.targetTitle)\" must finish first, but that would "
+                        + "create a circular dependency — edge dropped"
+                case .selfLoop:
+                    message = "a task cannot depend on itself"
+                default:
+                    message = "\(error)"
+                }
+                issues.append(.init(line: edge.line, message: message))
             } catch {
                 issues.append(.init(line: edge.line, message: "\(error)"))
             }
         }
-        return Result(graph: graph, issues: issues)
+        return Result(
+            graph: graph, issues: issues,
+            itemOrder: itemOrder, goalOrder: goalOrder)
     }
 }

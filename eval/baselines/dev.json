@@ -1,34 +1,34 @@
 {
   "dataset" : "v1",
-  "generatedAt" : "2026-11-23T09:54:10Z",
-  "runId" : "01M83X7JSCX4WYFSDQ3E42KYEK",
+  "generatedAt" : "2026-11-23T14:50:22Z",
+  "runId" : "01M84E5YFDF411DX2GB57EJD7H",
   "sections" : [
     {
       "metrics" : [
         {
           "higherIsBetter" : true,
           "name" : "human pick in top-3",
-          "note" : "±13pp at 95%",
-          "sampleSize" : 54,
+          "note" : "±12pp at 95%",
+          "sampleSize" : 66,
           "tolerance" : 0.02,
           "unit" : "percent",
-          "value" : 0.7037037037037037
+          "value" : 0.7121212121212122
         },
         {
           "higherIsBetter" : true,
           "name" : "human pick is our top-1",
-          "sampleSize" : 54,
+          "sampleSize" : 66,
           "tolerance" : 0.03,
           "unit" : "percent",
-          "value" : 0.2777777777777778
+          "value" : 0.24242424242424243
         },
         {
           "higherIsBetter" : true,
           "name" : "NDCG@5",
-          "sampleSize" : 54,
+          "sampleSize" : 66,
           "tolerance" : 0.03,
           "unit" : "ratio",
-          "value" : 0.7371021139564576
+          "value" : 0.7390397782713867
         }
       ],
       "name" : "ranking"
@@ -78,17 +78,66 @@
       "metrics" : [
         {
           "higherIsBetter" : true,
+          "name" : "type accuracy",
+          "note" : "labels true by construction; see docs\/14",
+          "sampleSize" : 415,
+          "tolerance" : 0.02,
+          "unit" : "percent",
+          "value" : 0.8072289156626506
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "type — unfamiliar verb",
+          "note" : "the only non-circular slice — verb absent from our lexicon",
+          "sampleSize" : 163,
+          "tolerance" : 0.03,
+          "unit" : "percent",
+          "value" : 0.5644171779141104
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "date accuracy",
+          "sampleSize" : 187,
+          "tolerance" : 0.01,
+          "unit" : "percent",
+          "value" : 0.9786096256684492
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "effort accuracy",
+          "sampleSize" : 147,
+          "tolerance" : 0.02,
+          "unit" : "percent",
+          "value" : 0.9183673469387755
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "dependency recall",
+          "sampleSize" : 69,
+          "tolerance" : 0.03,
+          "unit" : "percent",
+          "value" : 0.6811594202898551
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "span-verified rate",
+          "sampleSize" : 406,
+          "tolerance" : 0,
+          "unit" : "percent",
+          "value" : 1
+        }
+      ],
+      "name" : "t0 baseline"
+    },
+    {
+      "metrics" : [
+        {
+          "higherIsBetter" : true,
           "name" : "date phrasings parsed",
           "sampleSize" : 27,
           "tolerance" : 0,
           "unit" : "percent",
           "value" : 1
-        },
-        {
-          "higherIsBetter" : true,
-          "name" : "span-verified rate",
-          "note" : "needs extraction from raw captures — B3",
-          "unit" : "percent"
         }
       ],
       "name" : "extraction"
@@ -108,7 +157,7 @@
           "higherIsBetter" : false,
           "mustNotExceed" : 0,
           "name" : "adversarial over budget",
-          "note" : "slowest 52.9ms",
+          "note" : "slowest 51.7ms",
           "unit" : "count",
           "value" : 0
         },
@@ -157,14 +206,14 @@
           "name" : "p50 latency",
           "tolerance" : 1,
           "unit" : "milliseconds",
-          "value" : 0.066917
+          "value" : 0.066833
         },
         {
           "higherIsBetter" : false,
           "name" : "p95 latency",
           "tolerance" : 2,
           "unit" : "milliseconds",
-          "value" : 0.107125
+          "value" : 0.100208
         },
         {
           "higherIsBetter" : true,
@@ -180,9 +229,10 @@
     "adversarial" : 34,
     "category labels" : 1308,
     "distinct date phrasings" : 27,
-    "ranked" : 54,
+    "ranked" : 66,
     "scenarios" : 91,
-    "unranked" : 37
+    "synthetic captures" : 415,
+    "unranked" : 25
   },
   "split" : "dev"
 }

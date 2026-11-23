@@ -144,6 +144,138 @@ public enum Metrics {
         return result
     }
 
+    // MARK: - Synthetic captures (the T0 baseline)
+
+    public struct ExtractionResult: Sendable {
+        public var rows = 0
+        /// correct / attempted / expected, per field.
+        public var type = (correct: 0, attempted: 0, expected: 0)
+        public var date = (correct: 0, attempted: 0, expected: 0)
+        public var effort = (correct: 0, attempted: 0, expected: 0)
+        public var dependency = (correct: 0, attempted: 0, expected: 0)
+        public var category = (correct: 0, attempted: 0, expected: 0)
+        /// Type accuracy split by whether the verb is in our lexicon. The
+        /// unknown half is the only part that is not self-fulfilling.
+        public var typeOnKnownVerb = (correct: 0, total: 0)
+        public var typeOnUnknownVerb = (correct: 0, total: 0)
+        public var spansVerified = 0
+        public var spansChecked = 0
+        public var confusion: [String: [String: Int]] = [:]
+    }
+
+    /// Runs the T0 rules over synthetic captures whose labels are true by
+    /// construction (`scripts/make-synthetic.py`).
+    ///
+    /// **Read these numbers carefully.** Date, effort and dependency are
+    /// grammars: generating "kal" and checking we read "kal" is legitimate
+    /// coverage. Type and category are closer to circular — the generator and
+    /// the classifier share a notion of what a verb is — so the informative
+    /// slice is `typeOnUnknownVerb`, where the verb is deliberately absent from
+    /// our lexicon.
+    public static func extraction(
+        captures: [SyntheticCapture], timeZone: TimeZone, now: Date
+    ) -> ExtractionResult {
+        let dateParser = DateParser(timeZone: timeZone)
+        let effortParser = EffortParser()
+        let dependencyParser = DependencyParser(timeZone: timeZone)
+        let typeClassifier = TypeClassifier(timeZone: timeZone)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+
+        var result = ExtractionResult()
+
+        for capture in captures {
+            result.rows += 1
+            let text = capture.rawText
+
+            // --- type
+            if let expected = capture.labels.type {
+                result.type.expected += 1
+                let predicted = typeClassifier.classify(text, now: now)
+                let got = predicted.value?.rawValue
+                if predicted.isKnown { result.type.attempted += 1 }
+                let correct = got == expected
+                if correct { result.type.correct += 1 }
+                result.confusion[expected, default: [:]][got ?? "(abstained)", default: 0] += 1
+
+                // Known vs unknown verb, judged by whether our imperative list
+                // contains any of the capture's first words.
+                let words = text.lowercased()
+                    .split(whereSeparator: { !$0.isLetter }).map(String.init)
+                let knownVerb = words.prefix(4).contains {
+                    TypeClassifier.imperativeVerbs.contains($0)
+                }
+                if knownVerb {
+                    result.typeOnKnownVerb.total += 1
+                    if correct { result.typeOnKnownVerb.correct += 1 }
+                } else {
+                    result.typeOnUnknownVerb.total += 1
+                    if correct { result.typeOnUnknownVerb.correct += 1 }
+                }
+            }
+
+            // --- date
+            let parsedDate = dateParser.parse(text, now: now)
+            if let expectedOffset = capture.labels.dueAt {
+                result.date.expected += 1
+                if let parsedDate {
+                    result.date.attempted += 1
+                    let days =
+                        calendar.dateComponents(
+                            [.day], from: calendar.startOfDay(for: now),
+                            to: calendar.startOfDay(for: parsedDate.date)
+                        ).day ?? -999
+                    if days == expectedOffset { result.date.correct += 1 }
+                }
+            }
+
+            // --- effort
+            let parsedEffort = effortParser.parse(text)
+            if let expected = capture.labels.effort {
+                result.effort.expected += 1
+                if let parsedEffort {
+                    result.effort.attempted += 1
+                    if parsedEffort.bucket.rawValue == expected { result.effort.correct += 1 }
+                }
+            }
+
+            // --- dependency
+            let parsedDependencies = dependencyParser.parse(text, now: now)
+            if let expected = capture.labels.dependency {
+                result.dependency.expected += 1
+                if let first = parsedDependencies.first {
+                    result.dependency.attempted += 1
+                    // The referent may carry an article the label omits.
+                    if first.targetText.contains(expected)
+                        || expected.contains(first.targetText)
+                    {
+                        result.dependency.correct += 1
+                    }
+                }
+            }
+
+            // --- category
+            if let expected = capture.labels.category {
+                result.category.expected += 1
+                let predicted = CategoryClassifier.classify(text)
+                if let value = predicted.value {
+                    result.category.attempted += 1
+                    if value.rawValue == expected { result.category.correct += 1 }
+                }
+            }
+
+            // --- spans must resolve, on every row (guard 2)
+            let lowered = text.lowercased()
+            for span in [parsedDate?.span, parsedEffort?.span].compactMap({ $0 })
+                + parsedDependencies.map(\.span)
+            {
+                result.spansChecked += 1
+                if span.resolve(in: lowered) != nil { result.spansVerified += 1 }
+            }
+        }
+        return result
+    }
+
     // MARK: - Adversarial
 
     public struct AdversarialResult: Sendable {

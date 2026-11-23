@@ -3,6 +3,15 @@
   "edges" : [
 
   ],
+  "expected" : {
+    "ranked_at" : "2026-11-23T14:47:33Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i4",
+      "i2",
+      "i5"
+    ]
+  },
   "goals" : [
 
   ],

@@ -28,6 +28,9 @@ struct EvalOptions: ParsableArguments {
     @Option(name: .long, help: "Category labels (title -> category JSON), if present.")
     var categoryLabels: String = "/tmp/category-truth.json"
 
+    @Option(name: .long, help: "Synthetic capture dataset root.")
+    var synthetic: String = "datasets/v1"
+
     @Option(name: .long, help: "Adversarial dataset directory.")
     var adversarial: String = "datasets/adversarial"
 
@@ -130,6 +133,55 @@ enum Runner {
             ]
         }
 
+        // --- Synthetic captures: the T0 baseline -----------------------------
+        let captures =
+            (try? SyntheticLoader.load(
+                directory: URL(fileURLWithPath: options.synthetic), split: options.split)) ?? []
+        sets["synthetic captures"] = captures.count
+        let ext = Metrics.extraction(
+            captures: captures, timeZone: TimeZone(identifier: "Asia/Kolkata")!,
+            now: SyntheticLoader.now)
+
+        func rate(_ pair: (correct: Int, attempted: Int, expected: Int)) -> Double? {
+            pair.expected == 0 ? nil : Double(pair.correct) / Double(pair.expected)
+        }
+        let t0Baseline: [Metric] =
+            captures.isEmpty
+            ? [
+                Metric(
+                    name: "type accuracy", value: nil, unit: .percent,
+                    note: "no synthetic captures — run scripts/make-synthetic.py")
+            ]
+            : [
+                Metric(
+                    name: "type accuracy", value: rate(ext.type), unit: .percent,
+                    tolerance: 0.02, sampleSize: ext.type.expected,
+                    note: "labels true by construction; see docs/14"),
+                Metric(
+                    name: "type — unfamiliar verb",
+                    value: ext.typeOnUnknownVerb.total == 0
+                        ? nil
+                        : Double(ext.typeOnUnknownVerb.correct)
+                            / Double(ext.typeOnUnknownVerb.total),
+                    unit: .percent, tolerance: 0.03,
+                    sampleSize: ext.typeOnUnknownVerb.total,
+                    note: "the only non-circular slice — verb absent from our lexicon"),
+                Metric(
+                    name: "date accuracy", value: rate(ext.date), unit: .percent,
+                    tolerance: 0.01, sampleSize: ext.date.expected),
+                Metric(
+                    name: "effort accuracy", value: rate(ext.effort), unit: .percent,
+                    tolerance: 0.02, sampleSize: ext.effort.expected),
+                Metric(
+                    name: "dependency recall", value: rate(ext.dependency), unit: .percent,
+                    tolerance: 0.03, sampleSize: ext.dependency.expected),
+                Metric(
+                    name: "span-verified rate",
+                    value: ext.spansChecked == 0
+                        ? nil : Double(ext.spansVerified) / Double(ext.spansChecked),
+                    unit: .percent, tolerance: 0.0, sampleSize: ext.spansChecked),
+            ]
+
         // --- Dates ---------------------------------------------------------
         let corpusFiles =
             (try? FileManager.default.contentsOfDirectory(
@@ -138,7 +190,7 @@ enum Runner {
             .filter { $0.pathExtension == "brain" }) ?? []
         let dateResult = Metrics.dates(
             corpus: corpusFiles, timeZone: TimeZone(identifier: "Asia/Kolkata")!,
-            now: Date(timeIntervalSince1970: 1_795_000_000))
+            now: SyntheticLoader.now)
         sets["distinct date phrasings"] = dateResult.total
         let dateMetrics: [Metric] = [
             Metric(
@@ -148,10 +200,7 @@ enum Runner {
                 unit: .percent, tolerance: 0.0, sampleSize: dateResult.total,
                 note: dateResult.unparseable.isEmpty
                     ? nil
-                    : "unparsed: " + dateResult.unparseable.prefix(5).joined(separator: ", ")),
-            Metric(
-                name: "span-verified rate", value: nil, unit: .percent,
-                note: "needs extraction from raw captures — B3"),
+                    : "unparsed: " + dateResult.unparseable.prefix(5).joined(separator: ", "))
         ]
 
         // --- Adversarial -----------------------------------------------------
@@ -160,7 +209,7 @@ enum Runner {
             ?? []
         let adv = Metrics.adversarial(
             cases: adversarialCases, timeZone: TimeZone(identifier: "Asia/Kolkata")!,
-            now: Date(timeIntervalSince1970: 1_795_000_000))
+            now: SyntheticLoader.now)
         sets["adversarial"] = adversarialCases.count
 
         // --- Robustness ------------------------------------------------------
@@ -224,6 +273,7 @@ enum Runner {
                 Section(name: "ranking", metrics: rankingMetrics),
                 Section(name: "tiering", metrics: t0Metrics),
                 Section(name: "category", metrics: categoryMetrics),
+                Section(name: "t0 baseline", metrics: t0Baseline),
                 Section(name: "extraction", metrics: dateMetrics),
                 Section(name: "robustness", metrics: robustness),
                 Section(name: "systems", metrics: systems),

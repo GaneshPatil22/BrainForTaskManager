@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard promote-baseline dogfood rank rank-again agreement split category-eval category-sweep rank-status add-scenarios ingest clean
+.PHONY: help dev build test eval gate lint ci scorecard promote-baseline dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -46,6 +46,12 @@ rank-again: ## Second-pass ranking on a different day (finds the noise floor)
 
 agreement: ## How much you disagree with yourself — the ceiling for any model
 	@swift build 2>/dev/null; swift run brain agreement
+
+synthetic: ## Regenerate the synthetic captures (seeded, reproducible)
+	python3 scripts/make-synthetic.py 2000
+
+adversarial: ## Regenerate the adversarial set (seeded, reproducible)
+	python3 scripts/make-adversarial.py
 
 category-eval: ## Measure the T0 category lexicon against labelled titles
 	@python3 scripts/category-truth.py > /tmp/category-truth.json 2>/dev/null

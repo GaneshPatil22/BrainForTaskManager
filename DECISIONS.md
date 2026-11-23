@@ -460,3 +460,51 @@ weights were tuned against it. 70.4% is far below the ≥90% exit target in
 This is real signal, not a defect in the data: our top pick matches Ganesh's
 roughly a quarter of the time. Weight tuning waits for the full 91 ranked dev
 scenarios, then happens on dev only.
+
+### 2026-11-23 — Synthetic captures are composed, not judged
+2,000 captures from `scripts/make-synthetic.py`, every label true **by
+construction**: the text is assembled from a chosen date phrase, duration, verb
+and object. Judged labels on generated text measure whether we reimplemented
+the generator — `docs/13-generated-datasets.md` has the full argument.
+
+Vocabulary deliberately mixes terms the lexicon knows (60%) with terms it does
+not (40%), so the honest output is a **coverage** number. Generating only from
+the lexicon would score ~100% and mean nothing. 65% of rows contain Hinglish.
+
+### 2026-11-23 — B2.5 T0 baseline measured. This is what B3 must beat.
+```
+type accuracy            80.7%   n=415
+type — unfamiliar verb   56.4%   n=163   ← the honest slice
+date accuracy            97.9%   n=187
+effort accuracy          91.8%   n=147
+dependency recall        68.1%   n=69
+span-verified rate      100.0%   n=406
+```
+Almost every type failure is one thing: **an imperative we do not recognise**
+(36 tasks read as notes). That is precisely the gap a model is for, and
+precisely the comparison B3 has to make.
+
+### 2026-11-23 — Real bug: the eval harness had the wrong clock
+`now` existed as three separate literals and one was `1_795_000_000` —
+**Wednesday 18 Nov 2026**, not Monday the 23rd. Date accuracy read **52.2%**;
+with the correct constant it is **97.9%**. The parser was right the whole time
+and the harness was scoring it against the wrong day.
+
+A wrong clock in the harness is worse than a wrong parser: it makes correct code
+look broken, and the obvious response is to "fix" the part that is fine. Now
+defined once, in `SyntheticLoader.now`, with a comment saying why.
+
+### 2026-11-23 — My generator produced an unlearnable label
+`task` rows could carry dates and `reminder` rows always did, so "clean the
+kitchen kal" was labelled `task` in one row and `reminder` in another, at
+random. 51 of 212 tasks were scored wrong against a label no reader could have
+produced either.
+
+Fixed by making the distinction real: **a reminder is time-anchored** ("call
+Priya kal subah 9 baje"), **a task merely has a deadline** ("clean the kitchen
+kal"). `TypeClassifier` now keys on a clock time rather than any date. Type
+accuracy went 66.5% → 80.7% — not because the classifier improved, but because
+the question became answerable.
+
+**A label that is not identifiable from the input is a generator bug, not a
+model failure.** Worth remembering when B3's numbers look bad.

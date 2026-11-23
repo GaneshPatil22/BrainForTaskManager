@@ -366,7 +366,10 @@ public struct DateParser: Sendable {
 
     // MARK: - Time of day
 
-    struct TimeMatch: Sendable {
+    /// A clock time found in the text. Public because `TypeClassifier` uses
+    /// its presence to tell a reminder ("call Priya at 9am") from a task with
+    /// a deadline ("call Priya tomorrow").
+    public struct TimeMatch: Sendable {
         let hour: Int, minute: Int; let span: Span; let confidence: Double
     }
 
@@ -388,7 +391,7 @@ public struct DateParser: Sendable {
     }
 
     /// `subah 9 baje`, `shaam 5 baje`, `9 baje`, `9am`, `5:30 pm`.
-    static func findTime(in text: String) -> TimeMatch? {
+    public static func findTime(in text: String) -> TimeMatch? {
         // A period word disambiguates completely, so confidence stays high.
         for period in ["subah", "dopahar", "shaam", "raat"] {
             guard

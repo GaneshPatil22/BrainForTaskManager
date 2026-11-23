@@ -11,7 +11,7 @@ import Testing
 @Suite("Adversarial set")
 struct AdversarialTests {
     static let zone = TimeZone(identifier: "Asia/Kolkata")!
-    static let now = Date(timeIntervalSince1970: 1_795_000_000)
+    static let now = SyntheticLoader.now
 
     func load() throws -> [AdversarialCase] {
         try AdversarialLoader.load(

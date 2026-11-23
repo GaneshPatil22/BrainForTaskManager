@@ -1032,12 +1032,15 @@ above — Hostinger's ₹779 is a promo, Hetzner has no ARM outside the EU.
 
 *Do not hand-roll the job queue.* Ganesh's call, and the reasoning was that a
 queue is exactly the kind of component where a hand-rolled version looks fine
-until it loses work under load. **The replacement was never chosen.** The
-candidates worth comparing when the server starts are Postgres-backed (pgmq,
-Graphile Worker) against a Swift-native worker, and the deciding question is
-whether we are willing to run a second process. Nothing has been verified
-about any of them — per the standing rule, check the current docs and the
-package source before committing, do not assume from memory.
+until it loses work under load.
+
+**Correction, same day.** I first recorded this as "the replacement was never
+chosen". That was wrong, and I found it while auditing the repo for a phase
+handoff: ADR-0001 already lists `swift-jobs` 1.4.0 and `swift-jobs-postgres`
+1.5.0 among the satellite packages verified on 2026-11-22. Postgres-backed,
+same org as Hummingbird, no second process and no Redis. That is the choice,
+and the only open part is confirming the versions are still current at the
+time the server starts.
 
 **Still open from Brain, and not blocking the server:** `make rank-again`
 then `make agreement`, which decide whether top-3 at 71.4% sits at the human

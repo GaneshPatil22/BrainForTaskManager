@@ -1,5 +1,6 @@
 import ArgumentParser
 import BrainCore
+import BrainDatasets
 import Foundation
 
 @main

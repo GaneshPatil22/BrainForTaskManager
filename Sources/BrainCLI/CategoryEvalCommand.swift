@@ -1,5 +1,6 @@
 import ArgumentParser
 import BrainCore
+import BrainDatasets
 import Foundation
 
 /// Measures the T0 category lexicon against labelled titles.

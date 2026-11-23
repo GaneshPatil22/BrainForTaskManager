@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard dogfood rank rank-again agreement split category-eval category-sweep rank-status add-scenarios ingest clean
+.PHONY: help dev build test eval gate lint ci scorecard promote-baseline dogfood rank rank-again agreement split category-eval category-sweep rank-status add-scenarios ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -16,30 +16,24 @@ build: ## Build the Swift package
 test: ## Unit + property tests
 	swift test
 
-# EvalCLI arrives in B2. Until then these skip loudly rather than fail the
-# build or, worse, pass silently and make `make ci` green for the wrong reason.
-HAVE_EVAL := $(shell swift package dump-package 2>/dev/null | grep -c '"EvalCLI"')
+# Category labels are derived from the committed corpus, so the eval needs no
+# network and no API key.
+LABELS := /tmp/category-truth.json
+$(LABELS): scripts/category-truth.py datasets/generated
+	@python3 scripts/category-truth.py > $(LABELS) 2>/dev/null
 
-eval: ## Full eval suite, replay mode — offline, deterministic, free
-ifeq ($(HAVE_EVAL),0)
-	@echo "SKIP eval     — EvalCLI lands in B2 (docs/00-charter.md)"
-else
+eval: $(LABELS) ## Full eval suite, replay mode — offline, deterministic, free
 	swift run EvalCLI run --split dev --cassettes replay
-endif
 
-gate: ## Regression gate vs. the committed baseline
-ifeq ($(HAVE_EVAL),0)
-	@echo "SKIP gate     — EvalCLI lands in B2 (docs/00-charter.md)"
-else
-	swift run EvalCLI gate --split dev --baseline eval/baselines/dev.json
-endif
+gate: $(LABELS) ## Regression gate vs. the committed baseline
+	swift run EvalCLI gate --split dev --cassettes replay
 
-scorecard: ## Print the scorecard table
-ifeq ($(HAVE_EVAL),0)
-	@echo "SKIP scorecard — EvalCLI lands in B2 (docs/00-charter.md)"
-else
+scorecard: $(LABELS) ## Print the scorecard table
 	swift run EvalCLI scorecard --split dev
-endif
+
+promote-baseline: $(LABELS) ## Store the current scorecard as baseline. REASON="..."
+	@test -n "$(REASON)" || (echo 'usage: make promote-baseline REASON="why"'; exit 1)
+	swift run EvalCLI promote-baseline --split dev --reason "$(REASON)"
 
 dogfood: ## Run the dogfood CLI against the sample dump
 	swift run brain next examples/sample.brain

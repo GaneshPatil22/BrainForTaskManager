@@ -1,0 +1,307 @@
+import ArgumentParser
+import BrainCore
+import BrainDatasets
+import BrainEval
+import Foundation
+
+@main
+struct EvalCLI: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "EvalCLI",
+        abstract: "Run the eval suite, print the scorecard, enforce the regression gate.",
+        subcommands: [Run.self, Scorecard_.self, Gate.self, PromoteBaseline.self],
+        defaultSubcommand: Run.self)
+}
+
+// MARK: - Shared options
+
+struct EvalOptions: ParsableArguments {
+    @Option(name: .long, help: "Dataset split to evaluate: dev or test.")
+    var split: String = "dev"
+
+    @Option(name: .long, help: "Scenario directory.")
+    var scenarios: String = "datasets/scenarios"
+
+    @Option(name: .long, help: "Generated corpus, used for date-coverage.")
+    var corpus: String = "datasets/generated"
+
+    @Option(name: .long, help: "Category labels (title -> category JSON), if present.")
+    var categoryLabels: String = "/tmp/category-truth.json"
+
+    @Option(name: .long, help: "Cassette mode: replay | record | live.")
+    var cassettes: String = "replay"
+
+    /// The test split is read at phase gates only. Enforced here rather than
+    /// left to discipline (`docs/03-dataset-schema.md`).
+    func validateSplit(isGate: Bool) throws {
+        guard split == "test", !isGate else { return }
+        throw ValidationError(
+            """
+            Refusing to evaluate the test split outside a gate run.
+
+            The test split is read at phase gates only — never to tune a prompt,
+            a threshold, a weight or a rule. Use `--split dev`, or run the gate
+            deliberately with `EvalCLI gate --split test`.
+            """)
+    }
+}
+
+// MARK: - Building the scorecard
+
+enum Runner {
+
+    static func build(_ options: EvalOptions) throws -> Scorecard {
+        let all = try ScenarioLoader.loadAll(in: URL(fileURLWithPath: options.scenarios))
+        let inSplit = all.filter { ($0.file.split ?? "dev") == options.split }
+        let ranked = inSplit.filter { $0.file.expected != nil }
+
+        var sets: [String: Int] = [
+            "scenarios": inSplit.count,
+            "ranked": ranked.count,
+            "unranked": inSplit.count - ranked.count,
+        ]
+
+        // --- Ranking -------------------------------------------------------
+        let rankingResult = Metrics.ranking(
+            scenarios: ranked, weights: .default, policy: .default)
+        let n = rankingResult.evaluated
+        var rankingMetrics: [Metric] = []
+        if n > 0 {
+            let interval = 1.96 * (0.25 / Double(n)).squareRoot()
+            rankingMetrics = [
+                Metric(
+                    name: "human pick in top-3", value: Double(rankingResult.top3) / Double(n),
+                    unit: .percent, tolerance: 0.02, sampleSize: n,
+                    note: String(format: "±%.0fpp at 95%%", interval * 100)),
+                Metric(
+                    name: "human pick is our top-1", value: Double(rankingResult.top1) / Double(n),
+                    unit: .percent, tolerance: 0.03, sampleSize: n),
+                Metric(
+                    name: "NDCG@5", value: rankingResult.ndcgTotal / Double(n),
+                    unit: .ratio, tolerance: 0.03, sampleSize: n),
+            ]
+        } else {
+            rankingMetrics = [
+                Metric(
+                    name: "human pick in top-3", value: nil, unit: .percent,
+                    note: "no ranked scenarios in this split — run `brain rank`")
+            ]
+        }
+
+        // --- T0 coverage ---------------------------------------------------
+        let coverage = Metrics.t0Coverage(scenarios: inSplit)
+        let t0Metrics: [Metric] = [
+            Metric(
+                name: "category resolved at T0",
+                value: coverage.items == 0
+                    ? nil : Double(coverage.categoryResolved) / Double(coverage.items),
+                unit: .percent, tolerance: 0.05, sampleSize: coverage.items),
+            Metric(
+                name: "T2 rate (costs quota)", value: nil, unit: .percent,
+                note: "no model calls exist yet — B3"),
+        ]
+
+        // --- Category ------------------------------------------------------
+        var categoryMetrics: [Metric] = []
+        if let data = try? Data(contentsOf: URL(fileURLWithPath: options.categoryLabels)),
+            let labels = try? JSONDecoder().decode([String: String].self, from: data)
+        {
+            let result = Metrics.category(labels: labels)
+            sets["category labels"] = result.total
+            categoryMetrics = [
+                Metric(
+                    name: "accuracy on attempted",
+                    value: result.attempted == 0
+                        ? nil : Double(result.correct) / Double(result.attempted),
+                    unit: .percent, tolerance: 0.02, sampleSize: result.attempted),
+                Metric(
+                    name: "coverage", value: Double(result.attempted) / Double(result.total),
+                    unit: .percent, tolerance: 0.05, sampleSize: result.total,
+                    note: "labels are generator-assigned — agreement, not correctness"),
+            ]
+        } else {
+            categoryMetrics = [
+                Metric(
+                    name: "accuracy on attempted", value: nil, unit: .percent,
+                    note: "no labels — run scripts/category-truth.py")
+            ]
+        }
+
+        // --- Dates ---------------------------------------------------------
+        let corpusFiles =
+            (try? FileManager.default.contentsOfDirectory(
+                at: URL(fileURLWithPath: options.corpus), includingPropertiesForKeys: nil
+            )
+            .filter { $0.pathExtension == "brain" }) ?? []
+        let dateResult = Metrics.dates(
+            corpus: corpusFiles, timeZone: TimeZone(identifier: "Asia/Kolkata")!,
+            now: Date(timeIntervalSince1970: 1_795_000_000))
+        sets["distinct date phrasings"] = dateResult.total
+        let dateMetrics: [Metric] = [
+            Metric(
+                name: "date phrasings parsed",
+                value: dateResult.total == 0
+                    ? nil : Double(dateResult.parsed) / Double(dateResult.total),
+                unit: .percent, tolerance: 0.0, sampleSize: dateResult.total,
+                note: dateResult.unparseable.isEmpty
+                    ? nil
+                    : "unparsed: " + dateResult.unparseable.prefix(5).joined(separator: ", ")),
+            Metric(
+                name: "span-verified rate", value: nil, unit: .percent,
+                note: "needs extraction from raw captures — B3"),
+        ]
+
+        // --- Robustness ------------------------------------------------------
+        let robustness: [Metric] = [
+            Metric(
+                name: "ranking deterministic",
+                value: Metrics.isDeterministic(scenarios: inSplit) ? 1 : 0,
+                unit: .boolean, tolerance: 0.0),
+            Metric(
+                name: "graphs with cycles",
+                value: Double(Metrics.cycleCount(scenarios: inSplit)),
+                unit: .count, mustNotExceed: 0, higherIsBetter: false,
+                note: "invariant — any value above 0 fails unconditionally"),
+            Metric(
+                name: "hallucinated-ID rate", value: nil, unit: .percent,
+                mustNotExceed: 0, note: "no model calls exist yet — B3"),
+            Metric(
+                name: "captures lost", value: nil, unit: .count,
+                mustNotExceed: 0, note: "no pipeline yet — B3"),
+            Metric(
+                name: "injection resistance", value: nil, unit: .percent,
+                note: "adversarial set is empty — B2"),
+        ]
+
+        // --- Systems ---------------------------------------------------------
+        let timing = Metrics.latencies(scenarios: inSplit)
+        let systems: [Metric] = [
+            Metric(
+                name: "p50 latency", value: timing.p50, unit: .milliseconds,
+                tolerance: 1.0, higherIsBetter: false),
+            Metric(
+                name: "p95 latency", value: timing.p95, unit: .milliseconds,
+                tolerance: 2.0, higherIsBetter: false),
+            Metric(
+                name: "cost per capture (Rs)", value: nil, unit: .ratio,
+                note: "no model calls exist yet — B3"),
+        ]
+
+        return Scorecard(
+            runId: ULID(
+                timestampMilliseconds: UInt64(Date().timeIntervalSince1970 * 1000),
+                randomness: (0..<10).map { _ in UInt8.random(in: 0...255) }
+            ).rawValue,
+            generatedAt: ISO8601DateFormatter().string(from: Date()),
+            dataset: "v1", split: options.split, sets: sets,
+            sections: [
+                Section(name: "ranking", metrics: rankingMetrics),
+                Section(name: "tiering", metrics: t0Metrics),
+                Section(name: "category", metrics: categoryMetrics),
+                Section(name: "extraction", metrics: dateMetrics),
+                Section(name: "robustness", metrics: robustness),
+                Section(name: "systems", metrics: systems),
+            ])
+    }
+
+    static func baselineURL(_ split: String) -> URL {
+        URL(fileURLWithPath: "eval/baselines/\(split).json")
+    }
+
+    static func loadBaseline(_ split: String) -> Scorecard? {
+        guard let data = try? Data(contentsOf: baselineURL(split)) else { return nil }
+        return try? JSONDecoder().decode(Scorecard.self, from: data)
+    }
+}
+
+// MARK: - Commands
+
+struct Run: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "run", abstract: "Run the suite and print the scorecard.")
+    @OptionGroup var options: EvalOptions
+
+    func run() throws {
+        try options.validateSplit(isGate: false)
+        let card = try Runner.build(options)
+        print(card.render(baseline: Runner.loadBaseline(options.split)))
+    }
+}
+
+struct Scorecard_: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "scorecard", abstract: "Print the scorecard table.")
+    @OptionGroup var options: EvalOptions
+
+    func run() throws {
+        try options.validateSplit(isGate: false)
+        let card = try Runner.build(options)
+        print(card.render(baseline: Runner.loadBaseline(options.split)))
+    }
+}
+
+struct Gate: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "gate",
+        abstract: "Fail if any key metric has regressed beyond tolerance.")
+    @OptionGroup var options: EvalOptions
+
+    func run() throws {
+        let card = try Runner.build(options)
+        guard let baseline = Runner.loadBaseline(options.split) else {
+            print(card.render(baseline: nil))
+            print(
+                """
+                GATE: SKIPPED — no baseline at \(Runner.baselineURL(options.split).path)
+
+                Create one deliberately:
+                    swift run EvalCLI promote-baseline --split \(options.split) \\
+                        --reason "first baseline"
+                """)
+            return
+        }
+
+        print(card.render(baseline: baseline))
+        let result = card.gate(against: baseline)
+        if !result.improvements.isEmpty {
+            print("Improved: " + result.improvements.joined(separator: ", "))
+            print("(Improvements never auto-update the baseline — promote it deliberately.)")
+        }
+        if result.isPass {
+            print("\nGATE: PASS")
+        } else {
+            print("\nGATE: FAIL — \(result.failures.count) metric(s) outside tolerance")
+            for failure in result.failures { print("  • \(failure)") }
+            throw ExitCode.failure
+        }
+    }
+}
+
+struct PromoteBaseline: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "promote-baseline",
+        abstract: "Store the current scorecard as the baseline. A deliberate act.")
+    @OptionGroup var options: EvalOptions
+
+    @Option(name: .long, help: "Why this baseline is being promoted. Required.")
+    var reason: String
+
+    func run() throws {
+        let card = try Runner.build(options)
+        let url = Runner.baselineURL(options.split)
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(card).write(to: url)
+
+        print(card.render(baseline: nil))
+        print(
+            """
+            Baseline written to \(url.path)
+            Reason: \(reason)
+
+            Commit it — a baseline that is not in git cannot gate anything.
+            """)
+    }
+}

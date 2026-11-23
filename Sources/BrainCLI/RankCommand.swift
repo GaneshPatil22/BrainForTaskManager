@@ -1,5 +1,6 @@
 import ArgumentParser
 import BrainCore
+import BrainDatasets
 import Foundation
 
 /// Blind ranking of scenarios by a human.

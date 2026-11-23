@@ -19,20 +19,20 @@ import Foundation
 ///   `goal <title>`                     serves that goal
 ///   `after <title>`                    that item blocks this one
 ///   `done` | `dropped`                 status
-enum DumpFormat {
+public enum DumpFormat {
 
-    struct ParseIssue: Sendable {
-        let line: Int
-        let message: String
+    public struct ParseIssue: Sendable {
+        public let line: Int
+        public let message: String
     }
 
-    struct Result: Sendable {
-        let graph: BrainGraph
-        let issues: [ParseIssue]
+    public struct Result: Sendable {
+        public let graph: BrainGraph
+        public let issues: [ParseIssue]
         /// Items and goals in the order they appeared in the file. Dictionaries
         /// lose that, and anything regenerating the file needs it back.
-        let itemOrder: [ULID]
-        let goalOrder: [ULID]
+        public let itemOrder: [ULID]
+        public let goalOrder: [ULID]
     }
 
     /// Edges are wired in a second pass so `after` may name an item defined
@@ -44,7 +44,7 @@ enum DumpFormat {
         let line: Int
     }
 
-    static func parse(
+    public static func parse(
         _ contents: String, now: Date, timeZone: TimeZone,
         seed: UInt64 = 42
     ) -> Result {

@@ -1,60 +1,118 @@
-import ArgumentParser
 import BrainCore
 import Foundation
+
+/// Raised when a dataset file on disk is malformed. Kept here rather than
+/// reusing ArgumentParser's error so this target stays free of CLI dependencies
+/// and can be used from the eval runner as well.
+public struct DatasetError: Error, CustomStringConvertible {
+    public let description: String
+    public init(_ description: String) { self.description = description }
+}
 
 /// On-disk scenario format (`docs/03-dataset-schema.md`).
 ///
 /// Ids are short, human-authorable keys ("i1", "g1"), mapped to stable ULIDs by
 /// `ULID.derived(from:)`. Keeping the files readable matters more here than
 /// storing real ULIDs, and the domain stays strict either way.
-struct ScenarioFile: Codable {
-    struct ItemSpec: Codable {
-        let id: String
-        let title: String
-        let type: String
-        let effort: String
+public struct ScenarioFile: Codable {
+    public struct ItemSpec: Codable {
+        public let id: String
+        public let title: String
+        public let type: String
+        public let effort: String
         /// Either nil, or a day offset from `now` such as "+3" or "-2".
-        let dueAt: String?
-        let status: String
+        public let dueAt: String?
+        public let status: String
+
+        public init(
+            id: String, title: String, type: String, effort: String,
+            dueAt: String?, status: String
+        ) {
+            self.id = id
+            self.title = title
+            self.type = type
+            self.effort = effort
+            self.dueAt = dueAt
+            self.status = status
+        }
     }
-    struct GoalSpec: Codable { let id: String; let title: String }
-    struct EdgeSpec: Codable {
-        let from: String, to: String, kind: String
-        let confirmed: Bool
+    public struct GoalSpec: Codable {
+        public let id: String
+        public let title: String
+        public init(id: String, title: String) {
+            self.id = id
+            self.title = title
+        }
     }
-    struct Expected: Codable {
+    public struct EdgeSpec: Codable {
+        public let from: String, to: String, kind: String
+        public let confirmed: Bool
+
+        public init(from: String, to: String, kind: String, confirmed: Bool) {
+            self.from = from
+            self.to = to
+            self.kind = kind
+            self.confirmed = confirmed
+        }
+    }
+    public struct Expected: Codable {
         /// The human's top three, best first.
-        let rankingTop3: [String]
-        let rankedBy: String
-        let rankedAt: String
-        let note: String?
+        public let rankingTop3: [String]
+        public let rankedBy: String
+        public let rankedAt: String
+        public let note: String?
+
+        public init(rankingTop3: [String], rankedBy: String, rankedAt: String, note: String?) {
+            self.rankingTop3 = rankingTop3
+            self.rankedBy = rankedBy
+            self.rankedAt = rankedAt
+            self.note = note
+        }
     }
 
-    let id: String
+    public let id: String
     /// Assigned by `DatasetSplit.forScenario` from the id — never by hand.
-    var split: String?
-    let description: String
+    public var split: String?
+    public let description: String
     /// What dimension this scenario probes. **Never shown during ranking** —
     /// it would prime the answer.
-    let tests: String
-    let now: String
-    let userTz: String
-    let goals: [GoalSpec]
-    let items: [ItemSpec]
-    let edges: [EdgeSpec]
-    var expected: Expected?
+    public let tests: String
+    public let now: String
+    public let userTz: String
+    public let goals: [GoalSpec]
+    public let items: [ItemSpec]
+    public let edges: [EdgeSpec]
+    public var expected: Expected?
     /// A second, independent ranking of the same scenario on a different day.
     /// Used to measure how much the same human disagrees with themselves, which
     /// is the ceiling on any model's achievable agreement (`docs/12-backlog.md`
     /// B-03a). Without this number, every ranking target is a guess.
-    var secondPass: Expected?
+    public var secondPass: Expected?
 
-    static let decoder: JSONDecoder = {
+    public init(
+        id: String, split: String?, description: String, tests: String,
+        now: String, userTz: String, goals: [GoalSpec], items: [ItemSpec],
+        edges: [EdgeSpec], expected: Expected?, secondPass: Expected? = nil
+    ) {
+        self.id = id
+        self.split = split
+        self.description = description
+        self.tests = tests
+        self.now = now
+        self.userTz = userTz
+        self.goals = goals
+        self.items = items
+        self.edges = edges
+        self.expected = expected
+        self.secondPass = secondPass
+    }
+
+    public static let decoder: JSONDecoder = {
         let d = JSONDecoder()
         d.keyDecodingStrategy = .convertFromSnakeCase
         return d
     }()
-    static let encoder: JSONEncoder = {
+    public static let encoder: JSONEncoder = {
         let e = JSONEncoder()
         e.keyEncodingStrategy = .convertToSnakeCase
         e.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
@@ -66,7 +124,7 @@ extension ULID {
     /// Stable ULID derived from a short key. FNV-1a is used rather than a
     /// cryptographic hash because this only needs to be deterministic and
     /// well-spread, and it keeps BrainCLI free of a crypto dependency.
-    static func derived(from key: String) -> ULID {
+    public static func derived(from key: String) -> ULID {
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for byte in Array(key.utf8) {
             hash ^= UInt64(byte)
@@ -81,27 +139,27 @@ extension ULID {
     }
 }
 
-enum ScenarioLoader {
-    struct Loaded {
-        let file: ScenarioFile
-        let path: URL
-        let graph: BrainGraph
-        let now: Date
-        let calendar: Calendar
+public enum ScenarioLoader {
+    public struct Loaded {
+        public let file: ScenarioFile
+        public let path: URL
+        public let graph: BrainGraph
+        public let now: Date
+        public let calendar: Calendar
         /// Short key → ULID, so output can be written back in readable form.
-        let idsByKey: [String: ULID]
-        let keysById: [ULID: String]
+        public let idsByKey: [String: ULID]
+        public let keysById: [ULID: String]
     }
 
-    static func load(_ path: URL) throws -> Loaded {
+    public static func load(_ path: URL) throws -> Loaded {
         let data = try Data(contentsOf: path)
         let file = try ScenarioFile.decoder.decode(ScenarioFile.self, from: data)
 
         guard let now = ISO8601DateFormatter().date(from: file.now) else {
-            throw ValidationError("scenario \(file.id): bad `now`: \(file.now)")
+            throw DatasetError("scenario \(file.id): bad `now`: \(file.now)")
         }
         guard let zone = TimeZone(identifier: file.userTz) else {
-            throw ValidationError("scenario \(file.id): bad timezone: \(file.userTz)")
+            throw DatasetError("scenario \(file.id): bad timezone: \(file.userTz)")
         }
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = zone
@@ -145,7 +203,7 @@ enum ScenarioLoader {
             guard let from = idsByKey[spec.from], let to = idsByKey[spec.to],
                 let kind = EdgeKind(rawValue: spec.kind)
             else {
-                throw ValidationError("scenario \(file.id): bad edge \(spec.from)→\(spec.to)")
+                throw DatasetError("scenario \(file.id): bad edge \(spec.from)→\(spec.to)")
             }
             try graph.addEdge(
                 Edge(
@@ -159,7 +217,7 @@ enum ScenarioLoader {
             idsByKey: idsByKey, keysById: keysById)
     }
 
-    static func loadAll(in directory: URL) throws -> [Loaded] {
+    public static func loadAll(in directory: URL) throws -> [Loaded] {
         let files = try FileManager.default.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil
@@ -169,7 +227,7 @@ enum ScenarioLoader {
         return try files.map(load)
     }
 
-    static func save(_ file: ScenarioFile, to path: URL) throws {
+    public static func save(_ file: ScenarioFile, to path: URL) throws {
         var data = try ScenarioFile.encoder.encode(file)
         data.append(0x0A)
         try data.write(to: path)

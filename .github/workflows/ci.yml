@@ -25,9 +25,8 @@ jobs:
       - name: Test
         run: make test
 
-      # Replay mode: offline, deterministic, free. No API keys needed.
-      # EvalCLI lands in B2; until then these skip loudly (same logic as the
-      # Makefile, so `make ci` and CI never diverge).
+      # Replay mode: offline, deterministic, free. No API keys needed —
+      # category labels are derived from the committed corpus.
       - name: Eval
         run: make eval
 

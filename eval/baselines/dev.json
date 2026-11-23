@@ -1,0 +1,170 @@
+{
+  "dataset" : "v1",
+  "generatedAt" : "2026-11-23T09:27:18Z",
+  "runId" : "01M83VPCGG5N6Q8ERKZTXCQ1QX",
+  "sections" : [
+    {
+      "metrics" : [
+        {
+          "higherIsBetter" : true,
+          "name" : "human pick in top-3",
+          "note" : "±19pp at 95%",
+          "sampleSize" : 28,
+          "tolerance" : 0.02,
+          "unit" : "percent",
+          "value" : 0.8571428571428571
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "human pick is our top-1",
+          "sampleSize" : 28,
+          "tolerance" : 0.03,
+          "unit" : "percent",
+          "value" : 0.35714285714285715
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "NDCG@5",
+          "sampleSize" : 28,
+          "tolerance" : 0.03,
+          "unit" : "ratio",
+          "value" : 0.7817853702255896
+        }
+      ],
+      "name" : "ranking"
+    },
+    {
+      "metrics" : [
+        {
+          "higherIsBetter" : true,
+          "name" : "category resolved at T0",
+          "sampleSize" : 446,
+          "tolerance" : 0.05,
+          "unit" : "percent",
+          "value" : 0.8228699551569507
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "T2 rate (costs quota)",
+          "note" : "no model calls exist yet — B3",
+          "unit" : "percent"
+        }
+      ],
+      "name" : "tiering"
+    },
+    {
+      "metrics" : [
+        {
+          "higherIsBetter" : true,
+          "name" : "accuracy on attempted",
+          "sampleSize" : 1094,
+          "tolerance" : 0.02,
+          "unit" : "percent",
+          "value" : 0.8007312614259597
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "coverage",
+          "note" : "labels are generator-assigned — agreement, not correctness",
+          "sampleSize" : 1308,
+          "tolerance" : 0.05,
+          "unit" : "percent",
+          "value" : 0.8363914373088684
+        }
+      ],
+      "name" : "category"
+    },
+    {
+      "metrics" : [
+        {
+          "higherIsBetter" : true,
+          "name" : "date phrasings parsed",
+          "sampleSize" : 27,
+          "tolerance" : 0,
+          "unit" : "percent",
+          "value" : 1
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "span-verified rate",
+          "note" : "needs extraction from raw captures — B3",
+          "unit" : "percent"
+        }
+      ],
+      "name" : "extraction"
+    },
+    {
+      "metrics" : [
+        {
+          "higherIsBetter" : true,
+          "name" : "ranking deterministic",
+          "tolerance" : 0,
+          "unit" : "boolean",
+          "value" : 1
+        },
+        {
+          "higherIsBetter" : false,
+          "mustNotExceed" : 0,
+          "name" : "graphs with cycles",
+          "note" : "invariant — any value above 0 fails unconditionally",
+          "unit" : "count",
+          "value" : 0
+        },
+        {
+          "higherIsBetter" : true,
+          "mustNotExceed" : 0,
+          "name" : "hallucinated-ID rate",
+          "note" : "no model calls exist yet — B3",
+          "unit" : "percent"
+        },
+        {
+          "higherIsBetter" : true,
+          "mustNotExceed" : 0,
+          "name" : "captures lost",
+          "note" : "no pipeline yet — B3",
+          "unit" : "count"
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "injection resistance",
+          "note" : "adversarial set is empty — B2",
+          "unit" : "percent"
+        }
+      ],
+      "name" : "robustness"
+    },
+    {
+      "metrics" : [
+        {
+          "higherIsBetter" : false,
+          "name" : "p50 latency",
+          "tolerance" : 1,
+          "unit" : "milliseconds",
+          "value" : 0.066541
+        },
+        {
+          "higherIsBetter" : false,
+          "name" : "p95 latency",
+          "tolerance" : 2,
+          "unit" : "milliseconds",
+          "value" : 0.103416
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "cost per capture (Rs)",
+          "note" : "no model calls exist yet — B3",
+          "unit" : "ratio"
+        }
+      ],
+      "name" : "systems"
+    }
+  ],
+  "sets" : {
+    "category labels" : 1308,
+    "distinct date phrasings" : 27,
+    "ranked" : 28,
+    "scenarios" : 91,
+    "unranked" : 63
+  },
+  "split" : "dev"
+}

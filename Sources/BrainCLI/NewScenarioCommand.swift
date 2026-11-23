@@ -1,5 +1,6 @@
 import ArgumentParser
 import BrainCore
+import BrainDatasets
 import Foundation
 
 /// Turns plain-text scenario sketches into scenario JSON.
@@ -163,7 +164,7 @@ struct NewScenarioCommand: ParsableCommand {
             .sorted { ($0.from, $0.to) < ($1.from, $1.to) }
 
         return ScenarioFile(
-            id: id, description: title,
+            id: id, split: nil, description: title,
             tests: "authored by Ganesh",
             now: canonicalNow, userTz: "Asia/Kolkata",
             goals: goals, items: items, edges: edges, expected: nil)

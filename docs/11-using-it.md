@@ -60,7 +60,6 @@ Being explicit so nothing looks broken when it's simply not built:
 | Reading a free-text dump and working out type/effort/dates itself | B2.5 (rules) and B3 (AI) |
 | Any AI, any model, any network call | B3 |
 | Suggesting links between items | B3 |
-| `make eval`, `make gate`, `make scorecard` — these print SKIP | B2 |
 | Server, API, database, apps | after Brain v1 freezes |
 
 Right now **you tell it the effort and the dependencies**; it does the graph
@@ -230,7 +229,7 @@ make help          # this list, any time
 make build         # compile
 make test          # 59 tests
 make lint          # format check
-make ci            # lint + test (eval/gate skip until B2)
+make ci            # lint + test + eval + gate — exactly what CI runs
 make dogfood       # run on the sample file
 make rank          # rank scenarios (blind, resumable)
 make rank-status   # progress

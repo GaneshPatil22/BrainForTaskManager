@@ -327,3 +327,41 @@ Random sampling would have wasted that effort. Of 897 generated scenarios:
 That is active learning (§5.7 of the brief): rank the cases the system is least
 sure about. **Only ~29% of the generated set was worth a human's time**, which
 is the argument against ranking all 800+.
+
+### 2026-11-23 — EvalCLI and the scorecard exist; first baseline promoted
+The eval harness now reports real numbers. Structure: `BrainEval` is a
+**library**, not code buried in the executable, because the thing that reports
+every number this project will ever claim must itself be tested. 14 tests cover
+NDCG (perfect / miss / reversed / monotonic / empty), the gate (regression,
+tolerance, improvement, hard limit, unmeasured, lower-is-better, new metric) and
+rendering.
+
+`BrainDatasets` was extracted so file formats are shared by the CLI and the eval
+runner while `BrainCore` stays pure — no I/O, no file formats.
+
+**Unmeasured metrics print `not measured`, never `0.000`.** A zero that looks
+like a result is worse than no result, so the type makes `value` optional and
+the renderer refuses to invent one. Six metrics are currently unmeasured, each
+annotated with the phase it arrives in.
+
+**The test split is refused outside a gate run**, enforced in code rather than by
+discipline: `EvalCLI run --split test` errors and tells you to use `dev`.
+
+First baseline promoted at `eval/baselines/dev.json`, committed so it can gate.
+Promotion requires `--reason` and is never automatic — an improvement is
+reported but never silently absorbed.
+
+### 2026-11-23 — First real ranking numbers, on the dev split
+From 28 human-ranked dev scenarios, T0 only, no model anywhere:
+
+- **human pick in top-3: 85.7%** (±19pp at 95%, n=28)
+- **human pick is our top-1: 35.7%**
+- **NDCG@5: 0.782**
+- category resolved at T0: 82.3% · date phrasings parsed: 100% of 27
+- ranking deterministic: yes · graphs with cycles: 0 · p95 latency: 0.1 ms
+
+Read honestly: top-3 is near the ≥90% target but the interval is ±19pp, so it is
+directional. **Top-1 at 35.7% is the interesting number** — our first pick is
+usually not Ganesh's first pick, even though his is usually in our top three.
+That is a real signal about the weights, and the right thing to investigate once
+the full 91 dev scenarios are ranked. Tuning on 28 would be fitting noise.

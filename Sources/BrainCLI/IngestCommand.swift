@@ -1,5 +1,6 @@
 import ArgumentParser
 import BrainCore
+import BrainDatasets
 import Foundation
 
 /// Turns a raw text dump into `datasets/real/captures.jsonl`.

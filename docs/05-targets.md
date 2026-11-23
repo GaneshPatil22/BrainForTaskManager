@@ -12,8 +12,9 @@ Provisional. Retuned after the **T0 baseline (B2.5)** and the **AI baseline (B3)
 | Abstention rate (type) | ≤ 15% | medium — **paired with the line above; neither is meaningful alone** |
 | Suggested-link precision | ≥ 90% | medium — bought with recall, deliberately |
 | Suggested-link recall | ≥ 60% | low — will be revised after B3 |
-| Human pick in top-3 (scenarios) | ≥ 90% | medium |
-| NDCG@5 | ≥ 0.85 | low |
+| Human pick in top-3 (scenarios) | ≥ 85% | medium |
+| NDCG@5 | ≥ 0.80 | low |
+| Human pick is our top-1 | **no target — diagnostic only** | — |
 | Span-verified rate | ≥ 99% | high — code-enforced |
 | **T2 rate** (costs quota, leaves machine) | ≤ 40% | **low — unmeasurable before B5** |
 | Accuracy lost vs. always-T2 | ≤ 2 pp macro-F1 | low |
@@ -25,6 +26,34 @@ Accuracy on attempted items alone is trivially gameable: abstain on everything
 hard and report 100%. The pair `(accuracy ≥ 90%, abstention ≤ 15%)` is the real
 target. Either number quoted alone is meaningless and should be treated as such
 in any future report.
+
+## Why top-1 has no target at all
+
+**Revised 2026-11-23, at Ganesh's prompting, and he is right.**
+
+There is no single correct answer to "what should I do next". The same person
+answers differently by day, hour, mood and urgency. Treating one pick as *the*
+truth and everything else as error measures a question that has no answer.
+
+Measured: at 74 ranked dev scenarios, top-1 agreement is 24.3%, and a
+900-combination grid search tops out at 36.5%. If three of five tasks are
+defensible on a given morning, top-1 agreement has a natural ceiling near 1/3 —
+which is roughly where we sit. The number was never going to reach 90%, and
+chasing it would have meant fitting noise.
+
+So top-1 stays on the scorecard as a **diagnostic** — a sharp drop still means
+something broke — but it carries no target and nothing is tuned against it.
+
+**The goal is sensible grouping, not a perfect prediction.** That is what
+top-3 measures.
+
+## What this does not excuse
+
+Top-3 is **71.6%**. Roughly three times in ten, the human's pick lands outside
+our top three — in a list of four or five items. That is not imprecision; that
+is ranking a reasonable choice near the bottom, and it is still worth fixing.
+
+The honest position: **stop chasing top-1, keep pushing top-3.**
 
 ## Why "top-3" and not "top-1"
 
@@ -62,6 +91,19 @@ Real data is precious and the test number is what we report, so it gets weighted
 toward test. Even then, 90 rows gives ±6 pp. **Real-data metrics are directional;
 the synthetic test split carries the statistical weight.** Every scorecard
 reports both separately and never merges them into one headline number.
+
+## The ceiling is unmeasured, and it decides whether 85% is even reachable
+
+`12-backlog.md` B-03a asks Ganesh to re-rank ~15 scenarios on a different day.
+Until that runs we do not know the noise floor:
+
+- if self-agreement on top-1 is ~60%, our 71.6% top-3 is already above the
+  human ceiling and the right move is to stop
+- if it is ~90%, the variability argument is weaker and the gap is real work
+
+Ten minutes of his time decides whether to keep pushing or declare this done.
+It is now the highest-value outstanding item — ahead of the 300 real captures
+and ahead of B3 plumbing.
 
 ## Targets I think are shaky, stated now rather than at B7
 

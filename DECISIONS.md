@@ -628,3 +628,29 @@ quantifier ("har 15 tarikh"), and the hard parts are calendar edge cases — the
 31st in a 30-day month, "first Sunday" when a month starts on one, and whether
 "quarter" means the calendar year or the Indian financial year. That last one
 is a question for Ganesh when we build it.
+
+### 2026-11-23 — Top-1 loses its target. Ganesh is right, and the data agrees.
+His argument: there is no single correct answer to "what should I do next" —
+the same person answers differently by day, hour, mood and urgency. Treating
+one pick as *the* truth measures a question that has no answer.
+
+The measurements back it. Top-1 sits at 24.3% and a 900-combination grid tops
+out at 36.5%. If three of five tasks are defensible on a given morning, top-1
+has a natural ceiling near 1/3 — roughly where we are. It was never reaching
+90%, and chasing it would have meant fitting noise.
+
+**Changed:** top-1 keeps its place on the scorecard as a diagnostic (a sharp
+drop still means something broke) but carries no target and nothing is tuned
+against it. Top-3 target lowered 90% → 85%, NDCG@5 0.85 → 0.80.
+
+**Not changed:** top-3 is 71.6%, so roughly three times in ten the human's pick
+falls outside our top three of four or five items. That is not imprecision, it
+is ranking a reasonable choice near the bottom, and it is still worth fixing.
+
+**Consequence:** I will not add an "importance" term to chase top-1 — that
+would be fitting noise, and the diagnosis ran just in time to avoid it.
+
+**B-03a is now the highest-value outstanding item.** Without the self-agreement
+ceiling we cannot tell whether 71.6% is already above the human noise floor
+(stop) or well below it (keep working). Ten minutes of `make rank-again`
+decides which.

@@ -508,3 +508,35 @@ the question became answerable.
 
 **A label that is not identifiable from the input is a generator bug, not a
 model failure.** Worth remembering when B3's numbers look bad.
+
+### 2026-11-23 — B3 begins with the guards, not the model
+No API key exists yet, so B3 splits: everything except live calls is buildable
+and testable now. Starting with the guards is deliberate — they are the reason
+a model is allowed near this system at all.
+
+`BrainHarness` added: the `LLMProvider` protocol, `Capability` (the pipeline
+asks for a capability, never a model), request/response types, and guards
+1, 3, 4, 7, 10 and 12 from `docs/07-harness-spec.md`. 28 tests.
+
+Three design points worth recording:
+
+**The request carries its own closed option set.** `allowedAnswers` is part of
+`ModelRequest`, so the ID whitelist is a set-membership check in code rather
+than a property we hope the model has. That is what makes the hallucinated-ID
+target *exactly 0* instead of "low".
+
+**Schema validation normalises before rejecting.** Models wrap answers in
+quotes, markdown and prose. Discarding a correct answer in a slightly wrong
+shape would be its own bug, so decoration is stripped and a single permitted
+value inside a wordy reply is recovered — but two permitted values is genuine
+ambiguity and is rejected.
+
+**Token estimation is deliberately pessimistic.** ~3.2 chars/token plus a
+non-ASCII surcharge, not the usual 4. Romanised Hindi fragments into more
+tokens than English, so an English-tuned divisor would under-count exactly the
+inputs we care about — and TPM is the binding free-tier constraint.
+
+Guards 5 (deterministic dates) and 6 (cycle rejection) are deliberately absent
+from `GuardConfig`: they are invariants enforced in `BrainCore`, not features to
+toggle and measure. A configuration where a model supplies a date is not one we
+want to be able to run.

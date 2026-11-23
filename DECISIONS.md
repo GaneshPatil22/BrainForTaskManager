@@ -713,3 +713,39 @@ verdict outright:
 **Second pass is ~30 scenarios, not 130.** At n=30 the interval is ±16pp, and
 paired that is enough to decide; n=15 gives ±23pp and settles nothing. `make
 rank-again` now defaults to `--limit 30`.
+
+### 2026-11-23 — B3 plumbing: ledger, breaker, cassettes, router
+`BrainHarness` is now complete enough to run a pipeline, with no provider SDK
+and no key. 43 harness tests.
+
+**BudgetLedger** — rolling RPM/TPM windows plus a calendar-day RPD counter, as
+an actor because the job worker is concurrent and a double-spend means a 429.
+TPM is charged **on the estimate, before dispatch**: you cannot stay under a
+token budget you only measure after spending it.
+
+Per-user fair share is enforced separately from the pool, at
+`max(50, 2 × daily / activeUsers)`. Without it one person pasting a long brain
+dump takes the whole 14,400 RPD and starves everyone until midnight.
+
+**CircuitBreaker** — opens after consecutive failures, half-opens after a
+cooldown, and a failed probe restarts the cooldown rather than half-opening
+again immediately. While open the router skips the rung without calling it, so
+a dead provider costs one timeout rather than one per request.
+
+**CassetteStore** — one JSON file per recording, so they merge in git without
+conflicts and a stale one can be deleted by hand. In `replay` a miss is a
+**hard error**, never a silent live call: a cassette gap must not quietly turn
+an offline run into a surprise bill and a non-deterministic result.
+
+**ModelRouter** — walks the ladder, applying schema → ID whitelist →
+abstention in that order. Three behaviours worth pinning, all tested:
+
+1. A rung whose answer the guards reject is **skipped**, not reported as an
+   abstention — the ladder has not finished considering.
+2. `askUser` (T3) sits *before* the paid rungs and charges no budget.
+3. Exhausting the ladder degrades to "field unknown"; it never throws. A
+   capture is never lost.
+
+**FakeModel** ships four behaviours — first-allowed, always-abstains,
+misbehaves (answers `item-99999`, to prove guard 1 is not decorative) and
+always-fails. The pipeline can be exercised end to end before any key exists.

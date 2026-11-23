@@ -36,3 +36,6 @@ eval/traces/
 
 # Scratch analysis output, not part of the repo
 .analysis/
+
+# Linux container build artifacts (separate triple, never mixed with the host .build)
+.build-linux/

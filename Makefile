@@ -1,7 +1,7 @@
 # Brain — the only interface anyone needs.
 # Everything runs in containers. Nothing uses the host toolchain.
 .DEFAULT_GOAL := help
-.PHONY: help dev build test eval gate lint ci scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios enrich guard-eval coverage ingest clean
+.PHONY: help dev build test eval gate lint ci ci-linux scorecard promote-baseline diagnose dogfood rank rank-again agreement split synthetic adversarial category-eval category-sweep rank-status add-scenarios enrich guard-eval coverage ingest clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -92,6 +92,26 @@ ingest: ## Ingest raw captures:  make ingest FILE=~/Desktop/captures.txt
 ideas: ## Print the parked-ideas index. Nothing here is in v1.
 	@sed -n '/^| id |/,/^$$/p' docs/12-backlog.md
 	@echo "Full detail: docs/12-backlog.md"
+
+# The deploy target is Linux; the dev machine is arm64 macOS. Foundation
+# differs between them (DateFormatter, TimeZone, URLSession), so "passes on my
+# Mac" is not evidence it will run in production.
+#
+# A separate scratch path on purpose: SwiftPM would otherwise mix two triples'
+# artifacts under .build and flip the debug symlink between them.
+#
+# The swift image has no python3, so the category labels — which the eval
+# derives from the committed corpus — are generated on the host and mounted
+# read-only. A real Linux CI must either add python3 to the image or commit
+# the labels file.
+LINUX_IMAGE := swift:6.4.3-noble
+ci-linux: $(LABELS) ## Build, test, lint, eval and gate inside the Linux container
+	docker run --rm \
+	  -v "$(PWD)":/src -v $(LABELS):$(LABELS):ro -w /src $(LINUX_IMAGE) bash -c '\
+	    set -e; \
+	    swift format lint --recursive --strict Sources/ Tests/; \
+	    swift test --scratch-path .build-linux; \
+	    swift run --scratch-path .build-linux EvalCLI gate --split dev --cassettes replay'
 
 lint: ## Format check
 	swift format lint --recursive Sources Tests

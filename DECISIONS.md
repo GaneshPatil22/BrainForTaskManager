@@ -1181,3 +1181,35 @@ older than 90 days rather than letting it quietly govern spending. `docs/06`
 amended to say so instead of claiming verification it does not have.
 
 Replay is the default mode, so a server CI run with no key spends nothing.
+
+## 2026-11-24 — Linux verified (swift:6.4.3-noble)
+
+The deploy target is Linux; the dev machine is arm64 macOS. Foundation differs
+between them, and 0.5.0 added code that leans on exactly the parts that differ
+— `TimeZone(identifier: "America/Los_Angeles")`, `DateFormatter`, `Calendar`
+arithmetic in `ProviderDay`. "Passes on my Mac" was not evidence.
+
+Verified the image tag exists before using it (`docker manifest inspect
+swift:6.4.3-noble`), rather than assuming the version.
+
+| Step | Result |
+|---|---|
+| `swift build` | clean, 8.95s |
+| `swift test` | **219 tests, all pass** |
+| `swift format lint --strict` | clean |
+| eval (replay) | identical metrics to macOS |
+| regression gate | **PASS** |
+
+No Foundation differences surfaced. The tzdata lookup and `DateFormatter`
+behave the same, which is the part that could plausibly have broken.
+
+**One real gap found: the Swift image has no `python3`.** The eval's category
+labels are derived from the committed corpus by `scripts/category-truth.py`,
+so `make ci` cannot run end to end inside the container as written. For now
+`make ci-linux` generates the labels on the host and mounts them read-only. A
+real Linux CI must either add python3 to the image or commit the labels file —
+recorded here so the server's CI does not discover it at deploy time.
+
+Added `make ci-linux`. It uses a separate `--scratch-path .build-linux`,
+because SwiftPM would otherwise mix two triples' artifacts under `.build` and
+flip the `debug` symlink between them. Gitignored.

@@ -52,15 +52,12 @@ public struct DependencyParser: Sendable {
         self.dateParser = DateParser(timeZone: timeZone)
     }
 
-    /// Where the referent sits relative to the marker.
-    enum Position { case afterMarker, beforeMarker }
-
     public func parse(_ text: String, now: Date = Date()) -> [ParsedDependency] {
         let haystack = text.lowercased()
         var found: [ParsedDependency] = []
         var claimed = Set<Int>()
 
-        for (literal, pattern, position, direction, confidence, rule) in Self.rules {
+        for (literal, pattern, direction, confidence, rule) in Self.rules {
             // Cheap literal check first — see the note on `rules`.
             guard haystack.contains(literal) else { continue }
             guard let match = DateParser.firstMatch(pattern, haystack),
@@ -134,9 +131,12 @@ public struct DependencyParser: Sendable {
 
     // MARK: - Patterns
 
-    /// `(literal, pattern, position, confidence, rule)`, most specific first.
-    /// Hinglish puts the referent **before** the marker ("client ke baad"),
-    /// English after it — `Position` is what lets one parser handle both.
+    /// `(literal, pattern, direction, confidence, rule)`, most specific first.
+    /// Hinglish puts the referent **before** the marker ("client ke baad") and
+    /// English after it; which side it sits on is expressed by where the
+    /// capture group goes in each pattern, not by a separate field. A
+    /// `Position` column used to say the same thing a second time and was read
+    /// nowhere once 0.6.0 made the time cross-check run for both positions.
     ///
     /// **`literal` is a performance guard, not a nicety.** These patterns open
     /// with a lazy quantifier, which on a 60k-character capture with no match
@@ -147,7 +147,7 @@ public struct DependencyParser: Sendable {
     /// The referent is also bounded to 80 characters. A task title is never
     /// longer, and an unbounded lazy quantifier is what turns a linear scan
     /// quadratic.
-    static let rules: [(String, String, Position, ParsedDependency.Direction, Double, String)] = [
+    static let rules: [(String, String, ParsedDependency.Direction, Double, String)] = [
         // Completion reads many ways: "done", but also "green" (CI), "merged",
         // "approved", "back" (a person). Narrow lists cause silent misses.
         (
@@ -155,27 +155,27 @@ public struct DependencyParser: Sendable {
             #"\bonce\s+(.{1,80}?)\s+(?:is\s+|are\s+|has\s+|have\s+)?"#
                 + #"(?:done|finished|complete|completed|ready|green|merged|approved|live|back|"#
                 + #"signed|confirmed|arrived|replied|landed)\b"#,
-            .afterMarker, .blockedByReferent, 0.95, "onceDone"
+            .blockedByReferent, 0.95, "onceDone"
         ),
         (
-            "blocked by", #"\bblocked\s+by\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker,
-            .blockedByReferent, 0.95, "blockedBy"
+            "blocked by", #"\bblocked\s+by\s+(.{1,80}?)(?:[,.;]|$)"#, .blockedByReferent, 0.95,
+            "blockedBy"
         ),
         (
-            "depends on", #"\bdepends\s+on\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker,
-            .blockedByReferent, 0.95, "blockedBy"
+            "depends on", #"\bdepends\s+on\s+(.{1,80}?)(?:[,.;]|$)"#, .blockedByReferent, 0.95,
+            "blockedBy"
         ),
         (
             "wait", #"\b(?:waiting|wait)\s+(?:for|on)\s+(.{1,80}?)(?:[,.;]|$)"#,
-            .afterMarker, .blockedByReferent, 0.9, "waitingFor"
+            .blockedByReferent, 0.9, "waitingFor"
         ),
         (
-            "first", #"\bneeds?\s+(.{1,80}?)\s+first\b"#, .afterMarker, .blockedByReferent, 0.9,
+            "first", #"\bneeds?\s+(.{1,80}?)\s+first\b"#, .blockedByReferent, 0.9,
             "needsFirst"
         ),
         (
             "ke baad", #"\b(.{1,80}?)\s+(?:ho\s+jaye|hone)\s+ke\s+baad\b"#,
-            .beforeMarker, .blockedByReferent, 0.95, "honeKeBaadHinglish"
+            .blockedByReferent, 0.95, "honeKeBaadHinglish"
         ),
         // "uske baad" and "iske baad" are the commonest informal forms and
         // the generic rule below cannot reach them: `\bke\b` will not match
@@ -183,22 +183,22 @@ public struct DependencyParser: Sendable {
         // parsed while "client approve kare uske baad" did not.
         (
             "ske baad", #"\b(.{1,80}?)\s+[ui]ske\s+baad\b"#,
-            .beforeMarker, .blockedByReferent, 0.9, "uskeBaadHinglish"
+            .blockedByReferent, 0.9, "uskeBaadHinglish"
         ),
         (
-            "ke baad", #"\b(.{1,80}?)\s+ke\s+baad\b"#, .beforeMarker, .blockedByReferent, 0.9,
+            "ke baad", #"\b(.{1,80}?)\s+ke\s+baad\b"#, .blockedByReferent, 0.9,
             "keBaadHinglish"
         ),
         (
             "wait", #"\b(.{1,80}?)\s+k[ae]\s+(?:wait|intezaar|intzaar)\b"#,
-            .beforeMarker, .blockedByReferent, 0.85, "kaWaitHinglish"
+            .blockedByReferent, 0.85, "kaWaitHinglish"
         ),
         (
             "intezaar", #"\b(.{1,80}?)\s+k[ae]\s+(?:wait|intezaar|intzaar)\b"#,
-            .beforeMarker, .blockedByReferent, 0.85, "kaWaitHinglish"
+            .blockedByReferent, 0.85, "kaWaitHinglish"
         ),
         (
-            "after", #"\bafter\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, .blockedByReferent, 0.85,
+            "after", #"\bafter\s+(.{1,80}?)(?:[,.;]|$)"#, .blockedByReferent, 0.85,
             "after"
         ),
 
@@ -208,15 +208,15 @@ public struct DependencyParser: Sendable {
         // Hinglish — measured at 0 of 5 across all three writing styles.
         (
             "se pehle", #"\b(.{1,80}?)\s+se\s+pehle\b"#,
-            .beforeMarker, .blocksReferent, 0.9, "sePehleHinglish"
+            .blocksReferent, 0.9, "sePehleHinglish"
         ),
         (
             "ske pehle", #"\b(.{1,80}?)\s+[ui]ske\s+pehle\b"#,
-            .beforeMarker, .blocksReferent, 0.9, "uskePehleHinglish"
+            .blocksReferent, 0.9, "uskePehleHinglish"
         ),
         (
             "before", #"\bbefore\s+(.{1,80}?)(?:[,.;]|$)"#,
-            .afterMarker, .blocksReferent, 0.85, "before"
+            .blocksReferent, 0.85, "before"
         ),
     ]
 }

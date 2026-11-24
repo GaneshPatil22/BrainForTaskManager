@@ -1450,3 +1450,18 @@ corelibs-Foundation and Darwin, and the server builds on Linux.
 **Still to come in step 2:** period goals (`Goal` gains a horizon and a
 parent), and the scoring split that returns commitments as their own section
 rather than rows in `ranked`.
+
+### 2026-11-24 — Removing a dead field 0.6.0 introduced
+
+`DependencyParser.rules` carried a `Position` column on all fifteen rules that
+nothing read. It went dead in 0.6.0, when the time cross-check started running
+for both marker positions instead of only `.afterMarker` — the compiler warned
+and the warning was not acted on, because `swift build` warnings do not fail
+`make ci`.
+
+Its doc comment claimed `Position` was "what lets one parser handle both"
+word orders. That was never true: which side the referent sits on is
+expressed by where the capture group goes in each pattern. The field said the
+same thing a second time, in a place that could drift out of agreement with
+the patterns. Removed, with the comment corrected to describe what actually
+does the work.

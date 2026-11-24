@@ -134,7 +134,8 @@ struct DuplicateTests {
     @Test("The same link saved twice is a duplicate, whatever surrounds it")
     func sameLinkIsADuplicate() {
         let short = "save for later https://news.ycombinator.com/item?id=4242424"
-        let wordy = "must read this later when I get a quiet hour https://news.ycombinator.com/item?id=4242424"
+        let wordy =
+            "must read this later when I get a quiet hour https://news.ycombinator.com/item?id=4242424"
         let other = "https://news.ycombinator.com/item?id=4242424 5 min"
 
         // Word overlap catches the short one only because the prose is short —

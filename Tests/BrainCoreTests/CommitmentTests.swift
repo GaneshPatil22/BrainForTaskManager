@@ -120,10 +120,11 @@ struct CommitmentTests {
     func weekly() {
         let c = Self.commitment(.weeklyOn(.sunday), kind: .ritual)
         let days = c.days(from: Self.day(2026, 11, 24), through: Self.day(2026, 12, 20))
-        #expect(days == [
-            Self.day(2026, 11, 29), Self.day(2026, 12, 6),
-            Self.day(2026, 12, 13), Self.day(2026, 12, 20),
-        ])
+        #expect(
+            days == [
+                Self.day(2026, 11, 29), Self.day(2026, 12, 6),
+                Self.day(2026, 12, 13), Self.day(2026, 12, 20),
+            ])
         #expect(days.allSatisfy { $0.weekday == .sunday })
     }
 
@@ -132,10 +133,11 @@ struct CommitmentTests {
     func monthlyOnOrdinaryDay() {
         let rent = Self.commitment(.monthlyOnDay(4), kind: .payment)
         let days = rent.days(from: Self.day(2026, 12, 1), through: Self.day(2027, 3, 31))
-        #expect(days == [
-            Self.day(2026, 12, 4), Self.day(2027, 1, 4),
-            Self.day(2027, 2, 4), Self.day(2027, 3, 4),
-        ])
+        #expect(
+            days == [
+                Self.day(2026, 12, 4), Self.day(2027, 1, 4),
+                Self.day(2027, 2, 4), Self.day(2027, 3, 4),
+            ])
     }
 
     /// **The one that silently drops payments if you get it wrong.** A rule on
@@ -144,14 +146,15 @@ struct CommitmentTests {
     func monthlyClamps() {
         let c = Self.commitment(.monthlyOnDay(31), kind: .payment)
         let days = c.days(from: Self.day(2027, 1, 1), through: Self.day(2027, 6, 30))
-        #expect(days == [
-            Self.day(2027, 1, 31),
-            Self.day(2027, 2, 28),  // 28-day February
-            Self.day(2027, 3, 31),
-            Self.day(2027, 4, 30),  // 30-day April
-            Self.day(2027, 5, 31),
-            Self.day(2027, 6, 30),
-        ])
+        #expect(
+            days == [
+                Self.day(2027, 1, 31),
+                Self.day(2027, 2, 28),  // 28-day February
+                Self.day(2027, 3, 31),
+                Self.day(2027, 4, 30),  // 30-day April
+                Self.day(2027, 5, 31),
+                Self.day(2027, 6, 30),
+            ])
         #expect(days.count == 6, "every month gets exactly one, none skipped")
     }
 
@@ -167,9 +170,10 @@ struct CommitmentTests {
     func monthlyNthWeekday() {
         let c = Self.commitment(.monthlyOnNthWeekday(n: 1, weekday: .saturday), kind: .ritual)
         let days = c.days(from: Self.day(2026, 12, 1), through: Self.day(2027, 2, 28))
-        #expect(days == [
-            Self.day(2026, 12, 5), Self.day(2027, 1, 2), Self.day(2027, 2, 6),
-        ])
+        #expect(
+            days == [
+                Self.day(2026, 12, 5), Self.day(2027, 1, 2), Self.day(2027, 2, 6),
+            ])
     }
 
     /// `12-backlog.md` named this one: *"first Sunday when the month starts on
@@ -209,10 +213,18 @@ struct CommitmentTests {
     /// America/Los_Angeles springs forward on 2027-03-14 and falls back on
     /// 2027-11-07; a daily commitment must still be exactly one per day across
     /// both, with no doubled and no missing day.
-    @Test("DST cannot add or drop an occurrence", arguments: [
-        (CalendarDay(year: 2027, month: 3, day: 10)!, CalendarDay(year: 2027, month: 3, day: 18)!, 9),
-        (CalendarDay(year: 2027, month: 11, day: 3)!, CalendarDay(year: 2027, month: 11, day: 11)!, 9),
-    ])
+    @Test(
+        "DST cannot add or drop an occurrence",
+        arguments: [
+            (
+                CalendarDay(year: 2027, month: 3, day: 10)!,
+                CalendarDay(year: 2027, month: 3, day: 18)!, 9
+            ),
+            (
+                CalendarDay(year: 2027, month: 11, day: 3)!,
+                CalendarDay(year: 2027, month: 11, day: 11)!, 9
+            ),
+        ])
     func dstIsIrrelevant(from: CalendarDay, through: CalendarDay, expected: Int) {
         let days = Self.commitment(.daily).days(from: from, through: through)
         #expect(days.count == expected)
@@ -234,10 +246,11 @@ struct CommitmentTests {
         let c = Self.commitment(
             .daily, from: Self.day(2026, 12, 5), to: Self.day(2026, 12, 8))
         let days = c.days(from: Self.day(2026, 12, 1), through: Self.day(2026, 12, 31))
-        #expect(days == [
-            Self.day(2026, 12, 5), Self.day(2026, 12, 6),
-            Self.day(2026, 12, 7), Self.day(2026, 12, 8),
-        ])
+        #expect(
+            days == [
+                Self.day(2026, 12, 5), Self.day(2026, 12, 6),
+                Self.day(2026, 12, 7), Self.day(2026, 12, 8),
+            ])
         #expect(!c.falls(on: Self.day(2026, 12, 4)))
         #expect(!c.falls(on: Self.day(2026, 12, 9)))
     }
@@ -344,7 +357,9 @@ struct CommitmentTests {
             Self.day(2026, 11, 18), Self.day(2026, 11, 19), Self.day(2026, 11, 20),
             Self.day(2026, 11, 23),
         ]
-        #expect(daily.hitRate(completed: completed, from: week.from, through: week.through) == 4.0 / 7.0)
+        #expect(
+            daily.hitRate(completed: completed, from: week.from, through: week.through) == 4.0 / 7.0
+        )
 
         let monthly = Self.commitment(.monthlyOnDay(4), kind: .payment)
         #expect(
@@ -372,7 +387,10 @@ struct CommitmentTests {
         let scheduled = Commitment.scheduled(
             [habit, rent, block], on: Self.day(2026, 12, 4), completed: { _ in [] })
         #expect(scheduled.map(\.commitment.kind) == [.payment, .block, .habit])
-        #expect(Commitment.scheduled([block, habit, rent], on: Self.day(2026, 12, 4), completed: { _ in [] })
+        #expect(
+            Commitment.scheduled(
+                [block, habit, rent], on: Self.day(2026, 12, 4), completed: { _ in [] }
+            )
             .map(\.commitment.id) == scheduled.map(\.commitment.id), "input order is irrelevant")
     }
 
@@ -387,7 +405,8 @@ struct CommitmentTests {
             id: gen.next(), title: "b", kind: .block, rule: .daily, minutes: 180,
             startOn: Self.day(2026, 1, 1))
         let today = Self.day(2026, 12, 4)
-        let done = Commitment.scheduled([a, b], on: today, completed: { $0.id == a.id ? [today] : [] })
+        let done = Commitment.scheduled(
+            [a, b], on: today, completed: { $0.id == a.id ? [today] : [] })
         #expect(Commitment.committedMinutes(done) == 180, "the finished 20 minutes are not owed")
         #expect(
             Commitment.committedMinutes(
@@ -415,7 +434,9 @@ struct CommitmentTests {
             make("3-line journal", .habit, .daily, 5),
             make("plan the week and review the last one", .ritual, .weeklyOn(.sunday), 45),
             make("office improvement block", .block, .weeklyOn(.friday), 180),
-            make("month plan and review", .ritual, .monthlyOnNthWeekday(n: 1, weekday: .saturday), 60),
+            make(
+                "month plan and review", .ritual, .monthlyOnNthWeekday(n: 1, weekday: .saturday), 60
+            ),
             make("rent", .payment, .monthlyOnDay(4), 5),
             make("loan", .payment, .monthlyOnDay(9), 5),
         ]
@@ -423,7 +444,9 @@ struct CommitmentTests {
         let through = Self.day(2026, 12, 31)
 
         let counts = Dictionary(
-            uniqueKeysWithValues: all.map { ($0.title, $0.days(from: from, through: through).count) })
+            uniqueKeysWithValues: all.map {
+                ($0.title, $0.days(from: from, through: through).count)
+            })
         #expect(counts["read 10 pages"] == 31)
         #expect(counts["3-line journal"] == 31)
         #expect(counts["plan the week and review the last one"] == 4, "Sundays in Dec 2026")

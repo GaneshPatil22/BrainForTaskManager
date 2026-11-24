@@ -40,7 +40,8 @@ struct GoalPeriodTests {
         #expect(
             GoalPeriod.containing(Self.day(2027, 1, 1), horizon: .quarter) == Self.quarter(2027, 1))
         #expect(
-            GoalPeriod.containing(Self.day(2027, 3, 31), horizon: .quarter) == Self.quarter(2027, 1))
+            GoalPeriod.containing(Self.day(2027, 3, 31), horizon: .quarter) == Self.quarter(2027, 1)
+        )
         #expect(
             GoalPeriod.containing(Self.day(2027, 4, 1), horizon: .quarter) == Self.quarter(2027, 2))
     }
@@ -155,7 +156,9 @@ struct GoalPeriodTests {
     @Test("A goal that is not active never counts")
     func inactiveGoalNeverCounts() {
         let today = Self.day(2026, 11, 24)
-        #expect(!Self.goal(1, "done", status: .achieved, period: Self.month(2026, 11)).counts(on: today))
+        #expect(
+            !Self.goal(1, "done", status: .achieved, period: Self.month(2026, 11)).counts(on: today)
+        )
         #expect(!Self.goal(2, "gave up", status: .abandoned).counts(on: today))
     }
 
@@ -182,7 +185,8 @@ struct GoalPeriodTests {
         #expect(nov.canRollUp(into: q4))
         #expect(!sep.canRollUp(into: q4), "September is Q3")
         #expect(!q4.canRollUp(into: q4), "not into itself")
-        #expect(!q4.canRollUp(into: Self.goal(8, "another", period: Self.quarter(2026, 4))),
+        #expect(
+            !q4.canRollUp(into: Self.goal(8, "another", period: Self.quarter(2026, 4))),
             "a quarter does not roll up into a quarter")
         #expect(!Self.goal(9, "no period").canRollUp(into: q4))
         #expect(!nov.canRollUp(into: Self.goal(10, "open-ended parent")))

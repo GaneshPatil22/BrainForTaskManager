@@ -12,6 +12,15 @@ public struct EnrichmentTrace: Sendable {
     public var guardsFired: [GuardName] = []
     public var estimatedTokens = 0
     public var routedCapabilities: [String] = []
+    /// Escalations that were answered from a recording rather than a live call.
+    ///
+    /// **Not the same as the cassette store's hit count, and the difference is
+    /// the whole point.** A rung whose recorded answer a guard rejects falls
+    /// through to rungs that have no recording, so one escalation can produce
+    /// a hit and two misses. Reading the store's raw misses as "the ladder
+    /// found nothing" is the same mistake that made a starved comparison look
+    /// like a finding — this counts escalations, not lookups.
+    public var answeredFromRecording = 0
     public var askUser: [String] = []
     public var redactedBeforeSending = false
     public var notes: [String] = []
@@ -43,32 +52,6 @@ public struct Requester: Sendable, Hashable {
 
     /// One machine, one person, no pool to share. Used by the CLI and evals.
     public static let local = Requester(id: "local", dailyLimit: nil)
-}
-
-/// Behaviour that is built but not yet proven, switched on per caller.
-///
-/// **Why a flag and not a decision.** Moving a field from rules to a model is
-/// a claim about accuracy, and `brain compare` cannot yet settle it: the
-/// synthetic labels were written by the generator that wrote the captures, so
-/// the rules are scored on the distribution they were authored against. A
-/// flag lets the new path be built, tested and measured without betting
-/// production on an argument — `make ci`, the evals and the server all keep
-/// the behaviour they had until a measurement says otherwise.
-///
-/// Default is empty. Every flag here is expected to either graduate into
-/// unconditional behaviour or be deleted; none should live here long.
-public struct EnrichmentFeatures: OptionSet, Sendable {
-    public let rawValue: Int
-    public init(rawValue: Int) { self.rawValue = rawValue }
-
-    /// Escalate `category` to the model ladder when the lexicon abstains.
-    ///
-    /// First field through the proposal-and-verification path, chosen on
-    /// measured weakness rather than on which failure was noticed most
-    /// recently: 67.0% end-to-end against dates' 97.9%.
-    public static let categoryEscalation = EnrichmentFeatures(rawValue: 1 << 0)
-
-    public static let none: EnrichmentFeatures = []
 }
 
 /// A question for the user, when asking is cheaper and more honest than
@@ -106,13 +89,8 @@ public struct EnrichmentPipeline: Sendable {
     let effortParser: EffortParser
     let dependencyParser: DependencyParser
     let typeClassifier: TypeClassifier
-    let features: EnrichmentFeatures
 
-    public init(
-        timeZone: TimeZone, router: ModelRouter? = nil,
-        features: EnrichmentFeatures = .none
-    ) {
-        self.features = features
+    public init(timeZone: TimeZone, router: ModelRouter? = nil) {
         self.timeZone = timeZone
         self.router = router
         self.dateParser = DateParser(timeZone: timeZone)
@@ -175,6 +153,7 @@ public struct EnrichmentPipeline: Sendable {
             let answer = await router.route(
                 request, user: requester.id, userLimit: requester.dailyLimit)
             trace.routedCapabilities.append(Capability.estimateEffort.rawValue)
+            if answer.trace.cassetteHit { trace.answeredFromRecording += 1 }
             trace.guardsFired += answer.trace.guardsFired
             trace.estimatedTokens += answer.trace.estimatedTokens
             if let value = answer.value.flatMap(EffortBucket.init(rawValue:)), value != .unknown {
@@ -203,6 +182,7 @@ public struct EnrichmentPipeline: Sendable {
             let answer = await router.route(
                 request, user: requester.id, userLimit: requester.dailyLimit)
             trace.routedCapabilities.append(Capability.classifyType.rawValue)
+            if answer.trace.cassetteHit { trace.answeredFromRecording += 1 }
             trace.guardsFired += answer.trace.guardsFired
             trace.estimatedTokens += answer.trace.estimatedTokens
             if let value = answer.value.flatMap(ItemType.init(rawValue:)) {
@@ -221,13 +201,24 @@ public struct EnrichmentPipeline: Sendable {
             trace.unresolved.append("type")
         }
 
-        // 4. Category. T0 lexicon; no escalation yet — the measured T0 number
-        //    is 67% on real captures and a model call is not justified until
-        //    that is exhausted (`docs/09-tiering.md`, the Justification Test).
+        // 4. Category. T0 lexicon first, then the model ladder.
+        //
+        // **Graduated from a flag on a measurement, not on an argument.**
+        // `brain compare` on the dev split, 415 captures, 129 recorded
+        // answers: end-to-end **67.0% → 87.3% (+20.4pp)**. On the captures the
+        // lexicon abstains on, the model answered 106 of 129 and 69 of the 76
+        // that could be scored were right — **90.8% precision against the
+        // lexicon's own 88.0%**, so it is not trading accuracy for coverage.
+        // It abstained on 23 rather than guessing.
+        //
+        // The handicap runs the right way: those labels were written by the
+        // generator the lexicon was authored against (`docs/14`), so a win of
+        // this size is a floor, not a ceiling. Cost was 129 calls, 1.3% of one
+        // day's free quota.
         var category = CategoryClassifier.classify(text)
         if category.isKnown {
             trace.tierByField["category"] = .t0
-        } else if features.contains(.categoryEscalation), let router {
+        } else if let router {
             // Stage 1: the model proposes. Stage 2: code decides whether to
             // accept it. For a closed set the deciding is `TaskCategory
             // .init(rawValue:)` plus the abstention check below — guard 1 is
@@ -246,6 +237,7 @@ public struct EnrichmentPipeline: Sendable {
             let answer = await router.route(
                 request, user: requester.id, userLimit: requester.dailyLimit)
             trace.routedCapabilities.append(Capability.classifyCategory.rawValue)
+            if answer.trace.cassetteHit { trace.answeredFromRecording += 1 }
             trace.guardsFired += answer.trace.guardsFired
             trace.estimatedTokens += answer.trace.estimatedTokens
             if let value = answer.value.flatMap(TaskCategory.init(rawValue:)) {

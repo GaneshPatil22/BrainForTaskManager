@@ -2,7 +2,9 @@ import ArgumentParser
 import BrainCore
 import BrainDatasets
 import BrainEval
+import BrainHarness
 import BrainPipeline
+import BrainProduction
 import Foundation
 
 @main
@@ -102,11 +104,37 @@ enum Runner {
         sets["synthetic captures"] = captures.count
 
         // --- Pipeline and recorded answers -----------------------------------
+        //
+        // **The scorecard walks the production ladder, in replay.** It used to
+        // pass `router: nil`, which made "T2 rate" structurally 0.0% — a
+        // number that could not move however much the pipeline escalated, and
+        // which was quoted twice as evidence that quota is cheap. Replaying
+        // recorded cassettes costs nothing and measures the real path.
+        //
+        // Limits are lifted for the same reason `brain compare` lifts them: a
+        // replay fires a day of calls in a second and would otherwise trip the
+        // per-minute ceiling, starving the very rungs being measured.
+        let cassetteDirectory = URL(fileURLWithPath: "eval/cassettes")
+        let replayStore = CassetteStore(directory: cassetteDirectory, mode: .replay)
+        let replayLedger = BudgetLedger()
+        let replayRouter = await ProductionRouter.make(
+            apiKey: "", ledger: replayLedger, cassettes: replayStore, mode: .replay)
+        // **After `make`, never before.** `ProductionRouter.make` writes the
+        // verified free-tier limits onto the ledger itself, so lifting them
+        // first is lifting nothing. Written in the wrong order first time, and
+        // the "escalations answered from a recording" metric below caught it
+        // on its first run: 190 of 425, the remaining 235 refused on a
+        // per-minute ceiling that cannot apply to a recording.
+        for model in ["gemini-decision-1", "gemma-4-26b-a4b-it", "gemini-3.1-flash-lite"] {
+            await replayLedger.setLimits(.unlimited, for: model)
+        }
+
         let pipelineResult = await Metrics.pipeline(
             texts: captures.map(\.rawText),
-            timeZone: TimeZone(identifier: "Asia/Kolkata")!, now: SyntheticLoader.now)
-        let audit = Metrics.auditCassettes(
-            directory: URL(fileURLWithPath: "eval/cassettes"))
+            timeZone: TimeZone(identifier: "Asia/Kolkata")!, now: SyntheticLoader.now,
+            router: replayRouter)
+        let replayStats = await replayStore.stats()
+        let audit = Metrics.auditCassettes(directory: cassetteDirectory)
         sets["recorded answers"] = audit.answers
 
         let lost = pipelineResult.captures - pipelineResult.items
@@ -172,13 +200,39 @@ enum Runner {
                 unit: .percent, tolerance: 0.05,
                 sampleSize: pipelineResult.fieldsConsidered,
                 note: "fields resolved with no model at all — drive this up"),
+            // **Renamed, not retuned.** The old "T2 rate (costs quota)" was
+            // computed on a router-less path and was therefore 0.0% by
+            // construction. This one measures something, so it is a different
+            // metric and carries a different name; the gate has no baseline
+            // for it until one is promoted, which is correct — there is
+            // nothing to regress against yet.
             Metric(
-                name: "T2 rate (costs quota)",
-                value: pipelineResult.fieldsConsidered == 0
+                name: "T2 settled, routed (costs quota)",
+                value: !pipelineResult.routerAttached || pipelineResult.fieldsConsidered == 0
                     ? nil : Double(t2Settled) / Double(pipelineResult.fieldsConsidered),
-                unit: .percent, tolerance: 0.05, higherIsBetter: false,
+                unit: .percent, higherIsBetter: false,
                 sampleSize: pipelineResult.fieldsConsidered,
-                note: "drive this down — it is the only thing that costs quota"),
+                note: pipelineResult.routerAttached
+                    ? "\(pipelineResult.escalations) escalations over "
+                        + "\(pipelineResult.captures) captures — drive this down, it is the "
+                        + "only thing that costs quota"
+                    : "no router attached — not measured"),
+            // A low T2 rate means one of two opposite things: the rules are
+            // doing the work, or the ladder never reached a recording. Twice
+            // now it has been the second, so the reach is its own number
+            // rather than a footnote on the first.
+            Metric(
+                name: "escalations answered from a recording",
+                value: pipelineResult.escalations == 0
+                    ? nil
+                    : Double(pipelineResult.answeredFromRecording)
+                        / Double(pipelineResult.escalations),
+                unit: .percent, sampleSize: pipelineResult.escalations,
+                note: "\(pipelineResult.answeredFromRecording) of "
+                    + "\(pipelineResult.escalations) · store: \(replayStats.hits) hit / "
+                    + "\(replayStats.misses) miss — below 100% means a rung had no "
+                    + "recording and the rate above reads low for the wrong reason; "
+                    + "record with `brain record --escalations-only`"),
         ]
 
         // --- Category ------------------------------------------------------

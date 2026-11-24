@@ -1,0 +1,20 @@
+{
+  "answer" : "unknown",
+  "capability" : "estimateEffort",
+  "completionTokens" : 0,
+  "confidence" : 0.44393279372435457,
+  "key" : "f4729b5b9af04856",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "large" : 0.07206162901907028,
+    "medium" : 0.2481508324511354,
+    "small" : 0.04717244523641382,
+    "tiny" : 0.06359683297785391,
+    "unknown" : 0.44393279372435457,
+    "xlarge" : 0.12508546659117198
+  },
+  "promptTokens" : 361,
+  "promptVersion" : "v1",
+  "raw" : "unknown",
+  "recordedAt" : "2026-11-24T16:11:43Z"
+}

@@ -2136,3 +2136,110 @@ and I presented it as a finding. The metric should either route in replay or
 be renamed; changing it moves a gate metric, so it is Ganesh's call.
 
 359 tests, `make ci` GATE: PASS.
+
+---
+
+## 2026-11-24 — Category graduates, effort is measured and fails, and the scorecard stops reporting a zero that meant nothing
+
+Three things, in the order Ganesh asked for them: turn the category flag on,
+record the effort cassettes, fix the T2-rate metric.
+
+### 1. `EnrichmentFeatures` is gone
+
+`.categoryEscalation` graduated on its own measurement — **67.0% → 87.3%,
++20.4pp end-to-end**, with the model right on 69 of the 76 scored escalations
+(90.8%, against the lexicon's own 88.0%). Category now escalates whenever a
+router is attached, exactly as effort and type already did.
+
+The whole option set went with it rather than being left empty. Its own doc
+comment said every flag there should "either graduate into unconditional
+behaviour or be deleted", and a zero-member `OptionSet` behind a `--features`
+switch that accepts no values is worse than no switch. Re-adding one is eight
+lines when something else needs proving.
+
+The Server needs no change for this: `Sources/Worker/Enricher.swift` builds
+`EnrichmentPipeline(timeZone:router:)` and never passed `features:`, so the
+behaviour arrives with the next Brain pin bump. **That is a real behaviour
+change to a deployed service** and belongs in the pin-bump note, not in a
+silent dependency update.
+
+### 2. Effort: 271 recordings, and the number is bad
+
+271 `estimateEffort` cassettes against `gemini-decision-1` — the full dev
+escalation set, 0 failed, 271 of 10,000 daily quota.
+
+| field | rules only | rules + model | delta |
+|---|---|---|---|
+| type | 81.0% | 86.7% | +5.8pp |
+| category | 67.0% | 87.3% | +20.4pp |
+| dueAt | 97.9% | 97.9% | = (guard 5, never routed) |
+| **effort** | 91.8% | 92.5% | **+0.7pp — do not believe this** |
+
+**Effort is not measurable on this corpus and what little can be measured is
+against it.** The model answered 207 of 271 escalations; **6** of those had a
+label. Rules answer 140 of 147 at 135 correct; the hybrid answers 146 at 136.
+So of six new answers, **one was right**. On a sample of six that is not a
+result, but it is certainly not the +20.4pp category produced.
+
+The stronger evidence is the model's own calibrated probabilities over all 271,
+which need no labels at all:
+
+| capability | n | median confidence | below 0.50 | answered `unknown` |
+|---|---|---|---|---|
+| classifyType | 52 | 0.880 | 10% | 0 |
+| classifyCategory | 129 | 0.657 | 30% | 23 |
+| **estimateEffort** | **271** | **0.393** | **72%** | **64** |
+
+Chance over six buckets is 0.167. A median of 0.393 with 72% of answers under
+a coin flip is a model that does not know, and says so.
+
+That is not surprising on reflection and it is the useful part: **how long a
+job takes is a fact about the person, not about the sentence.** "Call Shakti"
+is two minutes or an hour depending on who Shakti is and what the call is
+about, and no amount of reading the text recovers that. Effort is the clearest
+T1 case in the product — a model trained on *this user's* completion times —
+and it was escalated to T2 because T2 was the path that already existed.
+
+**Effort escalation is shipped and currently on, unmeasured when it shipped
+and now weakly measured against.** It should either be reverted or given a
+confidence floor (`Rung.acceptAbove`, which every ladder currently leaves at
+0). Not changed here: Ganesh asked for a measurement, and turning shipped
+behaviour off on n=6 would be the same sin as turning it on was.
+
+### 3. The T2 rate now measures something
+
+`Metrics.pipeline` hard-coded `router: nil`, so "T2 rate 0.0%" was structurally
+zero — a figure quoted twice as evidence that quota is cheap. It now takes a
+router, and the eval runner passes one backed by `eval/cassettes` in replay,
+which spends nothing and walks the ladder production walks.
+
+- **`T2 rate` → `T2 settled, routed (costs quota)`**, now **19.3%** against the
+  ≤40% target in `docs/05-targets.md`. Renamed rather than retuned: the old
+  name has a baseline entry and the new measurement is not a regression against
+  it, it is a different quantity. It carries no tolerance until a baseline is
+  promoted from a run whose cassettes cover every registered capability.
+- **`escalations answered from a recording`**, new, currently **425 of 425**.
+
+That second metric exists because a low T2 rate means one of two opposite
+things — the rules did the work, or the ladder never reached a recording — and
+twice now it has been the second.
+
+**It caught a starvation in its own commit.** First run read 190 of 425:
+`ProductionRouter.make` writes the verified free-tier limits onto the ledger
+itself, so my lifting them *before* calling it lifted nothing, and 235
+escalations were refused on a per-minute ceiling that cannot apply to a
+recording. `brain compare` already had the limits in the right order; the eval
+runner did not.
+
+### The 174 cassette "misses" that were not misses
+
+425 hits against 174 misses looked like the starvation bug again. It is not:
+a rung whose answer the guards reject falls through to rungs that have no
+recording, so one escalation logs one hit and two misses. **87 answers were
+`unknown` — 64 effort, 23 category — and 87 × 2 = 174 exactly.** Every
+escalation found its recording.
+
+The store's miss count is therefore not the starvation signal, and both
+`brain compare` and the scorecard now print escalations-answered beside it.
+
+365 tests, `make ci` GATE: PASS.

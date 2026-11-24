@@ -5,7 +5,7 @@ import Testing
 
 @testable import BrainPipeline
 
-/// Category escalating to a model, behind `EnrichmentFeatures`.
+/// Category escalating to a model when the lexicon abstains.
 ///
 /// **Why category and not dates.** `brain compare` on the dev split puts
 /// category at **67.0% end-to-end**, answering only 258 of 339, while dates
@@ -13,11 +13,13 @@ import Testing
 /// escalation path, so it goes first — the dates this argument started over
 /// are the ones the rules handle best.
 ///
-/// **Why a flag.** Moving a field from rules to a model is a claim about
-/// accuracy, and the synthetic labels cannot test it: the generator wrote
-/// both the captures and the labels, so the rules are scored on the
-/// distribution they were authored against. The flag lets this be built and
-/// measured without production betting on an argument.
+/// **Graduated from a flag.** This shipped behind `EnrichmentFeatures
+/// .categoryEscalation` precisely because the synthetic labels could not prove
+/// it: the generator wrote both the captures and the labels, so the rules are
+/// scored on the distribution they were authored against. 129 recorded answers
+/// settled it — **67.0% → 87.3%, +20.4pp**, with the model right on 69 of the
+/// 76 escalations that could be scored (90.8%, against the lexicon's 88.0%).
+/// The flag is gone; escalation now happens whenever a router is attached.
 @Suite("Category escalation")
 struct CategoryEscalationTests {
     static let zone = TimeZone(identifier: "Asia/Kolkata")!
@@ -48,37 +50,32 @@ struct CategoryEscalationTests {
     }
 
     func enrich(
-        _ text: String, router: ModelRouter?, features: EnrichmentFeatures,
-        _ gen: inout ULIDGenerator
+        _ text: String, router: ModelRouter?, _ gen: inout ULIDGenerator
     ) async -> EnrichmentResult {
         let input = Capture(id: gen.next(), rawText: text, createdAt: Self.now)
-        return await EnrichmentPipeline(
-            timeZone: Self.zone, router: router, features: features
-        ).enrich(
+        return await EnrichmentPipeline(timeZone: Self.zone, router: router).enrich(
             capture: input, graph: BrainGraph(), now: Self.now, idGenerator: &gen,
             requester: .local)
     }
 
-    /// The claim that makes this safe to merge: with the flag off, nothing
-    /// changes, whatever the router would have said.
-    @Test("With the flag off the model is never asked")
-    func flagOffChangesNothing() async {
+    /// The router is the only switch there is now that the flag has gone. A
+    /// pipeline built without one must still produce an item, with the
+    /// lexicon's abstention left standing rather than filled in.
+    @Test("With no router the lexicon's abstention stands")
+    func noRouterEscalatesNothing() async {
         var gen = generator()
-        let result = await enrich(
-            Self.unknownToLexicon, router: router(FakeModel.firstAllowed()),
-            features: .none, &gen)
+        let result = await enrich(Self.unknownToLexicon, router: nil, &gen)
 
-        #expect(!result.trace.routedCapabilities.contains(Capability.classifyCategory.rawValue))
+        #expect(result.trace.routedCapabilities.isEmpty)
         #expect(result.item.category.value == nil)
         #expect(result.trace.unresolved.contains("category"))
     }
 
-    @Test("With the flag on an unknown category is escalated")
-    func flagOnEscalates() async {
+    @Test("An unknown category is escalated to the model")
+    func escalates() async {
         var gen = generator()
         let result = await enrich(
-            Self.unknownToLexicon, router: router(FakeModel.firstAllowed()),
-            features: .categoryEscalation, &gen)
+            Self.unknownToLexicon, router: router(FakeModel.firstAllowed()), &gen)
 
         #expect(result.trace.routedCapabilities.contains(Capability.classifyCategory.rawValue))
         #expect(result.item.category.value != nil)
@@ -92,8 +89,7 @@ struct CategoryEscalationTests {
     func lexiconWins() async {
         var gen = generator()
         let result = await enrich(
-            "pay the electricity bill", router: router(FakeModel.misbehaves()),
-            features: .categoryEscalation, &gen)
+            "pay the electricity bill", router: router(FakeModel.misbehaves()), &gen)
 
         #expect(result.trace.tierByField["category"] == .t0)
         #expect(!result.trace.routedCapabilities.contains(Capability.classifyCategory.rawValue))
@@ -104,21 +100,11 @@ struct CategoryEscalationTests {
     func abstentionIsLegal() async {
         var gen = generator()
         let result = await enrich(
-            Self.unknownToLexicon, router: router(FakeModel.alwaysAbstains()),
-            features: .categoryEscalation, &gen)
+            Self.unknownToLexicon, router: router(FakeModel.alwaysAbstains()), &gen)
 
         #expect(result.trace.unresolved.contains("category"))
         #expect(result.item.category.value == nil)
         #expect(result.trace.tierByField["category"] == nil, "no tier settled it")
-    }
-
-    @Test("The flag on with no router escalates nothing and does not crash")
-    func noRouter() async {
-        var gen = generator()
-        let result = await enrich(
-            Self.unknownToLexicon, router: nil, features: .categoryEscalation, &gen)
-        #expect(result.trace.unresolved.contains("category"))
-        #expect(result.trace.routedCapabilities.isEmpty)
     }
 
     /// `unknown` is offered to the model as a legal answer and is not a
@@ -129,21 +115,21 @@ struct CategoryEscalationTests {
         var gen = generator()
         let result = await enrich(
             Self.unknownToLexicon,  // `misbehaves` just returns a fixed answer; here that answer is legal.
-            router: router(FakeModel.misbehaves(with: "unknown")),
-            features: .categoryEscalation, &gen)
+            router: router(FakeModel.misbehaves(with: "unknown")), &gen)
 
         #expect(result.item.category.value == nil)
         #expect(result.trace.unresolved.contains("category"))
     }
 
-    /// Every other field keeps the behaviour it had: the flag is scoped to one
-    /// field, which is what makes a measured comparison attributable.
-    @Test("The flag touches category and nothing else")
+    /// Every other field keeps the behaviour it had. This mattered while the
+    /// flag existed, because it is what made the measured delta attributable
+    /// to one field; it stays because the attribution is still the claim.
+    @Test("Escalation touches category and nothing else")
     func scopedToCategory() async {
         var gen = generator()
         let result = await enrich(
             "pay the electricity bill kal 20 minutes",
-            router: router(FakeModel.firstAllowed()), features: .categoryEscalation, &gen)
+            router: router(FakeModel.firstAllowed()), &gen)
 
         #expect(result.trace.tierByField["dueAt"] == .t0)
         #expect(result.trace.tierByField["effort"] == .t0)

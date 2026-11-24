@@ -70,6 +70,10 @@ let package = Package(
             name: "EvalCLI",
             dependencies: [
                 "BrainCore", "BrainDatasets", "BrainEval",
+                // The scorecard replays the production ladder against recorded
+                // cassettes, so it needs the real ladder definitions. Replay
+                // spends no quota; see `Metrics.pipeline(router:)`.
+                "BrainHarness", "BrainProduction",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),

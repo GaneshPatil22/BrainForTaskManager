@@ -119,7 +119,15 @@ the suite and compares. The gate fails if any metric moves beyond tolerance:
 | human pick in top-3 | −2.0 pp |
 | ECE | +0.02 absolute |
 | p95 latency | +20% |
-| T2 rate | +5.0 pp (escalating more is a regression) |
+| T2 settled, routed | **ungated** until a baseline is promoted |
+
+`T2 settled, routed` replaced `T2 rate`, which was computed on a pipeline built
+with `router: nil` and so read 0.0% whatever the code did. The replacement
+replays the production ladder against recorded cassettes, which means it can
+also read low because a rung found no recording — `escalations that found a
+recording` is reported beside it for exactly that reason. It carries no
+tolerance yet: there is no honest baseline to regress against until one is
+promoted from a run whose cassettes cover every registered capability.
 
 Improvements never fail the gate but **do not auto-update the baseline.**
 Promoting a baseline is a deliberate, separate, committed act:

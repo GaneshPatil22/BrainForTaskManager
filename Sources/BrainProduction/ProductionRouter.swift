@@ -183,10 +183,10 @@ public enum ProductionRouter {
 
     /// Category, when the lexicon has no term for the capture.
     ///
-    /// **Registered unconditionally, reached only behind a flag.** The ladder
-    /// exists here so `brain compare` and `brain record` can use it; whether
-    /// the pipeline walks it is `EnrichmentFeatures.categoryEscalation`,
-    /// which is off by default. A ladder nobody calls costs nothing.
+    /// **Live.** This shipped registered-but-unreachable behind a flag until
+    /// `brain compare` could settle it; 129 recorded answers did, at
+    /// **67.0% → 87.3% (+20.4pp)** end-to-end, so the flag is gone and the
+    /// pipeline walks this ladder whenever a router is attached.
     ///
     /// Chosen first on measured weakness: 67.0% end-to-end on the dev split,
     /// answering 258 of 339, against dates' 97.9% on the same run.

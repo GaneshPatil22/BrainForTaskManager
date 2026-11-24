@@ -54,27 +54,6 @@ struct CompareCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Score only the first N captures.")
     var limit: Int = 100_000
 
-    @Option(
-        name: .long,
-        help: "Comma-separated flags for path B: category. Empty means none.")
-    var features: String = ""
-
-    /// Parsed once so an unknown name is a usage error rather than a silently
-    /// ignored word — a typo here would otherwise print a "no change" table
-    /// and look like a finding.
-    func parsedFeatures() throws -> EnrichmentFeatures {
-        var set = EnrichmentFeatures.none
-        for name in features.split(separator: ",").map({
-            $0.trimmingCharacters(in: .whitespaces)
-        }) where !name.isEmpty {
-            switch name {
-            case "category": set.insert(.categoryEscalation)
-            default: throw ValidationError("unknown feature: \(name). Known: category.")
-            }
-        }
-        return set
-    }
-
     func run() async throws {
         guard let zone = TimeZone(identifier: timezone) else {
             throw ValidationError("unknown timezone: \(timezone)")
@@ -115,24 +94,23 @@ struct CompareCommand: AsyncParsableCommand {
         let rules = await Metrics.comparePath(
             name: "rules only", captures: captures,
             pipeline: EnrichmentPipeline(timeZone: zone), timeZone: zone, now: now)
-        let flags = try parsedFeatures()
+        // Path B is "the pipeline with a router attached" — there is no flag
+        // left to set. Category graduated on this command's own measurement.
         let hybrid = await Metrics.comparePath(
             name: "rules + model", captures: captures,
-            pipeline: EnrichmentPipeline(timeZone: zone, router: router, features: flags),
+            pipeline: EnrichmentPipeline(timeZone: zone, router: router),
             timeZone: zone, now: now)
 
         // Cassette hits are the difference between "the model did not help"
         // and "the model was never reached". Printed always, because reading
         // the first as the second is the exact mistake this command is for.
         let stats = await store.stats()
-        Self.render(
-            rules, hybrid, split: split, live: live,
-            features: features.isEmpty ? "none" : features, cassettes: stats)
+        Self.render(rules, hybrid, split: split, live: live, cassettes: stats)
     }
 
     static func render(
         _ a: Metrics.PathResult, _ b: Metrics.PathResult, split: String, live: Bool,
-        features: String, cassettes: (hits: Int, misses: Int, recorded: Int)
+        cassettes: (hits: Int, misses: Int, recorded: Int)
     ) {
         func pct(_ value: Double) -> String { String(format: "%5.1f%%", value * 100) }
 
@@ -140,7 +118,7 @@ struct CompareCommand: AsyncParsableCommand {
             """
 
             PATH COMPARISON   split \(split) · \(a.rows) captures · \
-            \(live ? "LIVE" : "replay") · flags: \(features)
+            \(live ? "LIVE" : "replay")
 
               end-to-end = correct / should-have-been-answered. The user-facing
               number: a field left blank counts against it, exactly as a wrong
@@ -200,6 +178,20 @@ struct CompareCommand: AsyncParsableCommand {
         print(
             "  cassettes          \(cassettes.hits) hit · \(cassettes.misses) miss"
                 + " · \(cassettes.recorded) recorded")
+        // **The store's miss count is not the starvation signal.** A rung
+        // whose recorded answer a guard rejects falls through to rungs that
+        // have no recording, so one escalation can log one hit and two
+        // misses — 425 hits against 174 misses turned out to be 425
+        // escalations, all answered, 87 of them then rejected on confidence.
+        // Escalations answered is the number that says whether the comparison
+        // measured the real path.
+        print(
+            "  escalations        \(b.answeredFromRecording) of \(b.modelCalls)"
+                + " answered from a recording"
+                + (b.answeredFromRecording < b.modelCalls
+                    ? "  ← \(b.modelCalls - b.answeredFromRecording) found none: "
+                        + "record them before trusting the deltas"
+                    : ""))
         if b.modelCalls == 0 {
             print(
                 """

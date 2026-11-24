@@ -1,0 +1,20 @@
+{
+  "answer" : "medium",
+  "capability" : "estimateEffort",
+  "completionTokens" : 0,
+  "confidence" : 0.3522404785558997,
+  "key" : "894690d7fb1c6a29",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "large" : 0.12794710037872867,
+    "medium" : 0.3522404785558997,
+    "small" : 0.10646103073323045,
+    "tiny" : 0.03518401071880216,
+    "unknown" : 0.3434153546941977,
+    "xlarge" : 0.03475202491914128
+  },
+  "promptTokens" : 367,
+  "promptVersion" : "v1",
+  "raw" : "medium",
+  "recordedAt" : "2026-11-24T16:08:38Z"
+}

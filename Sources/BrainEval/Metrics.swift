@@ -288,17 +288,34 @@ public enum Metrics {
         /// rather than asserted.
         public var byTier: [Tier: Int] = [:]
         public var fieldsConsidered = 0
+        /// Whether a router was attached at all.
+        ///
+        /// **Without this the T2 numbers below are not low, they are absent.**
+        /// This function hard-coded `router: nil` and the scorecard reported
+        /// the resulting "T2 rate 0.0%" as a finding for weeks — a figure that
+        /// had never measured anything, quoted twice as evidence that quota
+        /// was not scarce. A rate computed from a path with no model on it is
+        /// not a measurement, so callers now have to say.
+        public var routerAttached = false
+        /// Capabilities the pipeline actually routed, summed over captures.
+        public var escalations = 0
+        /// Of those, how many were answered from a recording.
+        public var answeredFromRecording = 0
     }
 
     /// Runs the real pipeline over real capture text.
     ///
     /// `captures - items` is the `captures lost` invariant: the one outcome
     /// that is never acceptable (`docs/07-harness-spec.md`).
+    ///
+    /// Pass `router` to measure the path production actually walks. Replay
+    /// mode spends nothing, so the eval runner passes a cassette-backed one.
     public static func pipeline(
-        texts: [String], timeZone: TimeZone, now: Date
+        texts: [String], timeZone: TimeZone, now: Date, router: ModelRouter? = nil
     ) async -> PipelineResult {
         var result = PipelineResult()
-        let pipeline = EnrichmentPipeline(timeZone: timeZone, router: nil)
+        result.routerAttached = router != nil
+        let pipeline = EnrichmentPipeline(timeZone: timeZone, router: router)
         var generator = ULIDGenerator(seed: 11)
         var graph = BrainGraph()
 
@@ -314,6 +331,8 @@ public enum Metrics {
                 result.byTier[tier, default: 0] += 1
                 result.fieldsConsidered += 1
             }
+            result.escalations += enriched.trace.routedCapabilities.count
+            result.answeredFromRecording += enriched.trace.answeredFromRecording
             result.fieldsConsidered += enriched.trace.unresolved.count
         }
         result.items = graph.items.count
@@ -684,6 +703,10 @@ public enum Metrics {
         /// cassettes, which is the difference between "the model did not help"
         /// and "the model was never asked".
         public var modelCalls = 0
+        /// Escalations answered from a recording. Compare against `modelCalls`:
+        /// anything short of it means a rung found nothing and the delta below
+        /// is measured on a starved path.
+        public var answeredFromRecording = 0
 
         public init(name: String) { self.name = name }
 
@@ -746,6 +769,7 @@ public enum Metrics {
                 requester: .local)
             graph.insert(enriched.item)
             result.modelCalls += enriched.trace.routedCapabilities.count
+            result.answeredFromRecording += enriched.trace.answeredFromRecording
 
             let item = enriched.item
             let tiers = enriched.trace.tierByField

@@ -1624,3 +1624,58 @@ hallucination-prevention property, applied to a human's answer.
 
 9 tests. No scorecard metric moved, as expected: nothing in the eval reads
 `askUser` or questions. `make ci` and `make ci-linux` both GATE: PASS.
+
+### 2026-11-24 — Duplicate detection (step 6, second of three)
+
+Nothing in Brain had ever created a `duplicate` edge. The kind existed in the
+graph, the storage and the API; the web prototype's mock invented them from a
+title overlap; production could not produce one. The Inbox therefore looked
+far richer in the mock than it could ever be for a real user.
+
+**Plain overlap, not `TitleMatcher.score`.** `score` carries a containment
+bonus so a short dependency reference matches a longer title — "client"
+should find "email the client about pricing". For duplicates that is fatal:
+measured on a 15-pair hand-written fixture, "the pricing thing" against
+"pricing" scores **0.850** under `score`, the same as two genuine duplicates,
+so no threshold on it can separate them. Being *contained in* something is
+close to the opposite of being *the same as* it.
+
+**Threshold 0.7, chosen conservatively rather than measured.** On the fixture
+the separating band is 0.600–0.667 — one pair wide. Fifteen pairs cannot set a
+threshold, and treating that band as a measurement would repeat B4's mistake.
+0.7 sits a clear 0.1 above the highest observed false positive, which is the
+right side to err on: `docs/04-scorecard.md` takes precision over recall,
+because a missed duplicate costs nothing a user cannot fix by hand and a wrong
+one costs a tap and some trust. Accepted cost, recorded as a test: "call
+plumber" against "plumber ko call krna h" scores 0.667 and is missed.
+
+**Links are compared whole, never as words — a real false positive, caught by
+auditing rather than by the gate.** Two *different* posts on one domain,
+`…/blog/a-post?ref=x` against `…/blog/b-post?ref=x`, score **1.000** under
+word overlap: the single character that distinguishes them is dropped as a
+one-letter token. Two different Hacker News items score 0.750. Saving links is
+something this user does constantly, so that would have fired often and
+visibly.
+
+Exact matching alone would be the opposite error. The same link saved twice
+scores 0.700 under word overlap — on the threshold by luck — and 0.438 or
+0.286 once a sentence surrounds it, missing the clearest duplicate there is.
+The rule: both sides have links → duplicates iff they share one; neither has
+→ word overlap; one has → word overlap of the prose, which will not reach the
+threshold and should not.
+
+**A correction to my own reasoning:** the doc comment first justified this
+with a hand-calculated 0.25 for that pair. It is 0.700 — I had forgotten the
+URL's own words contribute shared tokens. The conclusion survived; the number
+did not, and the measured figures are now in the comment and asserted in a
+test.
+
+**Audited, not assumed.** Over the dev split: 32 suggestions on 415 captures
+(7.7%), 9 involving links, and every one of those nine shares the actual link.
+**But the synthetic corpus generates decorated variants of shared bases**, so a
+high hit rate there is expected and says little about real precision. The
+honest measure will be confirm-versus-reject on real captures, which the server
+records. Until then the threshold stays conservative.
+
+21 tests across the two suites, 320 in the package. `make ci` and
+`make ci-linux` both GATE: PASS; no ranking metric moved.

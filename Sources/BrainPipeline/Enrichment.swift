@@ -203,6 +203,21 @@ public struct EnrichmentPipeline: Sendable {
             trace.tierByField["blocks"] = .t0
         }
 
+        // 6. Duplicates. Also T0: "have I written this down already?" is a
+        //    question about word overlap, not meaning, and a model adds
+        //    nothing a set intersection cannot do (the Justification Test).
+        //
+        //    One suggestion at most. A capture resembling three existing items
+        //    should not produce three cards to dismiss, and the best match is
+        //    the one worth asking about.
+        if let twin = TitleMatcher.bestDuplicate(of: title, in: candidates) {
+            edges.append(
+                Edge(
+                    id: idGenerator.next(), from: item.id, to: twin.id, kind: .duplicate,
+                    confidence: twin.score, source: .t0Rule, confirmed: false))
+            trace.tierByField["duplicate"] = .t0
+        }
+
         var enriched = capture
         enriched.status = .enriched
         return EnrichmentResult(

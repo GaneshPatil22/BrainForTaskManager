@@ -255,6 +255,126 @@ public enum TitleMatcher {
                 .filter { $0.count > 1 && !stop.contains($0) })
     }
 
+    /// Plain Jaccard overlap, **without** the containment bonus — the measure
+    /// for "are these the same thing twice?".
+    ///
+    /// `score` is deliberately generous to a short needle, because a
+    /// dependency reference legitimately names part of a title: "client" should
+    /// match "email the client about pricing". For duplicates that generosity
+    /// is fatal. Measured on 15 hand-written pairs, "the pricing thing" against
+    /// "pricing" scores **0.850** under `score` — the same as two genuine
+    /// duplicates — so no threshold on `score` can separate them. Containment
+    /// says "one is contained in the other", and being contained in something
+    /// is the opposite of being the same as it.
+    ///
+    /// Under plain overlap the same 15 pairs separate: the highest
+    /// non-duplicate is 0.600 and the lowest true duplicate 0.667.
+    public static func overlap(_ a: String, _ b: String) -> Double {
+        let x = tokens(a)
+        let y = tokens(b)
+        guard !x.isEmpty, !y.isEmpty else { return 0 }
+        let shared = x.intersection(y).count
+        guard shared > 0 else { return 0 }
+        return Double(shared) / Double(x.union(y).count)
+    }
+
+    /// Splits a title into the URLs it contains and the prose around them.
+    ///
+    /// `BrainCore` cannot reuse `Normalize`'s extraction — that lives in
+    /// `BrainPipeline`, which depends on this module and not the other way
+    /// round — so this is a deliberately minimal scheme-anchored match, used
+    /// only for comparison and never for span reporting.
+    static func splitURLs(_ text: String) -> (urls: Set<String>, prose: String) {
+        guard let regex = try? NSRegularExpression(
+            pattern: #"https?://\S+"#, options: [.caseInsensitive])
+        else { return ([], text) }
+        let ns = text as NSString
+        let full = NSRange(location: 0, length: ns.length)
+        var urls: Set<String> = []
+        for match in regex.matches(in: text, range: full) {
+            let raw = ns.substring(with: match.range).lowercased()
+            urls.insert(raw.trimmingCharacters(in: CharacterSet(charactersIn: ".,;:!?)]\"'")))
+        }
+        let prose = regex.stringByReplacingMatches(
+            in: text, range: full, withTemplate: " ")
+        return (urls, prose)
+    }
+
+    /// How alike two captures are, for the purpose of "is this the same thing
+    /// written twice?".
+    ///
+    /// **URLs are compared whole, never as words.** Measured: two *different*
+    /// posts on one domain —
+    /// `https://example.com/blog/a-post?ref=x` against
+    /// `.../b-post?ref=x` — score **1.000** under word overlap, because the
+    /// one character that distinguishes them is dropped as a single letter.
+    /// Two different Hacker News items score 0.750, also above the threshold.
+    /// Saving links is a thing this user does constantly, so that false
+    /// positive would fire often and visibly.
+    ///
+    /// Leaving it to word overlap would be the opposite mistake. The same link
+    /// saved twice scores **0.700** for "save for later <link>" against
+    /// "<link> 5 min" — on the threshold, by luck — and **0.438** or **0.286**
+    /// once there is a sentence around it, missing the clearest duplicate
+    /// there is. The shared address, not the words near it, is the signal. So:
+    ///
+    /// - both sides have links → duplicates **iff** they share one. The same
+    ///   link saved twice is unambiguous; two different links are not
+    ///   duplicates however alike their addresses look.
+    /// - neither has links → word overlap.
+    /// - one has and the other does not → word overlap of the prose, which
+    ///   will not reach the threshold, and should not: "read the concurrency
+    ///   post" and a bare URL may well be the same thing, but nothing here
+    ///   can know that.
+    public static func duplicateScore(_ a: String, _ b: String) -> Double {
+        let left = splitURLs(a)
+        let right = splitURLs(b)
+        if !left.urls.isEmpty && !right.urls.isEmpty {
+            return left.urls.isDisjoint(with: right.urls) ? 0 : 1
+        }
+        return overlap(left.prose, right.prose)
+    }
+
+    /// How alike two titles must be to be proposed as duplicates.
+    ///
+    /// **Provisional, and chosen conservatively rather than measured.** On the
+    /// 15-pair fixture in `DuplicateTests` the separating band is
+    /// 0.600–0.667, which is one pair wide; 15 pairs cannot establish a
+    /// threshold, and pretending otherwise is the mistake B4's sweep made.
+    /// 0.7 sits a clear 0.1 above the highest observed false positive, which
+    /// is the right side to err on — `docs/04-scorecard.md` takes precision
+    /// over recall, because a missed duplicate costs a user nothing they
+    /// cannot fix by hand while a wrong one costs a tap and some trust.
+    ///
+    /// Known cost of that choice: "call plumber" against "plumber ko call krna
+    /// h" scores 0.667 and is missed. **Revisit when** real captures provide
+    /// enough confirmed and rejected duplicate suggestions to measure
+    /// precision properly — the server records both.
+    public static let duplicateThreshold = 0.7
+
+    /// The existing item most likely to be the same thing as `title`.
+    ///
+    /// One suggestion, not all of them: a capture resembling three existing
+    /// items should not produce three cards to dismiss.
+    public static func bestDuplicate(
+        of title: String, in candidates: [(id: ULID, title: String)],
+        minOverlap: Double = duplicateThreshold
+    ) -> (id: ULID, score: Double)? {
+        var best: (id: ULID, score: Double)?
+        for candidate in candidates {
+            let value = duplicateScore(title, candidate.title)
+            guard value >= minOverlap else { continue }
+            if let current = best {
+                if value > current.score || (value == current.score && candidate.id < current.id) {
+                    best = (candidate.id, value)
+                }
+            } else {
+                best = (candidate.id, value)
+            }
+        }
+        return best
+    }
+
     /// Best candidate above `minScore`, or nil. Ties resolve to the lowest id
     /// so the result is deterministic.
     public static func bestMatch(

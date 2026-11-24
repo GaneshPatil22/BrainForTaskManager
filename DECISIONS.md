@@ -2311,3 +2311,55 @@ own published documentation rather than a login-only dashboard, and it keeps
 its own date for that reason.
 
 365 tests, `make ci` GATE: PASS.
+
+---
+
+## 2026-11-24 — An abstention is an answer, and the ladder stops
+
+`unknown` is offered to the model as a permitted choice, so a model that picks
+it has told us something. Until now `Guards.schema` mapped it to nil — which is
+exactly what a malformed answer looks like — so the router walked on and asked
+Gemma, then Flash-Lite, the same question Decision 1 had already declined.
+
+Measured on the dev split before the change: **87 of 425 escalations ended in
+an explicit `unknown`** — 64 effort, 23 category — each trying two further
+rungs. In replay those were 174 harmless cassette misses. In production they
+are live calls: about **0.21 per capture to each of two pools**, and
+Flash-Lite's free tier is **500 requests a day against Decision 1's 10,000**.
+The scarcest quota we have, sitting last on every ladder, receiving the
+hardest questions.
+
+`Router.route` now sets `modelAbstained` and skips later **provider** rungs.
+
+### Three distinctions this rests on
+
+**A T3 or degrade rung is still reached.** When the model says it does not
+know, the person is exactly who to ask next — stopping the ladder must not
+stop asking. Tested.
+
+**Empty output is not an explicit abstention.** An existing test,
+"An abstaining provider does not block a later rung", failed the moment the
+two were conflated, and it was right to. A blank body is a provider that
+produced nothing — a blocked response, an empty candidate list, a truncated
+stream — and that says nothing about whether the *question* is answerable, so
+a later rung may well answer it. A named `unknown` is a decision about the
+question. `Guards.schema` still reduces both to nil, because neither is a
+usable value; only the ladder's choice to stop turns on the difference.
+
+**It assumes a later rung is no better informed, which holds only while every
+provider rung is T2.** A T1 rung — a model trained on this user's own
+corrections — genuinely may know what a generic model does not. When one
+lands, this must compare tiers and stop only at the same tier or above, rather
+than stopping outright. Written into the code where the flag is declared, not
+just here.
+
+### Result
+
+`brain compare`, dev split: **174 cassette misses → 0**, 425 of 425 escalations
+still answered from a recording, and **every accuracy figure unchanged** — type
+86.7%, dueAt 97.9%, effort 92.5%, category 87.3%. The calls it removes were
+buying nothing.
+
+The abstention words now live in one place, `Guards.abstentionWords`, with the
+normalisation beside them, because the router and the schema guard both need
+them. 372 tests, `make ci` GATE: PASS.

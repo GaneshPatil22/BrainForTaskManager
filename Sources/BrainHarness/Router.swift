@@ -96,7 +96,38 @@ public actor ModelRouter {
         var trace = RouteTrace(capability: request.capability)
         let ladder = ladders[request.capability] ?? []
 
+        /// Set when a model answers, in so many words, that it does not know.
+        ///
+        /// **An abstention is an answer, and the ladder stops.** `unknown` is
+        /// offered to the model as a permitted choice, so a model that picks
+        /// it has told us something — and asking a second, weaker model the
+        /// same question is not a plan. Until this existed, `Guards.schema`
+        /// mapped `unknown` to nil, which is exactly what a malformed answer
+        /// looks like, so the router walked on to Gemma and Flash-Lite.
+        ///
+        /// Measured on the dev split before the change: 87 of 425 escalations
+        /// ended in an explicit `unknown` — 64 effort, 23 category — each
+        /// trying two further rungs. In replay those were 174 harmless
+        /// cassette misses. In production they are live calls, about 0.21 per
+        /// capture to each of two pools, and **Flash-Lite's free tier is 500
+        /// requests a day against Decision 1's 10,000** — the scarcest quota,
+        /// sitting last on every ladder, receiving the hardest questions.
+        ///
+        /// **This assumes a later rung is no better informed, which holds only
+        /// while every provider rung is T2.** A T1 rung — a model trained on
+        /// this user's own corrections — genuinely may know what a generic
+        /// model does not, so when one lands this must compare tiers and stop
+        /// only at the same tier or above, rather than stopping outright.
+        var modelAbstained = false
+
         for rung in ladder {
+            // A T3 or degrade rung is still reached: when the model says it
+            // does not know, asking the person is the correct next step, and
+            // a capture is never lost.
+            if modelAbstained, case .provider = rung.action {
+                trace.skipped.append((rung.name, "a model already abstained"))
+                continue
+            }
             switch rung.action {
             case .degrade:
                 trace.degraded = true
@@ -191,7 +222,15 @@ public actor ModelRouter {
                 // and let a later rung try, rather than reporting an
                 // abstention the ladder had not finished considering.
                 guard let value else {
-                    trace.skipped.append((rung.name, "guards rejected the answer"))
+                    // Told apart deliberately. Both arrive here as nil, but
+                    // one is the model answering "I do not know" and the other
+                    // is output we could not use.
+                    if Guards.isExplicitAbstention(response.raw) {
+                        modelAbstained = true
+                        trace.skipped.append((rung.name, "model abstained"))
+                    } else {
+                        trace.skipped.append((rung.name, "guards rejected the answer"))
+                    }
                     continue
                 }
                 trace.chosen = rung.name

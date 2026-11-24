@@ -109,6 +109,117 @@ struct RouterTests {
         ]).route(request())
         #expect(answer.value == "task")
     }
+
+    // MARK: - An abstention is an answer
+
+    /// `unknown` is offered to the model as a permitted choice, so a model
+    /// that picks it has answered. Asking a second, weaker model the same
+    /// question is not a plan — and it is not free: Flash-Lite's free tier is
+    /// 500 requests a day against Decision 1's 10,000, and it sits last on
+    /// every ladder.
+    @Test("An explicit `unknown` stops the ladder")
+    func abstentionStopsTheLadder() async {
+        let answer = await router([
+            Rung(
+                name: "t2-first", action: .provider(FakeModel.misbehaves(with: "unknown")),
+                model: "m1", tier: .t2),
+            Rung(
+                name: "t2-second", action: .provider(FakeModel.firstAllowed()), model: "m2",
+                tier: .t2),
+        ]).route(request())
+
+        #expect(answer.value == nil, "the model said it does not know")
+        #expect(
+            answer.trace.skipped.contains {
+                $0.rung == "t2-first" && $0.reason == "model abstained"
+            })
+        #expect(
+            answer.trace.skipped.contains {
+                $0.rung == "t2-second" && $0.reason == "a model already abstained"
+            }, "the second model must never be asked")
+    }
+
+    /// The distinction this rests on. A malformed answer is not an abstention
+    /// and must still fall through — otherwise one bad response from the first
+    /// rung would silence a healthy second one.
+    @Test("A malformed answer still falls through")
+    func rejectionStillFallsThrough() async {
+        let answer = await router([
+            Rung(
+                name: "garbage", action: .provider(FakeModel.misbehaves(with: "item-99999")),
+                model: "m1", tier: .t2),
+            Rung(
+                name: "alive", action: .provider(FakeModel.firstAllowed()), model: "m2",
+                tier: .t2),
+        ]).route(request())
+
+        #expect(answer.value == "task")
+        #expect(answer.trace.chosen == "alive")
+        #expect(
+            answer.trace.skipped.contains {
+                $0.rung == "garbage" && $0.reason == "guards rejected the answer"
+            })
+    }
+
+    /// Stopping the ladder must not stop *asking*. When the model says it does
+    /// not know, the person is exactly who to ask next.
+    @Test("An abstention still reaches a later ask-user rung")
+    func abstentionStillAsks() async {
+        let answer = await router([
+            Rung(
+                name: "t2", action: .provider(FakeModel.misbehaves(with: "unknown")), model: "m1",
+                tier: .t2),
+            Rung(
+                name: "t2-weaker", action: .provider(FakeModel.firstAllowed()), model: "m2",
+                tier: .t2),
+            Rung(name: "ask", action: .askUser, model: "-", tier: .t3),
+        ]).route(request())
+
+        #expect(answer.trace.chosen == "ask", "the user is asked, not a weaker model")
+        #expect(answer.trace.tier == .t3)
+    }
+
+    /// A capture is never lost: with nothing after the abstention but the
+    /// mandatory degrade rung, the answer is simply absent.
+    @Test("An abstention degrades rather than failing")
+    func abstentionDegrades() async {
+        let answer = await router([
+            Rung(
+                name: "t2", action: .provider(FakeModel.misbehaves(with: "unknown")), model: "m1",
+                tier: .t2),
+            Rung(name: "degrade", action: .degrade, model: "-", tier: .t0),
+        ]).route(request())
+
+        #expect(answer.value == nil)
+        #expect(answer.trace.degraded)
+    }
+
+    /// The words live in one place, because the router and the schema guard
+    /// both need them and a second copy would drift.
+    @Test(
+        "Abstention is recognised however the model dresses it up",
+        arguments: ["unknown", "  Unknown  ", "\"none\"", "NULL"])
+    func abstentionWording(raw: String) {
+        #expect(Guards.isExplicitAbstention(raw))
+    }
+
+    @Test("A real answer is not mistaken for an abstention")
+    func realAnswerIsNotAbstention() {
+        #expect(!Guards.isExplicitAbstention("task"))
+        #expect(!Guards.isExplicitAbstention("unknown unknowns"))
+    }
+
+    /// The line between the two, stated once. `schema` reduces both to nil
+    /// because neither is usable; only the ladder treats them differently.
+    @Test("Empty output is not the model saying it does not know")
+    func emptyIsNotAnAbstention() {
+        #expect(!Guards.isExplicitAbstention(""))
+        #expect(!Guards.isExplicitAbstention("   "))
+        #expect(
+            Guards.schema(raw: "", allowed: ["task"]).accepted == nil,
+            "still unusable, just not a decision")
+    }
+
 }
 
 @Suite("BudgetLedger")

@@ -76,16 +76,45 @@ public enum Guards {
     /// Models wrap answers in prose, quotes and markdown. Normalising first
     /// means a correct answer in a slightly wrong shape is accepted rather
     /// than thrown away, while anything genuinely outside the set still fails.
+    /// What a model says when it does not know.
+    ///
+    /// **One definition, because two callers need it.** The router has to tell
+    /// "the model abstained" apart from "the guards rejected this", and those
+    /// two outcomes used to be indistinguishable — both arrived as a nil value.
+    public static let abstentionWords: Set<String> = ["", "unknown", "none", "null"]
+
+    /// The normalisation `schema` applies before comparing anything.
+    public static func normalise(_ raw: String) -> String {
+        raw
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\"'`.,;:*_[](){}"))
+            .lowercased()
+    }
+
+    /// Whether the model said, in so many words, that it does not know.
+    ///
+    /// Distinct from a malformed answer: an abstention is a *result*, and a
+    /// model offered `unknown` as a permitted choice has given one.
+    ///
+    /// **Empty output is not an explicit abstention**, which an existing test
+    /// caught the moment the two were conflated. A blank body is a provider
+    /// that produced nothing — a blocked response, an empty candidate list, a
+    /// truncated stream — and that says nothing about whether the *question*
+    /// is answerable, so a later rung may well answer it. A named `unknown` is
+    /// a decision about the question. `schema` still maps both to nil, because
+    /// neither is a usable value; only the router's choice to stop the ladder
+    /// turns on the difference.
+    public static func isExplicitAbstention(_ raw: String) -> Bool {
+        let cleaned = normalise(raw)
+        return !cleaned.isEmpty && abstentionWords.contains(cleaned)
+    }
+
     public static func schema(
         raw: String, allowed: [String], enabled: Bool = true
     ) -> GuardOutcome {
         guard enabled else { return .pass(raw) }
-        let cleaned =
-            raw
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .trimmingCharacters(in: CharacterSet(charactersIn: "\"'`.,;:*_[](){}"))
-            .lowercased()
-        if cleaned.isEmpty || cleaned == "unknown" || cleaned == "none" || cleaned == "null" {
+        let cleaned = normalise(raw)
+        if abstentionWords.contains(cleaned) {
             return .pass(nil)
         }
         if let exact = allowed.first(where: { $0.lowercased() == cleaned }) {

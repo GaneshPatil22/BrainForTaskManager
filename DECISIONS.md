@@ -1588,3 +1588,39 @@ visible rather than incidental.
 
 290 tests. `make ci` GATE: PASS, `make ci-linux` GATE: PASS, every ranking
 metric unchanged.
+
+### 2026-11-24 — T3 questions actually exist now (step 6, first of three)
+
+Nothing in the system had ever produced a question. `/v1/questions` returned
+`[]` unconditionally, the web app's "Brain has a question" card could not
+appear in production, and a capture every tier abstained on kept an unknown
+type for good. `Enrichment` now asks.
+
+**Asked after the ladder abstains, not before it — and this deviates from
+`docs/09-tiering.md`, deliberately.** That doc places T3 between T1 and T2, on
+the argument that asking is free while a model call costs quota. The ordering
+cannot be expressed as a rung: `Rung` has no condition and `.askUser` returns
+unconditionally, so a T3 rung ahead of T2 starves every provider below it —
+there is a test in `BrainProductionTests` that fails if one is put there.
+
+Two reasons asking *after* is the better trade today:
+
+- **Quota is not the scarce resource the doc assumed.** Measured T2 rate is
+  0.0% against 10,000 affordable escalations a day. A field left permanently
+  blank is a cost paid now; the quota is not.
+- **It asks about less.** In the production trial six of seven captures
+  settled at T0 and the seventh at T2. Asking ahead of T2 would have produced
+  a question the model answered correctly for free. Asking after means the
+  user is only asked about captures that genuinely defeated every tier.
+
+**Revisit if** quota becomes scarce, or T2's measured accuracy on captures the
+rules abstain on turns out to be no better than asking.
+
+The question quotes the user's own words, truncated at 60 characters. That is
+not a guard 9 violation: the text is shown to the person who wrote it and is
+never sent to a model. Options are exactly `ItemType.allCases`, so the answer
+coming back over HTTP is checkable against a closed set — the same
+hallucination-prevention property, applied to a human's answer.
+
+9 tests. No scorecard metric moved, as expected: nothing in the eval reads
+`askUser` or questions. `make ci` and `make ci-linux` both GATE: PASS.

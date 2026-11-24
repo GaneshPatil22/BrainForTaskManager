@@ -134,20 +134,19 @@ public struct EnrichmentPipeline: Sendable {
             trace.routedCapabilities.append(Capability.classifyType.rawValue)
             trace.guardsFired += answer.trace.guardsFired
             trace.estimatedTokens += answer.trace.estimatedTokens
-            if answer.tier == .t3 {
-                questions.append(
-                    UserQuestion(
-                        field: "type", prompt: "What kind of thing is this?",
-                        options: ItemType.allCases.map(\.rawValue)))
-                trace.askUser.append("type")
-            }
             if let value = answer.value.flatMap(ItemType.init(rawValue:)) {
                 type = Classified(value, confidence: answer.confidence, tier: answer.tier ?? .t2)
                 trace.tierByField["type"] = answer.tier ?? .t2
             } else {
+                // Every rung abstained — including a T3 rung, which returns no
+                // value by design. Ask rather than leave the field blank.
+                questions.append(Self.typeQuestion(title: Self.title(from: text, urls: [])))
+                trace.askUser.append("type")
                 trace.unresolved.append("type")
             }
         } else {
+            questions.append(Self.typeQuestion(title: Self.title(from: text, urls: [])))
+            trace.askUser.append("type")
             trace.unresolved.append("type")
         }
 
@@ -226,6 +225,38 @@ public struct EnrichmentPipeline: Sendable {
                 title: title.isEmpty ? "(empty capture)" : title,
                 createdAt: capture.createdAt),
             suggestedEdges: [], questions: [], trace: trace, capture: failed)
+    }
+
+    /// The T3 question for an unresolved type (`docs/09-tiering.md`).
+    ///
+    /// **Asked after the ladder abstains, not before it.** `docs/09` places T3
+    /// between T1 and T2, on the argument that asking is free while a model
+    /// call costs quota. That ordering cannot be expressed as a rung: `Rung`
+    /// has no condition, and `.askUser` returns unconditionally, so a T3 rung
+    /// ahead of T2 would starve every provider below it — there is a test in
+    /// `BrainProductionTests` that fails if one is put there.
+    ///
+    /// Asking *after* the ladder is the deviation, and it is deliberate. Quota
+    /// is not the scarce resource it was assumed to be: measured T2 rate is
+    /// **0.0%** against **10,000 affordable escalations a day**, while a field
+    /// left permanently blank is a cost paid today. It also means the user is
+    /// only asked about captures that genuinely defeated every tier, rather
+    /// than about everything the rules happened to miss — in the production
+    /// trial, six of seven captures settled at T0 and the seventh at T2, so
+    /// asking ahead of T2 would have produced a question the model answered
+    /// correctly for free.
+    ///
+    /// **Revisit if** quota becomes scarce, or T2's measured accuracy on
+    /// captures the rules abstain on turns out to be no better than asking.
+    ///
+    /// The user's own words go in the prompt. That is not guard 9: this text
+    /// is shown to the person who wrote it, never sent to a model.
+    static func typeQuestion(title: String) -> UserQuestion {
+        let trimmed = title.count > 60 ? String(title.prefix(60)) + "…" : title
+        return UserQuestion(
+            field: "type",
+            prompt: trimmed.isEmpty ? "What kind of thing is this?" : "What is “\(trimmed)”?",
+            options: ItemType.allCases.map(\.rawValue))
     }
 
     /// A title is the first line, trimmed. A URL-only capture keeps the URL.

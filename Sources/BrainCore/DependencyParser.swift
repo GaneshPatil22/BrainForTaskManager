@@ -6,11 +6,38 @@ import Foundation
 /// a separate, deliberate step (`TitleMatcher`), because a reference that
 /// matches nothing must produce no edge at all rather than a guess.
 public struct ParsedDependency: Sendable, Hashable {
-    /// The thing being waited on, as written.
+    /// Which way round the blocking runs.
+    ///
+    /// Without this, `before` could not be supported at all: `ParsedDependency`
+    /// used to mean only "this item is blocked by the referent", and
+    /// "review the PR before standup" means the opposite — the PR review has
+    /// to finish first. Reusing the old shape would have produced a backwards
+    /// edge and made the task look unstartable, which is worse than having no
+    /// rule.
+    public enum Direction: String, Sendable, Hashable {
+        /// "after X", "X ke baad" — the referent must finish first.
+        case blockedByReferent
+        /// "before X", "X se pehle" — *this item* must finish first.
+        case blocksReferent
+    }
+
+    /// The thing being waited on, or the thing this item must precede.
     public let targetText: String
     public let span: Span
     public let confidence: Double
     public let rule: String
+    public let direction: Direction
+
+    public init(
+        targetText: String, span: Span, confidence: Double, rule: String,
+        direction: Direction = .blockedByReferent
+    ) {
+        self.targetText = targetText
+        self.span = span
+        self.confidence = confidence
+        self.rule = rule
+        self.direction = direction
+    }
 }
 
 /// Reads explicit blocking phrases out of text. English and Hinglish.
@@ -33,7 +60,7 @@ public struct DependencyParser: Sendable {
         var found: [ParsedDependency] = []
         var claimed = Set<Int>()
 
-        for (literal, pattern, position, confidence, rule) in Self.rules {
+        for (literal, pattern, position, direction, confidence, rule) in Self.rules {
             // Cheap literal check first — see the note on `rules`.
             guard haystack.contains(literal) else { continue }
             guard let match = DateParser.firstMatch(pattern, haystack),
@@ -45,9 +72,14 @@ public struct DependencyParser: Sendable {
 
             // "after 3 days" is a deadline, not a dependency. Without this
             // cross-check every relative due date becomes a phantom blocker.
-            if position == .afterMarker, Self.isTimeExpression(cleaned, dateParser, now) {
-                continue
-            }
+            //
+            // This used to run only for `.afterMarker`, which left the
+            // Hinglish half unguarded: "3 din ke baad deploy krna h" put the
+            // referent *before* the marker, so it skipped the check and
+            // produced a phantom dependency on "3 din". English
+            // "after 3 days" was correctly ignored the whole time, which is
+            // what made the gap easy to miss.
+            if Self.isTimeExpression(cleaned, dateParser, now) { continue }
 
             // Don't let two rules claim overlapping text.
             let range = match.range.location..<(match.range.location + match.range.length)
@@ -58,7 +90,7 @@ public struct DependencyParser: Sendable {
                 ParsedDependency(
                     targetText: cleaned,
                     span: Span(start: match.range.location, end: range.upperBound),
-                    confidence: confidence, rule: rule))
+                    confidence: confidence, rule: rule, direction: direction))
         }
         return found
     }
@@ -75,8 +107,11 @@ public struct DependencyParser: Sendable {
     ///    contains a date but is a genuine dependency, and rejecting it would
     ///    be a false negative.
     static func isTimeExpression(_ referent: String, _ parser: DateParser, _ now: Date) -> Bool {
+        // Word numerals count too: "ek mahine ke baad" is a month away, not
+        // a thing named "ek mahine". Found by the style tests — the digit-only
+        // version passed every Hinglish case that happened to use digits.
         let bareDuration =
-            #"^\d+(?:\.\d+)?\s*"#
+            #"^(?:\d+(?:\.\d+)?|"# + DateParser.hindiNumberAlternation + #")\s*"#
             + #"(?:min|mins|minutes?|hours?|hrs?|ghante|ghanta|days?|din|weeks?|haft[ae]"#
             + #"|months?|mahine|years?|saal)$"#
         if DateParser.firstMatch(bareDuration, referent) != nil { return true }
@@ -112,7 +147,7 @@ public struct DependencyParser: Sendable {
     /// The referent is also bounded to 80 characters. A task title is never
     /// longer, and an unbounded lazy quantifier is what turns a linear scan
     /// quadratic.
-    static let rules: [(String, String, Position, Double, String)] = [
+    static let rules: [(String, String, Position, ParsedDependency.Direction, Double, String)] = [
         // Completion reads many ways: "done", but also "green" (CI), "merged",
         // "approved", "back" (a person). Narrow lists cause silent misses.
         (
@@ -120,29 +155,69 @@ public struct DependencyParser: Sendable {
             #"\bonce\s+(.{1,80}?)\s+(?:is\s+|are\s+|has\s+|have\s+)?"#
                 + #"(?:done|finished|complete|completed|ready|green|merged|approved|live|back|"#
                 + #"signed|confirmed|arrived|replied|landed)\b"#,
-            .afterMarker, 0.95, "onceDone"
+            .afterMarker, .blockedByReferent, 0.95, "onceDone"
         ),
-        ("blocked by", #"\bblocked\s+by\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, 0.95, "blockedBy"),
-        ("depends on", #"\bdepends\s+on\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, 0.95, "blockedBy"),
+        (
+            "blocked by", #"\bblocked\s+by\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker,
+            .blockedByReferent, 0.95, "blockedBy"
+        ),
+        (
+            "depends on", #"\bdepends\s+on\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker,
+            .blockedByReferent, 0.95, "blockedBy"
+        ),
         (
             "wait", #"\b(?:waiting|wait)\s+(?:for|on)\s+(.{1,80}?)(?:[,.;]|$)"#,
-            .afterMarker, 0.9, "waitingFor"
+            .afterMarker, .blockedByReferent, 0.9, "waitingFor"
         ),
-        ("first", #"\bneeds?\s+(.{1,80}?)\s+first\b"#, .afterMarker, 0.9, "needsFirst"),
+        (
+            "first", #"\bneeds?\s+(.{1,80}?)\s+first\b"#, .afterMarker, .blockedByReferent, 0.9,
+            "needsFirst"
+        ),
         (
             "ke baad", #"\b(.{1,80}?)\s+(?:ho\s+jaye|hone)\s+ke\s+baad\b"#,
-            .beforeMarker, 0.95, "honeKeBaadHinglish"
+            .beforeMarker, .blockedByReferent, 0.95, "honeKeBaadHinglish"
         ),
-        ("ke baad", #"\b(.{1,80}?)\s+ke\s+baad\b"#, .beforeMarker, 0.9, "keBaadHinglish"),
+        // "uske baad" and "iske baad" are the commonest informal forms and
+        // the generic rule below cannot reach them: `\bke\b` will not match
+        // the "ke" inside "uske". Measured — the formal "client ke baad"
+        // parsed while "client approve kare uske baad" did not.
+        (
+            "ske baad", #"\b(.{1,80}?)\s+[ui]ske\s+baad\b"#,
+            .beforeMarker, .blockedByReferent, 0.9, "uskeBaadHinglish"
+        ),
+        (
+            "ke baad", #"\b(.{1,80}?)\s+ke\s+baad\b"#, .beforeMarker, .blockedByReferent, 0.9,
+            "keBaadHinglish"
+        ),
         (
             "wait", #"\b(.{1,80}?)\s+k[ae]\s+(?:wait|intezaar|intzaar)\b"#,
-            .beforeMarker, 0.85, "kaWaitHinglish"
+            .beforeMarker, .blockedByReferent, 0.85, "kaWaitHinglish"
         ),
         (
             "intezaar", #"\b(.{1,80}?)\s+k[ae]\s+(?:wait|intezaar|intzaar)\b"#,
-            .beforeMarker, 0.85, "kaWaitHinglish"
+            .beforeMarker, .blockedByReferent, 0.85, "kaWaitHinglish"
         ),
-        ("after", #"\bafter\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, 0.85, "after"),
+        (
+            "after", #"\bafter\s+(.{1,80}?)(?:[,.;]|$)"#, .afterMarker, .blockedByReferent, 0.85,
+            "after"
+        ),
+
+        // --- the `before` direction ----------------------------------------
+        // Every rule above is an *after*: "X must finish before this one".
+        // "before" is the mirror and had no rule at all, in English or
+        // Hinglish — measured at 0 of 5 across all three writing styles.
+        (
+            "se pehle", #"\b(.{1,80}?)\s+se\s+pehle\b"#,
+            .beforeMarker, .blocksReferent, 0.9, "sePehleHinglish"
+        ),
+        (
+            "ske pehle", #"\b(.{1,80}?)\s+[ui]ske\s+pehle\b"#,
+            .beforeMarker, .blocksReferent, 0.9, "uskePehleHinglish"
+        ),
+        (
+            "before", #"\bbefore\s+(.{1,80}?)(?:[,.;]|$)"#,
+            .afterMarker, .blocksReferent, 0.85, "before"
+        ),
     ]
 }
 

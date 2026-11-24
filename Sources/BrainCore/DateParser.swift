@@ -204,15 +204,57 @@ public struct DateParser: Sendable {
         return nil
     }
 
-    /// `15 tarikh`, `15 tarikh ko`, `on the 15th`.
+    // MARK: - Hindi numerals
+
+    /// Hindi numbers as people actually romanise them, 1–31: dates need up to
+    /// 31, clock times up to 12.
+    ///
+    /// **Why a lookup and not a text rewrite.** Normalising "pandrah tarikh"
+    /// into "15 tarikh" before parsing would be far less code — and would move
+    /// every span after it. Spans index the user's original text and
+    /// `span-verified rate` is a scorecard invariant at 100%, so the numerals
+    /// are matched in place instead.
+    ///
+    /// `no` for 9 is deliberately absent: it collides with English "no", and a
+    /// missed time costs less than a wrong one.
+    public static let hindiNumbers: [String: Int] = [
+        "ek": 1, "do": 2, "teen": 3, "tin": 3, "char": 4, "chaar": 4,
+        "paanch": 5, "panch": 5, "chhe": 6, "che": 6, "cheh": 6, "chah": 6,
+        "saat": 7, "sat": 7, "aath": 8, "ath": 8, "nau": 9,
+        "das": 10, "dus": 10, "gyarah": 11, "gyara": 11, "barah": 12, "bara": 12,
+        "terah": 13, "tera": 13, "chaudah": 14, "chauda": 14,
+        "pandrah": 15, "pandra": 15, "solah": 16, "sola": 16,
+        "satrah": 17, "satra": 17, "atharah": 18, "athara": 18,
+        "unnis": 19, "unis": 19, "bees": 20, "bis": 20,
+        "ikkis": 21, "bais": 22, "baees": 22, "teis": 23, "chaubis": 24,
+        "pachchis": 25, "pachis": 25, "chhabbis": 26, "sattais": 27,
+        "atthais": 28, "untis": 29, "tees": 30, "ikattis": 31,
+    ]
+
+    /// The spellings alone, longest first so "teis" is never shadowed by a
+    /// shorter alternative that also prefixes it.
+    public static let hindiNumberAlternation: String =
+        hindiNumbers.keys.sorted { ($0.count, $0) > ($1.count, $1) }.joined(separator: "|")
+
+    /// `\d{1,2}` or any spelling above.
+    static let numberToken: String = "(?:\\d{1,2}|" + hindiNumberAlternation + ")"
+
+    /// Digits or a Hindi numeral word.
+    public static func numericValue(_ text: String?) -> Int? {
+        guard let text else { return nil }
+        if let digits = Int(text) { return digits }
+        return hindiNumbers[text.lowercased()]
+    }
+
+    /// `15 tarikh`, `15 tarikh ko`, `on the 15th`, `pandrah tarikh`.
     static let matchDayOfMonth: @Sendable (String, Date, Calendar) -> Match? = { text, now, cal in
         let patterns = [
-            #"\b(\d{1,2})\s*tarikh(?:\s+ko)?\b"#,
+            #"\b("# + numberToken + #")\s*tarikh(?:\s+ko)?\b"#,
             #"\bon\s+the\s+(\d{1,2})(?:st|nd|rd|th)\b"#,
         ]
         for pattern in patterns {
             guard let m = firstMatch(pattern, text),
-                let day = group(m, 1, text).flatMap(Int.init),
+                let day = numericValue(group(m, 1, text)),
                 (1...31).contains(day)
             else { continue }
             var comps = cal.dateComponents([.year, .month], from: now)
@@ -395,8 +437,10 @@ public struct DateParser: Sendable {
         // A period word disambiguates completely, so confidence stays high.
         for period in ["subah", "dopahar", "shaam", "raat"] {
             guard
-                let m = firstMatch(#"\b"# + period + #"\s+(\d{1,2})(?::(\d{2}))?\s*baje\b"#, text),
-                let rawHour = group(m, 1, text).flatMap(Int.init),
+                let m = firstMatch(
+                    #"\b"# + period + #"\s+("# + numberToken + #")(?::(\d{2}))?\s*baje\b"#,
+                    text),
+                let rawHour = numericValue(group(m, 1, text)),
                 (1...12).contains(rawHour)
             else { continue }
             let minute = group(m, 2, text).flatMap(Int.init) ?? 0
@@ -416,8 +460,9 @@ public struct DateParser: Sendable {
         // Bare "N baje", no period word. Heuristic: 8-11 reads as morning,
         // everything else as evening ("5 baje" is 5 p.m., "9 baje" is 9 a.m.).
         // Confidence is dropped to 0.7 so it looks like the guess it is.
-        if let m = firstMatch(#"\b(\d{1,2})(?::(\d{2}))?\s*baje\b"#, text),
-            let rawHour = group(m, 1, text).flatMap(Int.init), (1...12).contains(rawHour)
+        if let m = firstMatch(
+            #"\b("# + numberToken + #")(?::(\d{2}))?\s*baje\b"#, text),
+            let rawHour = numericValue(group(m, 1, text)), (1...12).contains(rawHour)
         {
             let minute = group(m, 2, text).flatMap(Int.init) ?? 0
             let hour = (8...11).contains(rawHour) ? rawHour : (rawHour % 12) + 12

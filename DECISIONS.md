@@ -1293,3 +1293,80 @@ server has not integrated yet.
 
 Tag `0.5.1`. The two commits since `0.5.0` (Linux verification, CI image) are
 tooling and docs only, so this remains a patch release.
+
+## 2026-11-24 — 0.6.0: writing styles, and four gaps the eval could not see
+
+Ganesh pushed back on a claim I had made: I cited "type recognition 46.7% →
+98.0%" as evidence that cleaning text would hurt, but that number is
+**single-author**. The product is not for one person. He was right, and the
+probe that followed found more than the question asked.
+
+**Scope decided: English and romanised Hinglish only.** Pure Devanagari is out
+for now — real data from test users comes first. Measured for the record:
+Devanagari returns no date, no category and no dependency, and every item
+scores an identical 0.370, so the ranking is input order. Brain does not yet
+know it cannot read it, which is worse than failing loudly.
+
+### What the probe found — none of it visible to the eval
+
+28 captures, the same 8 intents in four styles:
+
+| Style | type | category | date | dependency |
+|---|---|---|---|---|
+| English | 100% | 87.5% | 62.5% | 12.5% |
+| Hinglish (Ganesh) | 100% | 75.0% | 62.5% | 0% |
+| Hinglish (formal) | 100% | 62.5% | 37.5% | 12.5% |
+| Devanagari | 100%* | 0% | 0% | 0% |
+
+\* hollow: T0 claims the type but reads nothing else.
+
+**1. `before` had no rule in any language.** 0 of 5, English included. Every
+rule was an *after*: `once…done`, `blocked by`, `waiting for`, `ke baad`,
+`after`. Half of dependency grammar was missing and the scorecard said 68.1%.
+
+This could not be a new regex alone. `ParsedDependency` meant "this item is
+blocked by the referent", full stop. "Review the PR before standup" is the
+mirror — the PR review blocks the standup — so reusing the old shape would
+have emitted a backwards edge and made the task look unstartable. Added
+`ParsedDependency.Direction`, and `Enrichment` now picks the edge ends from it.
+
+**2. `uske baad` parsed as nothing** while formal `ke baad` worked —
+`\bke\b` cannot match the "ke" inside "uske". The informal form is the common
+one; our own captures use it constantly.
+
+**3. Hinglish durations invented phantom blockers.** `3 din ke baad deploy
+krna h` produced a dependency on a thing called "3 din". The cross-check that
+catches this ran only for `.afterMarker`, so English `after 3 days` was
+correctly ignored the whole time — which is exactly why nobody noticed. Now
+runs for both word orders.
+
+**4. Spelled-out Hindi numerals were unparsed.** `15 tarikh` worked,
+`pandrah tarikh` did not; same for `teen baje`, `das baje`.
+
+Implemented as a lookup matched **in place**, not as a text rewrite. Rewriting
+"pandrah" to "15" is less code and would move every span after it;
+`span-verified rate` is a 100% invariant and spans index the user's original
+text. `no` for 9 is deliberately omitted — it collides with English "no", and
+a missed time costs less than a wrong one. Checked for collisions: "do the
+laundry", "sat with the team", "char the vegetables" read no date, because the
+numeral only fires before `baje`/`tarikh`.
+
+A fifth gap surfaced from the new tests themselves: the duration cross-check
+accepted only digits, so `ek mahine ke baad` was still a phantom. Word
+numerals now count there too.
+
+### The metric did not move, and that is the finding
+
+`dependency recall` is **still 68.1%**. Not because the fixes did nothing — the
+synthetic corpus is generated from our own rule vocabulary, so it contains no
+`before` construction and cannot measure one. Twelve hand-written sentences
+found four gaps that 69 generated ones could not. `span-verified` rose from
+n=406 to n=415: every capture is now grounded.
+
+`Tests/BrainCoreTests/WritingStyleTests.swift` is the committed fixture, so
+all three supported styles are checked on every run instead of only synthetic
+data. Treat the generated datasets as a floor, never as coverage.
+
+Tagged `0.6.0` rather than `0.5.2`: `ParsedDependency` gained a field and Brain
+now emits edges it never emitted before. No compile break for the server —
+`Edge` is unchanged — but the behaviour differs.

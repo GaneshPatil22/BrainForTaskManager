@@ -1,7 +1,7 @@
 {
   "dataset" : "v1",
-  "generatedAt" : "2026-11-23T18:46:23Z",
-  "runId" : "01M84VP3CTTQ5Z8FF7K00D0EVY",
+  "generatedAt" : "2026-11-24T17:00:35Z",
+  "runId" : "01M87812VYMSVS5BBCJQ1WV6RM",
   "sections" : [
     {
       "metrics" : [
@@ -47,19 +47,28 @@
           "higherIsBetter" : true,
           "name" : "T0 settled",
           "note" : "fields resolved with no model at all — drive this up",
-          "sampleSize" : 1725,
+          "sampleSize" : 1753,
           "tolerance" : 0.05,
           "unit" : "percent",
-          "value" : 0.6202898550724638
+          "value" : 0.6263548203080433
         },
         {
           "higherIsBetter" : false,
-          "name" : "T2 rate (costs quota)",
-          "note" : "drive this down — it is the only thing that costs quota",
-          "sampleSize" : 1725,
+          "name" : "T2 settled, routed (costs quota)",
+          "note" : "425 escalations over 415 captures — drive this down, it is the only thing that costs quota",
+          "sampleSize" : 1753,
           "tolerance" : 0.05,
           "unit" : "percent",
-          "value" : 0
+          "value" : 0.19281232173416998
+        },
+        {
+          "higherIsBetter" : true,
+          "name" : "escalations answered from a recording",
+          "note" : "425 of 425 · store: 425 hit \/ 174 miss — below 100% means a rung had no recording and the rate above reads low for the wrong reason; record with `brain record --escalations-only`",
+          "sampleSize" : 425,
+          "tolerance" : 0.02,
+          "unit" : "percent",
+          "value" : 1
         }
       ],
       "name" : "tiering"
@@ -133,7 +142,7 @@
         {
           "higherIsBetter" : true,
           "name" : "span-verified rate",
-          "sampleSize" : 406,
+          "sampleSize" : 402,
           "tolerance" : 0,
           "unit" : "percent",
           "value" : 1
@@ -170,7 +179,7 @@
           "mustNotExceed" : 0,
           "name" : "hallucinated-ID rate",
           "note" : "every recorded answer was inside the option set",
-          "sampleSize" : 52,
+          "sampleSize" : 452,
           "unit" : "percent",
           "value" : 0
         },
@@ -178,7 +187,7 @@
           "higherIsBetter" : false,
           "name" : "answers needing rescue",
           "note" : "guard 3 normalised these rather than discarding them",
-          "sampleSize" : 52,
+          "sampleSize" : 452,
           "tolerance" : 0.05,
           "unit" : "percent",
           "value" : 0
@@ -196,7 +205,7 @@
           "higherIsBetter" : false,
           "mustNotExceed" : 0,
           "name" : "adversarial over budget",
-          "note" : "slowest 51.9ms",
+          "note" : "slowest 84.4ms",
           "unit" : "count",
           "value" : 0
         },
@@ -233,23 +242,23 @@
           "name" : "p50 latency",
           "tolerance" : 1,
           "unit" : "milliseconds",
-          "value" : 0.067459
+          "value" : 0.073583
         },
         {
           "higherIsBetter" : false,
           "name" : "p95 latency",
           "tolerance" : 2,
           "unit" : "milliseconds",
-          "value" : 0.101709
+          "value" : 0.129625
         },
         {
           "higherIsBetter" : false,
           "name" : "tokens per escalation",
           "note" : "the real currency on a free tier — rupees are zero and say nothing about whether we can afford to run",
-          "sampleSize" : 52,
+          "sampleSize" : 452,
           "tolerance" : 50,
           "unit" : "count",
-          "value" : 418
+          "value" : 380
         },
         {
           "higherIsBetter" : true,
@@ -268,7 +277,7 @@
     "category labels" : 1308,
     "distinct date phrasings" : 27,
     "ranked" : 91,
-    "recorded answers" : 52,
+    "recorded answers" : 452,
     "scenarios" : 91,
     "synthetic captures" : 415,
     "unranked" : 0

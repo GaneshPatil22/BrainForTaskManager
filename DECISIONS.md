@@ -2243,3 +2243,39 @@ The store's miss count is therefore not the starvation signal, and both
 `brain compare` and the scorecard now print escalations-answered beside it.
 
 365 tests, `make ci` GATE: PASS.
+
+---
+
+## 2026-11-24 — The two new metrics start gating, and the baseline is promoted
+
+Follow-up to the entry above, after tagging **0.9.0** on `0beb889`.
+
+`T2 settled, routed` and `escalations answered from a recording` shipped with
+**no tolerance**, which meant the gate skipped them entirely: `Scorecard.gate`
+requires both a baseline entry and a declared tolerance, so a metric with
+either missing is decoration. Promoting a baseline alone would not have fixed
+that.
+
+- **`T2 settled, routed (costs quota)`: +5.0 pp**, the same tolerance the old
+  `T2 rate` carried. Baseline 19.3% against the ≤40% target in
+  `docs/05-targets.md`.
+- **`escalations answered from a recording`: −2.0 pp**, not zero. Real
+  starvation is never subtle — a capability with no recordings costs tens of
+  percent, as the 190-of-425 case did on the first run — while a hard zero
+  would fail CI the moment a fourth capability is registered, before anyone
+  could record for it. That is a reminder worth having, not a build worth
+  blocking. Baseline 425 of 425.
+
+Baseline promoted with the reason recorded in `eval/baselines/dev.json`: it is
+the first run whose cassettes cover every registered capability, which is the
+precondition `docs/04-scorecard.md` states. It also absorbs the measured gains
+from category escalation; nothing in it regressed, and `T0 settled` moved
+62.0% → 62.6% because escalated fields now settle instead of staying blank.
+
+Also cleared the one lint warning the previous commit introduced
+(`CategoryEscalationTests.swift`, an end-of-line comment past the line length).
+It was left in `0beb889` deliberately rather than silently tagging a different
+commit than the one Ganesh named for the Server pin; the fix lands after the
+tag, where it changes nothing for a consumer.
+
+365 tests, `make ci` GATE: PASS.

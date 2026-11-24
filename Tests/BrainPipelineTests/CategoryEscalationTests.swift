@@ -113,8 +113,9 @@ struct CategoryEscalationTests {
     @Test("`unknown` from the model means abstained, not broken")
     func unknownIsAbstention() async {
         var gen = generator()
+        // `misbehaves` just returns a fixed answer; here that answer is legal.
         let result = await enrich(
-            Self.unknownToLexicon,  // `misbehaves` just returns a fixed answer; here that answer is legal.
+            Self.unknownToLexicon,
             router: router(FakeModel.misbehaves(with: "unknown")), &gen)
 
         #expect(result.item.category.value == nil)

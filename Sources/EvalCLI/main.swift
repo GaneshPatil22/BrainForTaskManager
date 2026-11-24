@@ -210,7 +210,7 @@ enum Runner {
                 name: "T2 settled, routed (costs quota)",
                 value: !pipelineResult.routerAttached || pipelineResult.fieldsConsidered == 0
                     ? nil : Double(t2Settled) / Double(pipelineResult.fieldsConsidered),
-                unit: .percent, higherIsBetter: false,
+                unit: .percent, tolerance: 0.05, higherIsBetter: false,
                 sampleSize: pipelineResult.fieldsConsidered,
                 note: pipelineResult.routerAttached
                     ? "\(pipelineResult.escalations) escalations over "
@@ -227,7 +227,8 @@ enum Runner {
                     ? nil
                     : Double(pipelineResult.answeredFromRecording)
                         / Double(pipelineResult.escalations),
-                unit: .percent, sampleSize: pipelineResult.escalations,
+                unit: .percent, tolerance: 0.02,
+                sampleSize: pipelineResult.escalations,
                 note: "\(pipelineResult.answeredFromRecording) of "
                     + "\(pipelineResult.escalations) · store: \(replayStats.hits) hit / "
                     + "\(replayStats.misses) miss — below 100% means a rung had no "

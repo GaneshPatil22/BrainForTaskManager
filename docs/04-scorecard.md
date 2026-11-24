@@ -119,15 +119,23 @@ the suite and compares. The gate fails if any metric moves beyond tolerance:
 | human pick in top-3 | −2.0 pp |
 | ECE | +0.02 absolute |
 | p95 latency | +20% |
-| T2 settled, routed | **ungated** until a baseline is promoted |
+| T2 settled, routed | +5.0 pp (escalating more is a regression) |
+| escalations answered from a recording | −2.0 pp |
 
 `T2 settled, routed` replaced `T2 rate`, which was computed on a pipeline built
 with `router: nil` and so read 0.0% whatever the code did. The replacement
 replays the production ladder against recorded cassettes, which means it can
 also read low because a rung found no recording — `escalations that found a
-recording` is reported beside it for exactly that reason. It carries no
-tolerance yet: there is no honest baseline to regress against until one is
-promoted from a run whose cassettes cover every registered capability.
+recording` is reported beside it for exactly that reason. It carried no tolerance until a
+baseline was promoted from a run whose cassettes cover every registered
+capability; that happened on 2026-11-24 at 425 of 425, and it now gates at the
++5.0 pp the old `T2 rate` used.
+
+`escalations answered from a recording` gates at −2.0 pp rather than at zero.
+Real starvation is never subtle — a capability with no recordings costs tens of
+percent, as the 190-of-425 case did — while a hard zero would fail CI the
+moment a fourth capability is registered, before anyone could record for it.
+That is a reminder worth having, not a build worth blocking.
 
 Improvements never fail the gate but **do not auto-update the baseline.**
 Promoting a baseline is a deliberate, separate, committed act:

@@ -83,6 +83,15 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
+  "second_pass" : {
+    "ranked_at" : "2026-11-24T08:32:23Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i5",
+      "i2",
+      "i4"
+    ]
+  },
   "split" : "test",
   "tests" : "authored by Ganesh",
   "user_tz" : "Asia/Kolkata"

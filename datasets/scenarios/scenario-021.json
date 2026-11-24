@@ -56,6 +56,15 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
+  "second_pass" : {
+    "ranked_at" : "2026-11-24T08:31:08Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i2",
+      "i5",
+      "i1"
+    ]
+  },
   "split" : "dev",
   "tests" : "domestic admin",
   "user_tz" : "Asia/Kolkata"

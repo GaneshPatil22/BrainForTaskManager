@@ -55,6 +55,39 @@ is ranking a reasonable choice near the bottom, and it is still worth fixing.
 
 The honest position: **stop chasing top-1, keep pushing top-3.**
 
+### Measured, 2026-11-24 — the self-agreement numbers, and why the target stays
+
+`make agreement`, over 30 scenarios ranked twice, days apart:
+
+| | Ganesh vs. himself | Brain, same 30 |
+|---|---|---|
+| same #1 | 37% | 27% |
+| top-3 overlap | 67% | 80% |
+| identical order | 10% | — |
+
+Two things follow, and only one of them is solid.
+
+**Solid: the top-1 prediction above was right.** This section argued for a
+natural ceiling "near 1/3" from a grid search topping out at 36.5%. Measured:
+37%. Keeping top-1 target-free was the correct call and stays that way.
+
+**Not solid: whether ≥85% on top-3 is reachable.** Brain's 80% on these 30 sits
+*above* the 67% a human managed against himself, which would mean the target is
+set beyond the noise floor and "still worth fixing" is wrong. But 30 pairs is
+thin — the 37% figure alone carries a 95% interval of 22–54% — and the 80% is
+over the paired subset while the scorecard's 71.4% is over all 91 dev
+scenarios. Two different samples; they should not be read as a change.
+
+**So the ≥85% target is left exactly where it is.** It is annotated, not
+revised. Moving a target on 30 noisy pairs is how a project talks itself into
+a number, and the variance here is expected at this sample size rather than
+evidence about the ranker.
+
+**What would settle it:** paired second passes on enough scenarios that the
+self-overlap interval is narrower than the gap it is being compared against —
+on the order of 90, per the Wilson table below. Until then top-3 stays a
+target we aim at and do not tune against.
+
 ## Why "top-3" and not "top-1"
 
 The original brief specified top-1 agreement ≥ 80% on hand-built scenarios. If

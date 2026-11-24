@@ -47,6 +47,15 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
+  "second_pass" : {
+    "ranked_at" : "2026-11-24T08:33:01Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i3",
+      "i4"
+    ]
+  },
   "split" : "test",
   "tests" : "no signal at all",
   "user_tz" : "Asia/Kolkata"

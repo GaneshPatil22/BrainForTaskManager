@@ -66,6 +66,15 @@
     }
   ],
   "now" : "2026-11-23T09:00:00+05:30",
+  "second_pass" : {
+    "ranked_at" : "2026-11-24T08:33:20Z",
+    "ranked_by" : "human",
+    "ranking_top3" : [
+      "i1",
+      "i3",
+      "i2"
+    ]
+  },
   "split" : "dev",
   "tests" : "diamond dependency",
   "user_tz" : "Asia/Kolkata"

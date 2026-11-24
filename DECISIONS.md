@@ -1504,3 +1504,54 @@ refreshing a baseline is how a regression signal gets lost, and when to
 refresh it is Ganesh's call.
 
 Verified: `make ci` GATE: PASS, `make ci-linux` GATE: PASS.
+
+### 2026-11-24 — Self-agreement measured; B-06's ranking gate resolved
+
+Ganesh ranked 30 scenarios a second time, days after the first pass
+(`make rank-again`, 130/130 scenarios now ranked). `make agreement`:
+
+| | Ganesh vs. himself | Brain, same 30 |
+|---|---|---|
+| same #1 | 37% | 27% |
+| top-3 overlap | 67% | 80% |
+| identical order | 10% | — |
+
+**The top-1 prediction in `docs/05-targets.md` was confirmed.** That doc
+argued for a natural ceiling "near 1/3" from a 900-combination grid search
+topping out at 36.5%, and kept top-1 target-free on that basis. Measured
+ceiling: 37%. The reasoning held.
+
+**Top-3 has no headroom worth chasing.** Brain's 80% over the paired subset is
+above the 67% a human managed against his own earlier self. **B-06's gate —
+"ranking validated (`make agreement`)" — is resolved, and the answer is that
+the ranker is done.** No further scoring work; the effort belongs in the
+planner and in the dead UI surfaces instead.
+
+**The ≥85% top-3 target was deliberately *not* moved.** 30 pairs is thin — the
+37% alone spans 22–54% at 95% — and the 80% is over the paired subset while
+the scorecard's 71.4% is over all 91 dev scenarios: two samples, not a change.
+Ganesh's call, and the right one: the variance is expected at this size rather
+than evidence about the ranker. `05-targets.md` is annotated, not revised, and
+records what would settle it (~90 pairs).
+
+### 2026-11-24 — Three bugs in the `agreement` command
+
+Found while reading the output above, all three in `AgreementCommand.swift`.
+
+1. **It computed Brain's own agreement and threw it away.** `ourTop1` and
+   `ourTop3` were calculated and never printed, so the command reported a
+   ceiling with nothing measured against it — the one comparison it exists to
+   make. Printing them is what showed top-3 has no headroom; without it the
+   report looked like bad news.
+2. **It cited a target that does not apply.** The verdict read "below the ≥90%
+   target in docs/05-targets.md" whenever top-1 came in under 90%. That doc
+   gives top-1 **no target at all** — the ≥90% figures are type accuracy and
+   link precision. It was telling the reader to revise down a target that was
+   already correct, and said nothing about the one that is actually in
+   question.
+3. **It hid the interval exactly when it mattered.** The 95% interval printed
+   only below 20 paired scenarios, so 30 pairs reported a bare 37% with no
+   uncertainty attached. The same failure mode as the B4 threshold command:
+   a thin sample allowed to look authoritative. Now always printed, and with
+   a Wilson interval rather than the normal approximation, which is poor at
+   these proportions and this sample size.

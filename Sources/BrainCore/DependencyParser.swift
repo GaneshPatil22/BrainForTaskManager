@@ -119,6 +119,8 @@ extension Edge {
 /// *implicit* semantic dependencies need a model; a stated one is a grammar.
 public struct DependencyParser: Sendable {
     public let dateParser: DateParser
+    /// Stateless, so one shared instance is enough.
+    static let effortParser = EffortParser()
 
     public init(timeZone: TimeZone = TimeZone(identifier: "Asia/Kolkata")!) {
         self.dateParser = DateParser(timeZone: timeZone)
@@ -136,7 +138,8 @@ public struct DependencyParser: Sendable {
                 let referent = DateParser.group(match, 1, haystack)
             else { continue }
 
-            let cleaned = Self.clean(referent)
+            let cleaned = Self.trimTrailing(
+                Self.clean(referent), dateParser, Self.effortParser, now)
             guard !cleaned.isEmpty, cleaned.count >= 2 else { continue }
 
             // "after 3 days" is a deadline, not a dependency. Without this
@@ -175,7 +178,33 @@ public struct DependencyParser: Sendable {
     ///    "kal". The coverage requirement matters: "client meeting on monday"
     ///    contains a date but is a genuine dependency, and rejecting it would
     ///    be a false negative.
+    /// Points in the day that "after" and "before" refer to, which are never
+    /// things to be waited on.
+    ///
+    /// **Found by auditing the backfill, not by the gate.** "stretch after
+    /// lunch" was producing a dependency on an item named *lunch*, and then
+    /// anything else mentioning lunch satisfied it: on the train split, two of
+    /// the three backfill resolutions were this, and the live path's edges
+    /// contain the same mistake. `isTimeExpression` caught "after 3 days" and
+    /// nothing here, because these are not durations and not dates — they are
+    /// names for a time of day.
+    ///
+    /// **A closed, deliberately short list.** "after the gym" or "after work"
+    /// are left alone: those genuinely can be things on the list, and the
+    /// phrase is then a real dependency. Meals and bedtime are not plausible
+    /// task titles in this product, which is what makes them safe to exclude.
+    static let dayparts: Set<String> = [
+        "lunch", "dinner", "breakfast", "brunch", "bed", "bedtime",
+        "khana", "nashta", "lunch time", "dinner time",
+    ]
+
     static func isTimeExpression(_ referent: String, _ parser: DateParser, _ now: Date) -> Bool {
+        // A time of day, not a thing to wait for. Checked before anything
+        // else: these are neither durations nor dates, so every other test
+        // here lets them through.
+        let bare = referent.trimmingCharacters(in: .whitespaces).lowercased()
+        if dayparts.contains(bare) { return true }
+
         // Word numerals count too: "ek mahine ke baad" is a month away, not
         // a thing named "ek mahine". Found by the style tests — the digit-only
         // version passed every Hinglish case that happened to use digits.
@@ -198,7 +227,96 @@ public struct DependencyParser: Sendable {
             text = String(text.dropFirst(article.count))
             break
         }
-        return text.trimmingCharacters(in: .whitespaces)
+        text = text.trimmingCharacters(in: .whitespaces)
+
+        // A trailing connective is left behind when a date or effort is cut
+        // off the end: "the client meeting on monday" becomes "client meeting
+        // on". The dangling word is not part of the name and it adds a token
+        // to every overlap comparison, so it is dropped — repeatedly, because
+        // "standup at 10am on friday" can leave two.
+        while let last = text.split(separator: " ").last,
+            trailingConnectives.contains(String(last).lowercased())
+        {
+            text = String(text.dropLast(last.count)).trimmingCharacters(in: .whitespaces)
+        }
+        return text
+    }
+
+    /// Words that can end a referent only because something was cut after
+    /// them. English prepositions plus the Hindi postpositions that play the
+    /// same role.
+    static let trailingConnectives: Set<String> = [
+        "on", "at", "by", "from", "till", "until", "to", "in", "of", "for",
+        "ko", "pe", "par", "se", "tak", "wale", "wali", "waala", "ka", "ki", "ke",
+    ]
+
+    /// Cuts a trailing date or effort expression off a referent.
+    ///
+    /// **The defect this fixes.** The English rules capture from the marker to
+    /// the end of the text, which is only correct when the dependency phrase
+    /// happens to come last. "stretch after lunch today 20 minutes" yielded a
+    /// referent of *"lunch today 20 minutes"*, and "book time for after lunch
+    /// tomorrow" yielded *"lunch tomorrow"* — the time and the effort belong
+    /// to the task, never to the thing being waited on.
+    ///
+    /// Polluted referents are not a cosmetic problem. They are what let
+    /// "stretch after lunch today 20 minutes" match "pricing page ko write
+    /// karna hai today raat 10 baje 20 minutes" at 0.637 in the backfill
+    /// audit: the shared words were *today* and *20 minutes*, which the
+    /// referent should never have contained.
+    ///
+    /// Loops because one capture can carry both, as that example does.
+    static func trimTrailing(
+        _ text: String, _ dateParser: DateParser, _ effortParser: EffortParser, _ now: Date
+    ) -> String {
+        // The Hinglish other half of the same over-capture. An English marker
+        // with a Hinglish tail — "after lunch ko walk karna hai" — captures
+        // the whole predicate, giving a referent of "lunch ko walk karna hai".
+        // The postposition `ko` ends the object, so everything after it is the
+        // speaker's verb, never the referent's name. Measured: this was the
+        // last wrong resolution left in the train-split audit.
+        var current = Self.cutAtPostposition(text)
+        // Bounded: each pass must shorten the string, so it cannot spin, but
+        // an explicit cap documents that and costs nothing.
+        for _ in 0..<4 {
+            let before = current
+            if let date = dateParser.parse(current, now: now),
+                date.span.end >= current.utf16.count, date.span.start > 0
+            {
+                current = Self.prefix(of: current, upTo: date.span.start)
+            }
+            if let effort = effortParser.parse(current),
+                effort.span.end >= current.utf16.count, effort.span.start > 0
+            {
+                current = Self.prefix(of: current, upTo: effort.span.start)
+            }
+            current = clean(current)
+            if current == before { break }
+        }
+        return current
+    }
+
+    /// Cuts "lunch **ko** walk karna hai" down to "lunch".
+    ///
+    /// Only fires when what follows `ko` actually reads as a verb phrase, so
+    /// "client ko call karna hai" keeps "client" while a name that happens to
+    /// contain the word is left alone.
+    static func cutAtPostposition(_ text: String) -> String {
+        let pattern =
+            #"^(.{2,}?)\s+ko\s+.*\b(?:karna|karni|karne|krna|krni|kar|kr|dena|lena|bhejna)\b"#
+        guard let match = DateParser.firstMatch(pattern, text.lowercased()),
+            let head = DateParser.group(match, 1, text.lowercased())
+        else { return text }
+        return clean(head)
+    }
+
+    /// UTF-16 prefix, trimmed. Spans are UTF-16 offsets because
+    /// `NSRegularExpression` produces them.
+    private static func prefix(of text: String, upTo offset: Int) -> String {
+        let utf16 = Array(text.utf16)
+        guard offset > 0, offset <= utf16.count else { return text }
+        return String(decoding: utf16[0..<offset], as: UTF16.self)
+            .trimmingCharacters(in: .whitespaces)
     }
 
     // MARK: - Patterns

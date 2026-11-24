@@ -63,11 +63,31 @@ struct DependencyParserTests {
 
     /// The coverage rule earns its keep here: this referent *contains* a date
     /// but is a real dependency. Rejecting anything date-shaped would lose it.
+    ///
+    /// **The expectation changed on 2026-11-24, deliberately.** It used to be
+    /// `client meeting on monday`; the trailing date is now trimmed. Both
+    /// readings are legitimate and the parser cannot tell them apart from
+    /// surface form — here "on monday" says *which* meeting, while in "stretch
+    /// after lunch today 20 minutes" the tail describes the *task*, which was
+    /// producing a referent of "lunch today 20 minutes" and matching anything
+    /// that merely shared the words "today" and "20 minutes".
+    ///
+    /// Trimming is the safer direction because the error is recoverable: a
+    /// short referent still matches the long title, as the second half of this
+    /// test proves. A polluted referent matches the wrong item instead, which
+    /// nothing downstream can undo.
     @Test("A referent that merely mentions a date is still a dependency")
     func dateInsideReferent() {
         expect(
             "Send the deck after the client meeting on monday",
-            "client meeting on monday")
+            "client meeting")
+
+        // What makes the trim safe: the shorter referent still finds the item.
+        var generator = ULIDGenerator(seed: 3)
+        let meeting = generator.next()
+        let match = TitleMatcher.bestMatch(
+            "client meeting", in: [(id: meeting, title: "client meeting on monday")])
+        #expect(match?.id == meeting, "the date was a qualifier, not the name")
     }
 
     @Test("Text with no dependency abstains")

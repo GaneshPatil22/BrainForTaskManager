@@ -324,12 +324,20 @@ public struct DateParser: Sendable {
         return nil
     }
 
-    /// `in 3 days`, `3 din mein`, `3 din baad`, `after 3 days`, `in 2 weeks`.
+    /// `in 3 days`, `3 din mein`, `3 din baad`, `after 3 days`, `in 2 weeks`,
+    /// `due 3 days`.
+    ///
+    /// **`due` was missing, and a real capture found it.** "Need to pay bill
+    /// which is due 3 days" got no date at all, while "due *in* 3 days"
+    /// parsed — the rule required `in` or `after`, and "due" standing in for
+    /// "due in" is ordinary Indian-English usage. A deadline the parser
+    /// cannot read is the worst kind of miss: the item looks like it has no
+    /// deadline rather than like something went wrong.
     static let matchInNDays: @Sendable (String, Date, Calendar) -> Match? = { text, now, cal in
         let patterns: [(String, Int)] = [
-            (#"\b(?:in|after)\s+(\d{1,3})\s+days?\b"#, 1),
+            (#"\b(?:in|after|due)\s+(\d{1,3})\s+days?\b"#, 1),
             (#"\b(\d{1,3})\s+din\s+(?:mein|me|baad|bad)\b"#, 1),
-            (#"\b(?:in|after)\s+(\d{1,3})\s+weeks?\b"#, 7),
+            (#"\b(?:in|after|due)\s+(\d{1,3})\s+weeks?\b"#, 7),
             (#"\b(\d{1,3})\s+haft[ae]\s+(?:mein|me|baad|bad)\b"#, 7),
         ]
         for (pattern, multiplier) in patterns {

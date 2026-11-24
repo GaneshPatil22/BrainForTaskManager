@@ -280,4 +280,21 @@ struct DateParserTests {
         #expect(utcCal.component(.day, from: utcResult.date) == 24)
         #expect(istResult.date != utcResult.date, "same words, different zones, different instants")
     }
+
+    /// **From a real capture, 2026-11-24.** "Need to pay bill which is due 3
+    /// days" got no date at all, while "due *in* 3 days" parsed — the rule
+    /// required `in` or `after`. A deadline the parser cannot read is the
+    /// worst kind of miss: the item looks like it simply has no deadline.
+    @Test(
+        "`due N days` is a deadline, with or without `in`",
+        arguments: [
+            "Need to pay bill which is due 3 days",
+            "Need to pay bill which is due in 3 days",
+            "bill due 3 days",
+            "submit the form due 2 days",
+        ])
+    func dueWithoutIn(text: String) {
+        #expect(parser.parse(text, now: Fixtures.now) != nil, "\"\(text)\" lost its deadline")
+    }
+
 }

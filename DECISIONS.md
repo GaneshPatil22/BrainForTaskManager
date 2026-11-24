@@ -1752,3 +1752,91 @@ One true positive against one false positive is not a decision 16 references
 can make.
 
 343 tests, `make ci` GATE: PASS, every ranking metric unchanged.
+
+## 2026-11-24 — Three T0 parser fixes, all found by real captures
+
+Ganesh captured six items through the deployed app and reported that nothing
+useful came back. Running his exact text through the pipeline settled where
+the fault was and where it was not.
+
+**Brain reads it correctly.** Four of six got a due date at T0, all six a
+type, including both Hinglish lines:
+
+```
+ 1.  Call shakti in 2 days                0.878  due in 2 days
+ 2.  Need to pay somil 10k in 5 days      0.751  due in 5 days
+ 3.  2 din me diwali ki packing krni h    0.526  multi-day · due in 2 days
+ 4.  5 din me shakti ko call krna h       0.450  multi-day · due in 5 days
+ 5.  Craete one project call Gym tracker  0.370  No links or deadline yet
+ 6.  Need to pay bill which is due 3 days 0.370  No links or deadline yet
+```
+
+The deployed bundle is `VITE_API_MODE: "http"` (read from the live JS), the
+worker runs the full pipeline and persists every classified field
+(`Enricher.swift:77-105`), and the deployed `ItemMeta` renders type, effort
+and due chips. So the engine and the wiring are sound, and anything he is
+seeing flat is either captures that never reached the worker or a product
+expectation the chips do not meet. **Row 6 was a genuine parser bug.**
+
+### 1. `due N days` without `in`
+
+`matchInNDays` required `in` or `after`. "due 3 days" is ordinary
+Indian-English for "due in 3 days" and got no date at all — the worst kind of
+miss, because the item looks like it simply has no deadline. On six phrasings
+of the same sentence, date coverage went **33.3% → 100%**.
+
+### 2. Times of day are not dependencies
+
+"stretch after lunch" produced a dependency on an item named *lunch*, and
+anything else mentioning lunch then satisfied it. `isTimeExpression` catches
+"after 3 days" and not these, because a daypart is neither a duration nor a
+date. A closed, deliberately short set — meals and bedtime. "after the gym"
+and "after work" are left alone: those genuinely can be on the list.
+
+### 3. The referent captured to the end of the string
+
+The root defect behind both the backfill's false positives and the polluted
+referents. The English rules capture from the marker to the end of the text,
+which is right only when the dependency phrase comes last:
+
+| capture | referent before | after |
+|---|---|---|
+| stretch after lunch today 20 minutes | `lunch today 20 minutes` | *(none)* |
+| book time for after lunch tomorrow | `lunch tomorrow` | *(none)* |
+| deploy after schema review tomorrow 2 hours | `schema review tomorrow 2 hours` | `schema review` |
+| Send the deck after the client meeting on monday | `client meeting on monday` | `client meeting` |
+| after lunch ko walk karna hai | `lunch ko walk karna hai` | *(none)* |
+
+A trailing date or effort belongs to the task, never to the thing waited on;
+`ko` ends the object, so a Hinglish predicate after it is the speaker's verb.
+Dangling connectives left by the cut ("client meeting **on**") are stripped.
+
+**One earlier decision reversed, deliberately.** `dateInsideReferent` asserted
+that "the client meeting on monday" keeps its date, on the argument that the
+date says *which* meeting. Both readings are legitimate and the parser cannot
+tell them apart from surface form. Trimming wins because the error is
+**recoverable**: a short referent still matches the long title, which the test
+now proves. A polluted referent matches the wrong item and nothing downstream
+can undo it.
+
+### Measured
+
+| | dev before | dev after | train before | train after |
+|---|---|---|---|---|
+| live `blocks` edges | 70 | **62** | 248 | **213** |
+| references kept | 16 | 11 | 16 | 11 |
+| backfill resolutions | 1 | 1 | 3 | 1 |
+| …correct by eye | 1 | **1 of 1** | 1 | **1 of 1** |
+
+**43 phantom dependency edges removed**, and the backfill's false positives
+are gone — 2 of 2 correct across both splits, from 0 of 7 when the audit
+started. Scorecard: **T0 settled +0.6pp**, T2 rate 0.0% and category 82.3%
+unchanged. 352 tests, `make ci` GATE: PASS.
+
+### Still broken, stated plainly
+
+- **Decomposition does not exist.** "Create one project called Gym tracker app
+  and create few subtasks out of it…" becomes one flat item, because nothing
+  in Brain breaks a capture into several items. That is a real product gap and
+  a new claim (T2, a model proposing subtasks) — backlog, not a quiet fix.
+- The backfill is still **not wired into the server**. 2 of 2 is two.

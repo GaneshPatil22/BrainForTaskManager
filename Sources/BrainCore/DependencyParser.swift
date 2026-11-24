@@ -40,6 +40,47 @@ public struct ParsedDependency: Sendable, Hashable {
     }
 }
 
+/// A dependency the user stated whose referent does not exist **yet**.
+///
+/// "deploy after the pooler thing" written before the pooler item is
+/// captured is a real dependency, correctly parsed, that resolves to nothing
+/// at the moment it is read. Until now the pipeline wrote a line to
+/// `trace.notes` and dropped it, and nothing ever looked again: the sweeper
+/// only requeues captures that are `raw`, stuck or `failed`, and a capture
+/// whose dependency missed is `enriched` and perfectly healthy. So the
+/// dependency was lost permanently, and the user had no way to know.
+///
+/// Holding the referent *text* rather than a guess is the same choice
+/// `ParsedDependency` makes: a reference that matches nothing must produce
+/// no edge at all. The difference is that this one is kept, so a later
+/// capture can satisfy it (`DependencyBackfill`).
+public struct PendingReference: Sendable, Hashable {
+    /// The item whose text contained the phrase.
+    public let itemId: ULID
+    /// The referent as the parser cleaned it — what a later item must match.
+    public let targetText: String
+    /// Which way the blocking runs once the referent is found.
+    public let direction: ParsedDependency.Direction
+    /// The parser's confidence in the phrase, before any match score.
+    public let confidence: Double
+    /// Which rule read it. Kept so rules can be measured separately.
+    public let rule: String
+    /// When the user wrote it. The only input to expiry.
+    public let writtenAt: Date
+
+    public init(
+        itemId: ULID, targetText: String, direction: ParsedDependency.Direction,
+        confidence: Double, rule: String, writtenAt: Date
+    ) {
+        self.itemId = itemId
+        self.targetText = targetText
+        self.direction = direction
+        self.confidence = confidence
+        self.rule = rule
+        self.writtenAt = writtenAt
+    }
+}
+
 extension Edge {
     /// The `blocks` edge a stated dependency implies.
     ///
@@ -316,8 +357,9 @@ public enum TitleMatcher {
     /// round — so this is a deliberately minimal scheme-anchored match, used
     /// only for comparison and never for span reporting.
     static func splitURLs(_ text: String) -> (urls: Set<String>, prose: String) {
-        guard let regex = try? NSRegularExpression(
-            pattern: #"https?://\S+"#, options: [.caseInsensitive])
+        guard
+            let regex = try? NSRegularExpression(
+                pattern: #"https?://\S+"#, options: [.caseInsensitive])
         else { return ([], text) }
         let ns = text as NSString
         let full = NSRange(location: 0, length: ns.length)

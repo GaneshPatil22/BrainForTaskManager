@@ -58,6 +58,11 @@ public struct EnrichmentResult: Sendable {
     /// Always **unconfirmed**: invariant 3 reserves `confirmed` for a human.
     public let suggestedEdges: [Edge]
     public let questions: [UserQuestion]
+    /// Dependency phrases whose referent does not exist yet. The caller is
+    /// expected to keep these and offer them back to `DependencyBackfill`
+    /// when the next item arrives; dropping them restores the old behaviour,
+    /// which silently lost the dependency.
+    public let pendingReferences: [PendingReference]
     public let trace: EnrichmentTrace
     /// The capture, with its status advanced. Never dropped, whatever failed.
     public let capture: Capture
@@ -91,6 +96,7 @@ public struct EnrichmentPipeline: Sendable {
     ) async -> EnrichmentResult {
         var trace = EnrichmentTrace(captureId: capture.id)
         var questions: [UserQuestion] = []
+        var pending: [PendingReference] = []
 
         // 1. Normalise. T0, always.
         let normalized = Normalizer.normalize(capture.rawText)
@@ -181,7 +187,22 @@ public struct EnrichmentPipeline: Sendable {
             .map { (id: $0.id, title: $0.title) }
         for reference in dependencyParser.parse(text, now: now) {
             guard let match = TitleMatcher.bestMatch(reference.targetText, in: candidates) else {
-                trace.notes.append("dependency \"\(reference.targetText)\" matched no item")
+                // Nothing matches *yet*. Kept so a later capture can satisfy
+                // it, rather than dropped (`PendingReference`).
+                //
+                // Deliberately **not** added to `trace.unresolved`:
+                // `BrainEval/Metrics.swift` counts that into
+                // `fieldsConsidered`, the denominator of every tier-share
+                // percentage, so recording it there would move the whole
+                // scorecard for a bookkeeping reason and not a classification
+                // one. The note stays because logs are where this is read.
+                pending.append(
+                    PendingReference(
+                        itemId: item.id, targetText: reference.targetText,
+                        direction: reference.direction,
+                        confidence: reference.confidence, rule: reference.rule,
+                        writtenAt: capture.createdAt))
+                trace.notes.append("dependency \"\(reference.targetText)\" matched no item yet")
                 continue
             }
             // Direction, confidence and `confirmed` all live in
@@ -214,7 +235,7 @@ public struct EnrichmentPipeline: Sendable {
         enriched.status = .enriched
         return EnrichmentResult(
             item: item, suggestedEdges: edges, questions: questions,
-            trace: trace, capture: enriched)
+            pendingReferences: pending, trace: trace, capture: enriched)
     }
 
     /// Nothing usable in the capture. It still becomes an item, still keeps
@@ -231,7 +252,8 @@ public struct EnrichmentPipeline: Sendable {
                 id: idGenerator.next(), captureId: capture.id,
                 title: title.isEmpty ? "(empty capture)" : title,
                 createdAt: capture.createdAt),
-            suggestedEdges: [], questions: [], trace: trace, capture: failed)
+            suggestedEdges: [], questions: [], pendingReferences: [], trace: trace,
+            capture: failed)
     }
 
     /// The T3 question for an unresolved type (`docs/09-tiering.md`).

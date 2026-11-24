@@ -23,6 +23,7 @@ below are kept for the reasoning that led there.
 | B-06c | Journal | T0 + new type | **promoted → `15-planner.md`** |
 | B-06d | Daily review and next-day planning | T0 | **promoted → `15-planner.md`** |
 | B-06e | Weekend / long-pending view | T0, except suggestions | split it; suggestion engine is a new claim |
+| B-07 | One capture becomes several items | T2 | parked 2026-11-24; a new claim, see below |
 
 Entries B-01 through B-05 are single features. B-06 is a cluster of *views*:
 ways of showing the same data, each one something the user can switch off.
@@ -339,6 +340,41 @@ Ganesh's manual ranking sessions.
 
 That makes this the highest-value entry in B-06 by a distance, and it should be
 sequenced accordingly — ahead of the board, despite the board being easier.
+
+### B-07 — One capture becomes several items
+
+**Parked 2026-11-24, from a real capture.** Ganesh wrote:
+
+> "Create one project called Gym tracker app and create few subtask out of it
+> like discuss requirement with shakti, work on basic mocks, find edge cases."
+
+Brain made that **one flat item**. Nothing in the pipeline splits a capture
+into several items, so every multi-part dump stays one row, and the three
+subtasks he named out loud are invisible.
+
+**Why this is parked and not a bug.** Every tier Brain has today reads *one*
+capture into *one* item: `enrich` returns a single `Item`, the server stores
+one row per capture, and `captureId` is one-to-one. Decomposition changes
+that shape everywhere — storage, the API, corrections, and the eval, which
+scores fields per capture and has no notion of a capture that produced four
+items.
+
+It is also **a new claim, not a better rule.** Deciding that "discuss
+requirement with shakti" is a subtask of a gym tracker is semantic judgement:
+T2, a model proposing a tree the user confirms. The AI Justification Test
+passes — no regex finds the boundary between a project and its parts — which
+is exactly why it needs its own phase, its own labelled set and its own
+measurement, rather than being bolted on.
+
+**What is cheap and honest in the meantime:** nothing. Splitting on commas or
+"and" would turn "buy milk and eggs" into two items and "discuss requirement
+with shakti, work on basic mocks" into fragments. A bad split is worse than
+no split, because the user then has to repair rows they never wrote.
+
+**Shape when it is built:** capture → one parent item plus proposed children,
+every child unconfirmed, `parentId` already exists on `Goal` and would need
+its equivalent on `Item`. The swap-or-reject on each child is the correction
+signal, the same way `bigTask` is.
 
 ### B-06e — The weekend / long-pending view
 

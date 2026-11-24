@@ -146,8 +146,26 @@ public actor ModelRouter {
                     }
                     await breaker.recordSuccess()
                 } catch {
-                    await breaker.recordFailure()
-                    trace.skipped.append((rung.name, "\(error)"))
+                    // **A cassette miss is not a provider failure.** The
+                    // breaker is keyed by rung name, and every ladder uses the
+                    // same names because they use the same models — so one
+                    // capability with no recordings would trip the breaker and
+                    // starve every other capability behind the same rung,
+                    // before they ever looked up their own cassettes.
+                    //
+                    // Measured when it happened: 129 category cassettes on
+                    // disk with real answers, 425 calls attempted, and only 26
+                    // reaching the store at all. The effort capability — which
+                    // has no recordings — opened the breaker on the first few
+                    // captures and the rest of the run never recovered. The
+                    // comparison it produced was of a starved path, and read
+                    // as "the model barely helps".
+                    if case ProviderError.cassetteMiss = error {
+                        trace.skipped.append((rung.name, "cassette miss"))
+                    } else {
+                        await breaker.recordFailure()
+                        trace.skipped.append((rung.name, "\(error)"))
+                    }
                     continue
                 }
 

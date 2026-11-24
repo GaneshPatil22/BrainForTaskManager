@@ -70,8 +70,7 @@ struct GuardEvalCommand: AsyncParsableCommand {
             """)
 
         // --- Guard 1: ID whitelist ------------------------------------------
-        let audit = Metrics.auditCassettes(
-            directory: URL(fileURLWithPath: cassettes), allowed: allowed)
+        let audit = Metrics.auditCassettes(directory: URL(fileURLWithPath: cassettes))
         section(
             "1  ID whitelist",
             fires: "answers naming something outside the option set",

@@ -219,3 +219,87 @@ struct BreakerTests {
         #expect(await breaker.state() == .closed)
     }
 }
+
+/// A cassette miss must not look like a provider outage.
+///
+/// **The bug this suite exists for.** The circuit breaker is keyed by rung
+/// *name*, and every ladder in `ProductionRouter` uses the same names because
+/// it uses the same models. A capability with no recordings therefore tripped
+/// the breaker on its first capture, and every other capability behind the
+/// same rung was skipped as "circuit open" — before it ever looked up its own
+/// cassette.
+///
+/// Measured when it happened: 129 category cassettes on disk with real
+/// answers, 425 calls attempted, **26 reaching the store**. The comparison
+/// that produced read as "the model barely helps" — category +0.6pp. With a
+/// miss no longer tripping the breaker: **+20.4pp**, and type went from
+/// +0.2pp to +5.8pp, because type had been starved in every earlier run too.
+@Suite("ModelRouter — a cassette miss is not an outage")
+struct CassetteMissTests {
+    /// A fresh directory, written through a `.record` store and read back
+    /// through a `.replay` one — the same two-phase shape a real run has.
+    func directory() throws -> URL {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("brain-cassette-miss-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    func request(_ capability: Capability, _ content: String) -> ModelRequest {
+        ModelRequest(
+            capability: capability, system: "sys", untrustedContent: content,
+            allowedAnswers: ["task", "note"], promptVersion: "v1")
+    }
+
+    /// Two capabilities, same rung name — the production shape exactly.
+    @Test("A capability with no recordings does not starve the others")
+    func missDoesNotOpenTheBreaker() async throws {
+        let folder = try directory()
+        let recorded = request(.classifyType, "recorded capture")
+        let recorder = CassetteStore(directory: folder, mode: .record)
+        try await recorder.write(
+            recorded,
+            response: ModelResponse(
+                answer: "task", confidence: 0.9, promptTokens: 10, completionTokens: 0,
+                raw: "task", probabilities: [:]),
+            model: "m")
+
+        let cassettes = CassetteStore(directory: folder, mode: .replay)
+        let rung = Rung(
+            name: "t2-decision", action: .provider(FakeModel.firstAllowed()), model: "m",
+            tier: .t2)
+        let router = ModelRouter(
+            ladders: [.classifyType: [rung], .estimateEffort: [rung]],
+            ledger: BudgetLedger(), cassettes: cassettes, mode: .replay)
+
+        // Ten misses on one capability, the way a 415-capture run would.
+        for index in 0..<10 {
+            let answer = await router.route(request(.estimateEffort, "unrecorded \(index)"))
+            #expect(answer.value == nil, "no recording, so no answer")
+        }
+
+        // The other capability's recording must still be reachable.
+        let answer = await router.route(recorded)
+        #expect(answer.value == "task", "a miss elsewhere must not close this rung")
+        #expect(answer.trace.cassetteHit)
+    }
+
+    /// A real provider failure still opens the breaker — the fix must not
+    /// disarm it, only stop it firing on the wrong signal.
+    @Test("A genuine provider failure still opens the breaker")
+    func realFailureStillTrips() async {
+        let rung = Rung(
+            name: "t2", action: .provider(FakeModel.alwaysFails()), model: "m", tier: .t2)
+        let router = ModelRouter(
+            ladders: [.classifyType: [rung]], ledger: BudgetLedger(), mode: .live)
+
+        var sawOpenCircuit = false
+        for index in 0..<10 {
+            let answer = await router.route(request(.classifyType, "capture \(index)"))
+            if answer.trace.skipped.contains(where: { $0.reason == "circuit open" }) {
+                sawOpenCircuit = true
+            }
+        }
+        #expect(sawOpenCircuit, "repeated real failures must still trip it")
+    }
+}

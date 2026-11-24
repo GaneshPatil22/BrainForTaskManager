@@ -334,7 +334,29 @@ public enum Metrics {
         public var totalTokens = 0
         public var byModel: [String: Int] = [:]
         public var examples: [String] = []
+        /// Recordings whose capability has no registered option set.
+        ///
+        /// **Counted rather than ignored.** Skipping them silently would make
+        /// guard 1 pass by not looking: a new capability's answers would go
+        /// unaudited and the rate would read 0.0% because nothing checked.
+        public var unregisteredCapabilities: Set<String> = []
     }
+
+    /// The option set each capability's answers are judged against.
+    ///
+    /// **Per capability, not one global list.** `auditCassettes` used to take
+    /// a single `allowed` array, which was correct only while `classifyType`
+    /// was the only capability with recordings. The moment category cassettes
+    /// existed, their answers — "money", "errands" — were judged against the
+    /// *type* option set and counted as hallucinations: guard 1's rate went to
+    /// 71.3% on an invariant that must be zero, with nothing wrong in the
+    /// model's answers at all.
+    public static let auditOptionSets: [String: [String]] = [
+        Capability.classifyType.rawValue: ItemType.allCases.map(\.rawValue),
+        Capability.estimateEffort.rawValue: EffortBucket.allCases.map(\.rawValue),
+        Capability.classifyCategory.rawValue: TaskCategory.allCases.map(\.rawValue)
+            + ["unknown"],
+    ]
 
     /// Audits every recorded model answer against the option set it was given.
     ///
@@ -342,7 +364,9 @@ public enum Metrics {
     /// reported as "not measured" long after model calls existed, which made
     /// the scorecard quietly wrong — a metric that cannot be computed and one
     /// nobody wired up look identical in a report.
-    public static func auditCassettes(directory: URL, allowed: [String]) -> CassetteAudit {
+    public static func auditCassettes(
+        directory: URL, optionSets: [String: [String]] = auditOptionSets
+    ) -> CassetteAudit {
         var audit = CassetteAudit()
         let files =
             (try? FileManager.default.contentsOfDirectory(
@@ -353,6 +377,10 @@ public enum Metrics {
             guard let data = try? Data(contentsOf: url),
                 let cassette = try? decoder.decode(Cassette.self, from: data)
             else { continue }
+            guard let allowed = optionSets[cassette.capability] else {
+                audit.unregisteredCapabilities.insert(cassette.capability)
+                continue
+            }
             audit.answers += 1
             audit.byModel[cassette.model, default: 0] += 1
             audit.totalTokens += cassette.promptTokens + cassette.completionTokens
@@ -616,8 +644,20 @@ public enum Metrics {
         public var expected = 0
         public var attempted = 0
         public var correct = 0
-        /// Which tier settled it, when one did.
+        /// Which tier settled it, when one did. Labelled captures only.
         public var byTier: [Tier: Int] = [:]
+
+        /// Answered by something other than the rules, across **all**
+        /// captures — labelled or not.
+        public var modelAnswered = 0
+        /// Of those, the ones with no label, so nothing can be said about
+        /// whether the answer was right.
+        ///
+        /// **This is the harness reporting its own blind spot.** A field can
+        /// be escalated on a hundred captures and scored on two, and without
+        /// this number the table reads as "the model barely helped" when the
+        /// truth is "the model was barely measured".
+        public var modelAnsweredUnlabelled = 0
 
         public var coverage: Double {
             expected == 0 ? 0 : Double(attempted) / Double(expected)
@@ -682,6 +722,13 @@ public enum Metrics {
         func score(
             _ field: inout FieldScore, expected: String?, got: String?, tier: Tier?
         ) {
+            // Counted before the label guard: a model answer on an unlabelled
+            // capture is still a model answer, and pretending otherwise is how
+            // "unmeasured" gets misread as "unhelpful".
+            if got != nil, let tier, tier != .t0 {
+                field.modelAnswered += 1
+                if expected == nil { field.modelAnsweredUnlabelled += 1 }
+            }
             guard let expected else { return }
             field.expected += 1
             guard let got else { return }
@@ -718,6 +765,7 @@ public enum Metrics {
                 result.dueAt.expected += 1
                 if let due = item.dueAt.value {
                     result.dueAt.attempted += 1
+                    if let tier = tiers["dueAt"], tier != .t0 { result.dueAt.modelAnswered += 1 }
                     if let tier = tiers["dueAt"] { result.dueAt.byTier[tier, default: 0] += 1 }
                     let days =
                         calendar.dateComponents(

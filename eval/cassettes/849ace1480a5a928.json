@@ -1,0 +1,24 @@
+{
+  "answer" : "communication",
+  "capability" : "classifyCategory",
+  "completionTokens" : 0,
+  "confidence" : 0.3532511383055137,
+  "key" : "849ace1480a5a928",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "chores" : 0.009624850591554587,
+    "communication" : 0.3532511383055137,
+    "deepWork" : 0.04003911519770761,
+    "errands" : 0.019824655806951176,
+    "health" : 0.0014758722559435184,
+    "learning" : 0.004652667108989235,
+    "money" : 0.0024071054594236225,
+    "paperwork" : 0.03574033801172406,
+    "planning" : 0.30445356637686644,
+    "unknown" : 0.2285306908853261
+  },
+  "promptTokens" : 397,
+  "promptVersion" : "v1",
+  "raw" : "communication",
+  "recordedAt" : "2026-11-24T14:43:25Z"
+}

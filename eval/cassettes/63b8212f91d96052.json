@@ -1,0 +1,24 @@
+{
+  "answer" : "chores",
+  "capability" : "classifyCategory",
+  "completionTokens" : 0,
+  "confidence" : 0.36831788930707693,
+  "key" : "63b8212f91d96052",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "chores" : 0.36831788930707693,
+    "communication" : 0.02051310935008136,
+    "deepWork" : 0.003839784281163533,
+    "errands" : 0.007579252545874801,
+    "health" : 0.004176912029560631,
+    "learning" : 0.004206621923505909,
+    "money" : 0.22057793572135276,
+    "paperwork" : 0.0322493147418693,
+    "planning" : 0.030131132626293227,
+    "unknown" : 0.30840804747322154
+  },
+  "promptTokens" : 394,
+  "promptVersion" : "v1",
+  "raw" : "chores",
+  "recordedAt" : "2026-11-24T14:43:58Z"
+}

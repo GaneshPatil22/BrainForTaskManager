@@ -1,0 +1,24 @@
+{
+  "answer" : "errands",
+  "capability" : "classifyCategory",
+  "completionTokens" : 0,
+  "confidence" : 0.9654575804574479,
+  "key" : "ed434fd2f0dfa6c3",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "chores" : 0.02159409451482197,
+    "communication" : 0.0021112005130608878,
+    "deepWork" : 0.0014984337099932697,
+    "errands" : 0.9654575804574479,
+    "health" : 0.00021791105679751607,
+    "learning" : 0.00037514147131966397,
+    "money" : 0.0012273932711284825,
+    "paperwork" : 0.0008807392540339628,
+    "planning" : 0.0014585806582537502,
+    "unknown" : 0.005178925093142663
+  },
+  "promptTokens" : 395,
+  "promptVersion" : "v1",
+  "raw" : "errands",
+  "recordedAt" : "2026-11-24T14:43:26Z"
+}

@@ -91,9 +91,25 @@ struct CompareCommand: AsyncParsableCommand {
         }
         let store = CassetteStore(
             directory: URL(fileURLWithPath: cassettes), mode: live ? .record : .replay)
+        // **Replaying a cassette spends nothing, so the budget must not
+        // apply.** Found by this command reporting a near-zero effect and
+        // being wrong about why: it fires a whole day of calls in a few
+        // seconds, which blows Decision 1's *per-minute* ceiling (50,000
+        // tokens) within the first second. The router then correctly skips
+        // every later rung as "budget", and the comparison silently measures
+        // a starved path instead of the real one. 129 category cassettes were
+        // on disk with real answers and only 3 reached the pipeline.
+        //
+        // Live runs keep their limits, because those calls do cost.
+        let ledger = BudgetLedger()
         let router = await ProductionRouter.make(
-            apiKey: key, ledger: BudgetLedger(), cassettes: store,
+            apiKey: key, ledger: ledger, cassettes: store,
             mode: live ? .live : .replay)
+        if !live {
+            for model in ["gemini-decision-1", "gemma-4-26b-a4b-it", "gemini-3.1-flash-lite"] {
+                await ledger.setLimits(.unlimited, for: model)
+            }
+        }
 
         let now = SyntheticLoader.now
         let rules = await Metrics.comparePath(
@@ -105,14 +121,18 @@ struct CompareCommand: AsyncParsableCommand {
             pipeline: EnrichmentPipeline(timeZone: zone, router: router, features: flags),
             timeZone: zone, now: now)
 
+        // Cassette hits are the difference between "the model did not help"
+        // and "the model was never reached". Printed always, because reading
+        // the first as the second is the exact mistake this command is for.
+        let stats = await store.stats()
         Self.render(
             rules, hybrid, split: split, live: live,
-            features: features.isEmpty ? "none" : features)
+            features: features.isEmpty ? "none" : features, cassettes: stats)
     }
 
     static func render(
         _ a: Metrics.PathResult, _ b: Metrics.PathResult, split: String, live: Bool,
-        features: String
+        features: String, cassettes: (hits: Int, misses: Int, recorded: Int)
     ) {
         func pct(_ value: Double) -> String { String(format: "%5.1f%%", value * 100) }
 
@@ -151,7 +171,35 @@ struct CompareCommand: AsyncParsableCommand {
             print("")
         }
 
+        let escalated = b.fields.filter { $0.1.modelAnswered > 0 }
+        if !escalated.isEmpty {
+            print("  What the model actually answered, and how much of it could be scored:")
+            for (name, score) in escalated {
+                let scored = score.modelAnswered - score.modelAnsweredUnlabelled
+                print(
+                    "    \(Printer.pad(name, 10)) answered \(score.modelAnswered), "
+                        + "scored \(scored), unlabelled \(score.modelAnsweredUnlabelled)")
+            }
+            if escalated.contains(where: { $0.1.modelAnsweredUnlabelled > $0.1.modelAnswered / 2 })
+            {
+                print(
+                    """
+
+                      **Most of what the model answered has no label**, so the
+                      delta above is measured on a small, unrepresentative
+                      slice. The corpus labels a field only where the generator
+                      put one in, which is largely where the rules already
+                      read it. This is the same blindness that let dueAt read
+                      97.9% while breaking on a real capture.
+                    """)
+            }
+            print("")
+        }
+
         print("  model calls made   \(b.modelCalls)")
+        print(
+            "  cassettes          \(cassettes.hits) hit · \(cassettes.misses) miss"
+                + " · \(cassettes.recorded) recorded")
         if b.modelCalls == 0 {
             print(
                 """

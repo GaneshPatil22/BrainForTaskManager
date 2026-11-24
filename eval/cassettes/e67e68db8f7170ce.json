@@ -1,0 +1,24 @@
+{
+  "answer" : "deepWork",
+  "capability" : "classifyCategory",
+  "completionTokens" : 0,
+  "confidence" : 0.9428696384244394,
+  "key" : "e67e68db8f7170ce",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "chores" : 0.0033410239085812504,
+    "communication" : 0.003925613581579247,
+    "deepWork" : 0.9428696384244394,
+    "errands" : 0.0010167938987535232,
+    "health" : 0.0002981791950723058,
+    "learning" : 0.0009459032392417526,
+    "money" : 0.021303344212651572,
+    "paperwork" : 0.002580541927765998,
+    "planning" : 0.016256543255893558,
+    "unknown" : 0.007462418356021615
+  },
+  "promptTokens" : 397,
+  "promptVersion" : "v1",
+  "raw" : "deepWork",
+  "recordedAt" : "2026-11-24T14:44:47Z"
+}

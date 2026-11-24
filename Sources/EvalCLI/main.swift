@@ -106,8 +106,7 @@ enum Runner {
             texts: captures.map(\.rawText),
             timeZone: TimeZone(identifier: "Asia/Kolkata")!, now: SyntheticLoader.now)
         let audit = Metrics.auditCassettes(
-            directory: URL(fileURLWithPath: "eval/cassettes"),
-            allowed: ItemType.allCases.map(\.rawValue))
+            directory: URL(fileURLWithPath: "eval/cassettes"))
         sets["recorded answers"] = audit.answers
 
         let lost = pipelineResult.captures - pipelineResult.items

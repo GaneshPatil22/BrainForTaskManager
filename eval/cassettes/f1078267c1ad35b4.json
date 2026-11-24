@@ -1,0 +1,24 @@
+{
+  "answer" : "money",
+  "capability" : "classifyCategory",
+  "completionTokens" : 0,
+  "confidence" : 0.5158173901845569,
+  "key" : "f1078267c1ad35b4",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "chores" : 0.05624274023366539,
+    "communication" : 0.007943027737199983,
+    "deepWork" : 0.0018162664241867872,
+    "errands" : 0.014835369332066639,
+    "health" : 0.0018990864886582616,
+    "learning" : 0.0024310496641655795,
+    "money" : 0.5158173901845569,
+    "paperwork" : 0.07807637617422054,
+    "planning" : 0.03373681089484802,
+    "unknown" : 0.2872018828664318
+  },
+  "promptTokens" : 393,
+  "promptVersion" : "v1",
+  "raw" : "money",
+  "recordedAt" : "2026-11-24T14:45:32Z"
+}

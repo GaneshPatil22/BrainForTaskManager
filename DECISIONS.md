@@ -2062,3 +2062,77 @@ second time today an invented fixture was wrong where a measured one was
 needed. The fixture is now `"that matter we discussed"`, checked.
 
 359 tests, `make ci` GATE: PASS.
+
+## 2026-11-24 — The first real rules-vs-model number, and two bugs that hid it
+
+Recorded 129 `classifyCategory` cassettes against `gemini-decision-1` (124
+calls plus 5 from a trial, 0 failed, **1.3% of one day's free quota**) and ran
+`brain compare --split dev --features category`.
+
+**The first run said +0.6pp. It was wrong, and the harness said so itself** —
+the "how much could be scored" row reported that category answered 3 when 129
+cassettes with real answers were on disk. Two bugs, found by chasing that gap.
+
+### Bug 1 — a cassette miss tripped the circuit breaker
+
+`ModelRouter` keyed the breaker by **rung name**, and every ladder in
+`ProductionRouter` uses the same names (`t2-decision`, …) because it uses the
+same models. `estimateEffort` has no recordings, so its first few captures
+threw `cassetteMiss`, `recordFailure()` opened the breaker, and every *other*
+capability behind that rung was skipped as "circuit open" — before it ever
+looked up its own cassette. 425 calls attempted, **26 reached the store.**
+
+A missing recording is not a provider outage. The catch now distinguishes
+them; a real failure still trips the breaker, asserted by its own test.
+
+**This was suppressing every T2 measurement in the project, not just this
+one.** `classifyType` jumped from **+0.2pp to +5.8pp** once the breaker
+stopped closing on it — it had been starved in every earlier run.
+
+### Bug 2 — guard 1 judged every cassette against the type option set
+
+With the breaker fixed, `make ci` failed: **hallucinated-ID rate 71.3%**,
+examples `money | errands`, against a hard invariant of zero. Nothing was
+wrong with the answers. `auditCassettes` took one global `allowed` array, which
+was correct only while `classifyType` was the sole capability with
+recordings; category answers were being judged against the *type* set.
+129/181 = 71.3% exactly.
+
+Now keyed per capability via `Metrics.auditOptionSets`, and a recording whose
+capability has no registered set is **counted** rather than skipped —
+skipping would let guard 1 pass by not looking.
+
+### The result
+
+| field | rules only | rules + model | delta | model answered / scored |
+|---|---|---|---|---|
+| type | 81.0% | **86.7%** | **+5.8pp** | 25 / 25 |
+| **category** | 67.0% | **87.3%** | **+20.4pp** | 106 / 76 |
+| dueAt | 97.9% | 97.9% | = | guard 5, never routed |
+| effort | 91.8% | 91.8% | = | no cassettes yet |
+
+Of the 76 scored category escalations the model answered, **69 were correct —
+90.8% precision**, against the lexicon's own 227/258 = 88.0%. So the model is
+both more complete *and* slightly more precise than the rules on exactly the
+captures the rules cannot read. It abstained on 23 of 129, which is the
+behaviour asked for.
+
+**Ganesh's argument is supported by the measurement**, and with the caveat
+pointing the right way: this corpus's labels were written by the generator the
+lexicon was authored against, so a model win here is the strong direction. A
++20.4pp win against that handicap is real.
+
+### A number I quoted twice today that was not a measurement
+
+`Metrics.pipeline` builds `EnrichmentPipeline(timeZone:, router: nil)`. The
+scorecard's **"T2 rate 0.0%" is structurally zero** — the pipeline it measures
+has no router, so no tier above T0 can ever appear in it.
+
+I cited that 0.0% to justify the T3-after-ladder ordering and again to argue
+quota is not scarce. Both conclusions survive on other evidence — only
+`classifyType` had a ladder at all, and the production trial settled six of
+seven captures at T0 — but the figure itself was a tautology, not a finding,
+and I presented it as a finding. The metric should either route in replay or
+be renamed; changing it moves a gate metric, so it is Ganesh's call.
+
+359 tests, `make ci` GATE: PASS.

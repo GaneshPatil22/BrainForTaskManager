@@ -1,0 +1,24 @@
+{
+  "answer" : "health",
+  "capability" : "classifyCategory",
+  "completionTokens" : 0,
+  "confidence" : 0.7177723674030896,
+  "key" : "6038f9984f9fa60e",
+  "model" : "gemini-decision-1",
+  "probabilities" : {
+    "chores" : 0.0041413433581103,
+    "communication" : 0.16566314031217394,
+    "deepWork" : 0.0014947659205415467,
+    "errands" : 0.0014302821311242503,
+    "health" : 0.7177723674030896,
+    "learning" : 0.011588727957686677,
+    "money" : 0.001017284922378027,
+    "paperwork" : 0.0025130353691917373,
+    "planning" : 0.013154586650155255,
+    "unknown" : 0.0812244659755487
+  },
+  "promptTokens" : 401,
+  "promptVersion" : "v1",
+  "raw" : "health",
+  "recordedAt" : "2026-11-24T14:44:18Z"
+}

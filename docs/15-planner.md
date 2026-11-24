@@ -159,13 +159,36 @@ The gate between each step is the usual one: measured, reviewed, then the next.
 | Step | Where | Why here |
 |---|---|---|
 | 1 | Server + Web | Timezone bug; corrections export. The export must exist before friends generate data worth having. |
-| 2 | **Brain** | Recurrence engine, period goals, scoring split. Pure, offline-testable, proves itself with no server or UI. |
+| 2 | **Brain** | ~~Recurrence engine, period goals, scoring split~~ — **done 2026-11-24.** Pure, offline-testable, proved itself with no server or UI. |
 | 3 | Server | Migrations, endpoints, `/v1/plan` extension, materialise-on-read. |
 | 4 | Web | Swap `src/local/*` to the server; then review, journal and month screens. |
 | 5 | Web + Server | Reminders and PWA. A planner you must remember to open is not a planner. |
 | 6 | Brain | Duplicates, dependency backfill, T3 questions. |
 
 Steps 2–4 are roughly as much work as the capture half already built.
+
+## Step 2, as built
+
+| Piece | Where | Notes |
+|---|---|---|
+| `CalendarDay`, `Weekday`, `RecurrenceRule`, `Commitment` | `Sources/BrainCore/Commitment.swift` | the five shapes, expansion, streaks, missed days, hit rate |
+| `GoalHorizon`, `GoalPeriod`, `Goal.period`/`parentId` | `Sources/BrainCore/GoalPeriod.swift` | lapsed goals stop scoring; open-ended ones never lapse |
+| The split | `Sources/BrainCore/Outputs.swift` | `BrainOutputs.commitments` and `.day`, `Brain.compute(commitments:completed:)` |
+
+**The separation is structural, not a filter.** A `ScheduledCommitment` is not
+a `RankedItem`, so no code path can put a commitment into `ranked` — it is not
+something a future change could forget to apply.
+
+**Nothing the server calls changed shape.** `commitments:` and `completed:`
+are defaulted and `Goal.init` gained two defaulted parameters, so `/v1/plan`
+compiles and behaves identically until the server chooses to pass them.
+
+**`committedMinutes` is exposed, not applied.** Subtracting it from the day and
+choosing what still fits is B-01's knapsack — a decision about the user's
+available time, which does not belong inside a ranking pass.
+
+Verified across 50 tests added in step 2; `make ci` and `make ci-linux` both
+GATE: PASS, with every ranking metric unchanged.
 
 ## Deliberately not in this spec
 

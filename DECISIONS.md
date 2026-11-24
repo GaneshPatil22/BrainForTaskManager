@@ -1555,3 +1555,36 @@ Found while reading the output above, all three in `AgreementCommand.swift`.
    a thin sample allowed to look authoritative. Now always printed, and with
    a Wilson interval rather than the normal approximation, which is poor at
    these proportions and this sample size.
+
+### 2026-11-24 — The plan split: commitments are a section, not rows (step 2 complete)
+
+`BrainOutputs` gains `commitments: [ScheduledCommitment]` and `day`, and
+`Brain.compute` gains defaulted `commitments:` and `completed:`. Planner step 2
+is finished: recurrence engine, period goals, and now the split.
+
+**The separation is structural, not a filter.** A `ScheduledCommitment` is not
+a `RankedItem`, so there is no code path that could place a commitment into
+`ranked`. This matters more than a test would: a filter is something a future
+change can forget to apply, and the cost of forgetting is that "the one thing
+to do next" becomes a habit checkbox every day of the year and the capture
+product quietly dies.
+
+**Nothing the server calls changed shape.** Both new parameters are defaulted,
+so `/v1/plan` compiles and behaves identically until it chooses to pass them.
+Verified by test: computing with and without commitments gives byte-identical
+`ranked`, `startable`, `quickWins` and `next`.
+
+**`committedMinutes` is exposed, not applied.** Subtracting it and choosing
+what still fits is B-01's knapsack — a decision about the user's available
+time, not part of a ranking pass. Putting it inside `compute` would have made
+the ranker depend on how much of the day was left, which is a different
+question from what is worth doing.
+
+**The day comes from the calendar's zone.** Tested with the case that would
+bite in production: 02:00 IST on Monday 23 November is still Sunday the 22nd
+in UTC, so a server computing in UTC would show an Indian user the previous
+day's ritual. The test asserts both behaviours so the zone dependency is
+visible rather than incidental.
+
+290 tests. `make ci` GATE: PASS, `make ci-linux` GATE: PASS, every ranking
+metric unchanged.

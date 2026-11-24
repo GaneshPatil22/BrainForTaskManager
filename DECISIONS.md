@@ -1408,3 +1408,45 @@ marked "deliberately not built" in `12-backlog.md` but are already shipped in
 the web app as device-local features. The records contradict. Device-local
 also means a test user's board and habit data never reaches us, which is the
 signal the friends test is for — step 4 of the build order fixes that.
+
+### 2026-11-24 — The recurrence engine (planner step 2, first half)
+
+`Sources/BrainCore/Commitment.swift` plus 34 tests. All T0: no model, no
+network, nothing to record or replay.
+
+**Arithmetic happens on calendar days, never on `Date`.** "The first Saturday
+of March" is a question about a calendar, not about an instant, so a
+`CalendarDay` of year/month/day keeps DST, offsets and leap seconds out of the
+expansion entirely. A day becomes an instant only at the boundary, through
+`start(in:)`. Verified with America/Los_Angeles across both 2027 transitions
+(14 March, 7 November): a daily commitment yields exactly one occurrence per
+day, none doubled, none missing. Month lengths and date validity come from
+`Foundation`, not from arithmetic written here.
+
+**Five shapes, a closed enum, not RFC 5545 `RRULE`.** Five shapes cover every
+commitment in the brief, and a closed set is exhaustively testable — which is
+the argument for keeping this in T0 at all. A dependency would buy generality
+nobody asked for.
+
+**`monthlyOnDay` clamps, it does not skip.** A rule on the 31st falls on the
+30th in a 30-day month and the 28th or 29th in February. Skipping would
+silently drop a rent payment in four months of the year. `monthlyOnNthWeekday`
+does the opposite and skips: there is no "5th Saturday" to clamp to in a month
+without one, and inventing the 4th would change what the user asked for.
+
+**Minutes, not `EffortBucket`.** A commitment's duration is stated by the user
+("3 hours on Friday"), not inferred, so there is nothing to classify and no
+reason to lose precision — the buckets jump 60 → 240 and would turn three
+hours into one or four. B-01's arithmetic needs the real number.
+
+**A miss needs no stored row** (D2): `missed` is expected minus actual, with
+today excluded because the day is not over. The forgiving model is also the
+cheap one.
+
+Verified: `make ci` GATE: PASS, `make ci-linux` GATE: PASS, 259 tests. The
+Linux run matters here because `Calendar` behaviour has differed between
+corelibs-Foundation and Darwin, and the server builds on Linux.
+
+**Still to come in step 2:** period goals (`Goal` gains a horizon and a
+parent), and the scoring split that returns commitments as their own section
+rather than rows in `ranked`.

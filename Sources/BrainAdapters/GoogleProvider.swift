@@ -167,12 +167,28 @@ public struct GoogleProvider: LLMProvider {
     }
 }
 
-/// Free-tier limits, verified from Ganesh's AI Studio account on 2026-11-23.
+/// Free-tier limits, read from Ganesh's AI Studio account.
 ///
 /// **Configuration with a verification date, not constants.** Google changed
 /// these unilaterally at least twice during 2026, so they live next to the
 /// adapter and are re-checked at each phase gate.
 public enum GoogleLimits {
+    /// When this table was last read off the dashboard.
+    ///
+    /// **One constant, next to the data, because two copies disagreed.**
+    /// `ProductionRouter` carried its own `verifiedOn` string for these rows
+    /// and said `2026-11-22` while the comment here said `2026-11-23`, and
+    /// `staleLimits` reads the router's — so the date that governed spending
+    /// was the one furthest from the data. Found on a final read before the
+    /// server pinned 0.9.0.
+    ///
+    /// **It is the earlier date, deliberately.** The table was written in the
+    /// same commit as the `2026-11-23` comment, which is the better evidence,
+    /// but a staleness marker must never claim to be fresher than it can
+    /// prove — and one day out of ninety costs nothing. Ganesh can move it to
+    /// the 23rd if that is when he actually opened the dashboard.
+    public static let verifiedOn = "2026-11-22"
+
     public static let table: [String: ModelLimits] = [
         "gemma-4-26b-a4b-it": ModelLimits(
             requestsPerMinute: 30, tokensPerMinute: 16_000, requestsPerDay: 14_400),

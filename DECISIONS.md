@@ -2279,3 +2279,35 @@ commit than the one Ganesh named for the Server pin; the fix lands after the
 tag, where it changes nothing for a consumer.
 
 365 tests, `make ci` GATE: PASS.
+
+---
+
+## 2026-11-24 — One verification date, next to the data
+
+Found by the Server session on a final read before it pinned 0.9.0, and it is
+the right kind of find: **the free-tier verification date existed twice and the
+two copies disagreed.** `GoogleLimits` said the rows were read from Ganesh's
+AI Studio dashboard on `2026-11-23`; `ProductionRouter.gemma` and
+`.flashLite` carried their own `verifiedOn: "2026-11-22"`. `staleLimits` reads
+the router's, so **the date that governed spending was the copy furthest from
+the numbers it described.**
+
+Git says which drifted: `GoogleProvider.swift` was created at 2026-11-23 23:37
+IST with the table and the `2026-11-23` comment in one commit, and the router
+rows were written at 2026-11-24 02:27 IST — three hours later, after midnight,
+in a different file. The table has not changed since. So the `2026-11-22` is
+almost certainly a date typed on the wrong side of midnight.
+
+Now a single `GoogleLimits.verifiedOn`, which both router rows read.
+
+**Set to the earlier date anyway.** The contemporaneous evidence points at the
+23rd, but a staleness marker must not claim to be fresher than it can prove,
+and one day out of ninety costs nothing. Ganesh can move it to the 23rd if
+that is when he actually opened the dashboard — the point is that there is now
+one place to move.
+
+Decision 1's row is untouched: it is the only one verified against Google's
+own published documentation rather than a login-only dashboard, and it keeps
+its own date for that reason.
+
+365 tests, `make ci` GATE: PASS.

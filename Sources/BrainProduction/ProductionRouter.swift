@@ -45,15 +45,17 @@ public enum ProductionRouter {
     /// without signing in to that account.
     ///
     /// Treated as expiring: `staleAfterDays` below drives a warning rather
-    /// than letting an old number quietly govern spending.
+    /// than letting an old number quietly govern spending. The date itself
+    /// lives on `GoogleLimits`, beside the numbers it describes — it was
+    /// duplicated here and the two copies drifted a day apart.
     public static let gemma = VerifiedLimits(
         limits: GoogleLimits.limits(for: "gemma-4-26b-a4b-it"),
-        verifiedOn: "2026-11-22",
+        verifiedOn: GoogleLimits.verifiedOn,
         source: "Ganesh's AI Studio dashboard (login required)")
 
     public static let flashLite = VerifiedLimits(
         limits: GoogleLimits.limits(for: "gemini-3.1-flash-lite"),
-        verifiedOn: "2026-11-22",
+        verifiedOn: GoogleLimits.verifiedOn,
         source: "Ganesh's AI Studio dashboard (login required)")
 
     /// How long a limits row is trusted before the caller should re-check.

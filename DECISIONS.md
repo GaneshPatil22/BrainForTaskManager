@@ -1840,3 +1840,92 @@ unchanged. 352 tests, `make ci` GATE: PASS.
   in Brain breaks a capture into several items. That is a real product gap and
   a new claim (T2, a model proposing subtasks) — backlog, not a quiet fix.
 - The backfill is still **not wired into the server**. 2 of 2 is two.
+
+## 2026-11-24 — Effort escalates to T2. Due dates do not.
+
+Ganesh asked why Google AI was not catching the things T0 got wrong. The
+answer was in `ProductionRouter.swift:160`:
+
+```swift
+ladders: [.classifyType: classifyTypeLadder(apiKey: apiKey)]
+```
+
+**One ladder, one field.** The router is called from exactly one place in the
+pipeline, for `type`, and only when the type rules abstain. `dueAt`, `effort`
+and `category` have no ladder at all: when T0 abstains they are recorded in
+`trace.unresolved` and the field stays blank forever. `judgeLink` exists as a
+capability and nothing routes it.
+
+Measured on the dev split, T0 coverage per field:
+
+| field | T0 reads | escalation set |
+|---|---|---|
+| type | 94.0% | 25 of 415 |
+| dueAt | 44.6% | 230 of 415 |
+| effort | **34.7%** | **271 of 415** |
+
+So the model was wired to the field the rules already settle 94% of, and left
+out of the field they settle 35% of. On Ganesh's own six captures the model
+was called **zero times**.
+
+### Effort now escalates
+
+**The Justification Test passes on cost, not on cleverness.**
+`EffortBucket.unknown` is scored as medium — 60 minutes, by
+`docs/02-scoring-spec.md` — so a capture whose size the rules cannot read does
+not score neutrally. It silently claims an hour of the day, and it does so for
+65% of captures. A closed set of six buckets is verifiable in code, and being
+one bucket out costs a ranking position rather than a missed deadline.
+
+Same three rungs as `classifyType`, Decisions API first. Call volume rises
+roughly **tenfold** — 6% of captures escalated before, 65% now — which is
+still nothing against Decision 1's 10,000 requests a day (verified
+2026-11-24). Reaching that ceiling would take about 15,000 captures in a day.
+
+### Due dates do not, and that reverses my own recommendation
+
+I proposed widening T2 to `dueAt` *and* `effort`, and Ganesh approved it.
+Checking `docs/07-harness-spec.md` before writing the code found guard 5:
+
+| 5 | **Deterministic dates** | *always on, not toggleable* | any model-supplied date | T0 parse is the only source |
+
+> "Guards 5 and 6 are **not toggleable.** They are correctness invariants, not
+> tunable features — a configuration in which a model supplies a date or
+> creates a cycle is not a configuration we want to measure."
+
+So the recommendation was half wrong and the dates half is not mine to
+override. Recorded here rather than quietly dropped.
+
+**A rationalisation rejected on the way.** The design had the model answer
+"how many days from today" so that `CalendarDay` did the arithmetic, which
+keeps a date string out of the response. In substance the model still picks
+the deadline, and returning it as an integer changes nothing about that. That
+is the sort of dressing-up guard 5 exists to prevent.
+
+**Guard-5-compatible options, if dates are to improve:**
+
+1. **Extend the rules.** The bet guard 5 makes is that dates are a closed
+   grammar. Today's evidence supports it: adding `due` to one regex took that
+   phrasing from 33.3% to 100%. Cheapest and already working.
+2. **The model flags, the human fills.** A yes/no "does this state a
+   deadline?" never supplies a date, and turns a silent blank into a T3
+   question. Fully compatible; not built.
+3. **Change guard 5 deliberately** — a charter-level decision, with the
+   trade-off written down, not a line in a feature commit.
+
+### Not yet measured, and that is the honest status
+
+The eval runs `--cassettes replay` and no cassettes exist for
+`estimateEffort`, so those calls miss, abstain, and the scorecard reads
+exactly as before: **T2 rate 0.0%, T0 settled 62.6%, category 82.3%,
+unchanged**. The accuracy of effort escalation against a real model is
+**unknown**.
+
+`brain record` was hardcoded to `classifyType`, so it could not have been
+measured at all; it now takes `--capability estimate-effort`, with
+`--escalations-only` filtered by the effort rules rather than the type rules
+(the two escalation sets barely overlap). Recording the dev escalation set is
+271 calls — about two minutes against Decision 1's 200 rpm, and 2.7% of one
+day's free quota. That spends Ganesh's key, so it is his call to run.
+
+352 tests, `make ci` GATE: PASS.

@@ -10,6 +10,15 @@ public enum Capability: String, Sendable, CaseIterable {
     case classifyType
     /// For each candidate: duplicate, blocks, relates, or none.
     case judgeLink
+    /// How big a job this is, when the text states no duration.
+    ///
+    /// **Why this one and not `dueAt`.** Guard 5 in `docs/07-harness-spec.md`
+    /// is a non-toggleable correctness invariant: "any model-supplied date"
+    /// is rejected and "T0 parse is the only source". Effort has no such
+    /// guard, and nothing in the charter says it should — a bucket is a
+    /// closed set, verifiable in code, and wrong-by-one-bucket costs a
+    /// ranking position rather than a missed deadline.
+    case estimateEffort
 }
 
 public struct ProviderID: Hashable, Sendable, CustomStringConvertible {

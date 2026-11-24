@@ -34,7 +34,12 @@ struct RecordCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Where to write cassettes.")
     var cassettes: String = "eval/cassettes"
 
-    @Flag(name: .long, help: "Only captures the T0 rules could not type — the real escalation set.")
+    @Option(
+        name: .long,
+        help: "Which field to record: classify-type or estimate-effort.")
+    var capability: String = "classify-type"
+
+    @Flag(name: .long, help: "Only captures the T0 rules could not read — the real escalation set.")
     var escalationsOnly = false
 
     @Flag(name: .long, help: "Record the adversarial injection rows instead of captures.")
@@ -63,11 +68,18 @@ struct RecordCommand: AsyncParsableCommand {
 
         // Recording what T0 already answers is pure waste: those calls never
         // happen in production, because the router stops at the first rung.
+        //
+        // The filter has to follow the capability. Filtering the effort run by
+        // the *type* rules would record the wrong captures — the two
+        // escalation sets barely overlap, because the type rules settle
+        // almost everything and the effort rules settle very little.
         let classifier = TypeClassifier(timeZone: zone)
-        let pool =
-            escalationsOnly
-            ? captures.filter { !classifier.classify($0.rawText, now: now).isKnown }
-            : captures
+        let effortParser = EffortParser()
+        let abstains: (SyntheticCapture) -> Bool =
+            capability == "estimate-effort"
+            ? { effortParser.parse(Normalizer.normalize($0.rawText).normalized) == nil }
+            : { !classifier.classify($0.rawText, now: now).isKnown }
+        let pool = escalationsOnly ? captures.filter(abstains) : captures
         // Injection rows exist to be sent at a model: until one is in the
         // loop there is nothing to be non-compliant with, which is why they
         // were staged rather than scored (`docs/03-dataset-schema.md`).
@@ -88,6 +100,30 @@ struct RecordCommand: AsyncParsableCommand {
                 }
         }
 
+        // Which field is being recorded. The prompt, the criteria map and the
+        // permitted answers all have to move together: a cassette recorded
+        // with the wrong answer set is worse than no cassette, because it
+        // replays silently.
+        let (capabilityValue, system, criteria, answers):
+            (
+                Capability, String, [String: String], [String]
+            ) =
+                switch capability {
+                case "classify-type":
+                    (
+                        .classifyType, Prompts.classifyTypeSystem, Prompts.typeCriteria,
+                        ItemType.allCases.map(\.rawValue)
+                    )
+                case "estimate-effort":
+                    (
+                        .estimateEffort, Prompts.effortSystem, Prompts.effortCriteria,
+                        EffortBucket.allCases.map(\.rawValue)
+                    )
+                default:
+                    throw ValidationError(
+                        "unknown capability: \(capability). Use classify-type or estimate-effort.")
+                }
+
         // Two tracks, as B3 requires: generate-and-parse against a closed-set
         // decision call, on the same captures so the comparison is paired.
         let isDecision = api == "decide"
@@ -96,8 +132,8 @@ struct RecordCommand: AsyncParsableCommand {
             isDecision
             ? DecisionProvider(
                 model: model, apiKey: key,
-                instructions: Prompts.classifyTypeSystem,
-                criteria: Prompts.typeCriteria)
+                instructions: system,
+                criteria: criteria)
             // 20s was too short: a thinking model spends 300+ tokens reasoning
             // before it answers, and a third of the first batch timed out.
             : GoogleProvider(model: model, apiKey: key, timeout: 60)
@@ -118,7 +154,8 @@ struct RecordCommand: AsyncParsableCommand {
 
             RECORDING  model \(model) · split \(split)
 
-              candidates        \(pool.count)\(escalationsOnly ? "  (T0 could not type these)" : "")
+              capability        \(capability)
+              candidates        \(pool.count)\(escalationsOnly ? "  (T0 could not read these)" : "")
               recording         \(batch.count)
               free-tier limits  \(limits.requestsPerMinute ?? 0) rpm · \
             \(limits.tokensPerMinute ?? 0) tpm · \(limits.requestsPerDay ?? 0) rpd
@@ -132,10 +169,10 @@ struct RecordCommand: AsyncParsableCommand {
         for (index, capture) in batch.enumerated() {
             let normalized = Normalizer.normalize(capture.rawText)
             let request = ModelRequest(
-                capability: .classifyType,
-                system: Prompts.classifyTypeSystem,
+                capability: capabilityValue,
+                system: system,
                 untrustedContent: normalized.redacted,
-                allowedAnswers: ItemType.allCases.map(\.rawValue),
+                allowedAnswers: answers,
                 promptVersion: Prompts.version)
 
             if await store.lookup(request, model: model) != nil {

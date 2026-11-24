@@ -136,6 +136,51 @@ public enum ProductionRouter {
         ]
     }
 
+    /// Effort, when the capture states no duration.
+    ///
+    /// Same shape and same rungs as `classifyTypeLadder`: a closed set of six
+    /// buckets, so the Decisions API expresses it natively and guard 1 is
+    /// structural rather than defensive.
+    ///
+    /// **Why this field and not `dueAt`.** Guard 5 in
+    /// `docs/07-harness-spec.md` is marked not-toggleable: "any model-supplied
+    /// date" is rejected and "T0 parse is the only source". Effort carries no
+    /// such invariant, and the cost of being one bucket out is a ranking
+    /// position, not a missed deadline.
+    ///
+    /// **Why it is worth a call at all** (the Justification Test):
+    /// `EffortBucket.unknown` is scored as medium — 60 minutes — so a capture
+    /// whose size the rules cannot read does not score neutrally, it silently
+    /// claims an hour of the day. Measured on real captures, the effort rules
+    /// read **two of six**.
+    public static func estimateEffortLadder(apiKey: String) -> [Rung] {
+        [
+            Rung(
+                name: "t2-decision",
+                action: .provider(
+                    DecisionProvider(
+                        model: "gemini-decision-1", apiKey: apiKey,
+                        instructions: Prompts.effortSystem,
+                        criteria: Prompts.effortCriteria)),
+                model: "gemini-decision-1", tier: .t2),
+
+            Rung(
+                name: "t2-gemma",
+                action: .provider(
+                    GoogleProvider(model: "gemma-4-26b-a4b-it", apiKey: apiKey, timeout: 60)),
+                model: "gemma-4-26b-a4b-it", tier: .t2),
+
+            Rung(
+                name: "t2-flash-lite",
+                action: .provider(
+                    GoogleProvider(model: "gemini-3.1-flash-lite", apiKey: apiKey, timeout: 60)),
+                model: "gemini-3.1-flash-lite", tier: .t2),
+
+            // Mandatory and always last. A capture is never lost.
+            Rung(name: "degrade", action: .degrade, model: "-", tier: .t0),
+        ]
+    }
+
     /// Build the production router and register every rung's free-tier limits
     /// on the ledger.
     ///
@@ -157,7 +202,10 @@ public enum ProductionRouter {
         await ledger.setLimits(flashLite.limits, for: "gemini-3.1-flash-lite")
 
         return ModelRouter(
-            ladders: [.classifyType: classifyTypeLadder(apiKey: apiKey)],
+            ladders: [
+                .classifyType: classifyTypeLadder(apiKey: apiKey),
+                .estimateEffort: estimateEffortLadder(apiKey: apiKey),
+            ],
             ledger: ledger, cassettes: cassettes, mode: mode, guards: guards)
     }
 }

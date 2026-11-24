@@ -147,7 +147,12 @@ struct EnrichmentTests {
 
         #expect(result.item.type.value == .task)
         #expect(result.trace.tierByField["type"] == .t0)
-        #expect(result.trace.routedCapabilities.isEmpty)
+        // Specific to `classifyType`, not "nothing was routed at all": effort
+        // now escalates when the rules read no duration, and "call the
+        // plumber" states none. The claim being made here is that a type T0
+        // settled is never sent to a model — if it were, `FakeModel
+        // .misbehaves()` would have produced a non-task answer above.
+        #expect(!result.trace.routedCapabilities.contains(Capability.classifyType.rawValue))
     }
 
     @Test("Enrichment is deterministic")

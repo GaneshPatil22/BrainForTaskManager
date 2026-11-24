@@ -40,6 +40,37 @@ public struct ParsedDependency: Sendable, Hashable {
     }
 }
 
+extension Edge {
+    /// The `blocks` edge a stated dependency implies.
+    ///
+    /// `blocks` is directed: `from` must finish before `to` can start. "after
+    /// X" makes the referent the blocker; "before X" makes *this* item the
+    /// blocker. Emitting both the same way round would mark a task as blocked
+    /// by something it actually has to precede.
+    ///
+    /// **One implementation, two callers.** The live path
+    /// (`EnrichmentPipeline`) and the backfill (`DependencyBackfill`) both
+    /// build this edge. Written out twice, the two could come to disagree
+    /// about direction and nothing would notice: a backwards edge throws no
+    /// error, it just makes a task look unstartable forever.
+    ///
+    /// Always unconfirmed (invariant 3): the user wrote the phrase, but the
+    /// parse may still be wrong.
+    public static func blocking(
+        id: ULID, item: ULID, referent: ULID,
+        direction: ParsedDependency.Direction, confidence: Double
+    ) -> Edge {
+        let (from, to) =
+            switch direction {
+            case .blockedByReferent: (referent, item)
+            case .blocksReferent: (item, referent)
+            }
+        return Edge(
+            id: id, from: from, to: to, kind: .blocks,
+            confidence: confidence, source: .t0Rule, confirmed: false)
+    }
+}
+
 /// Reads explicit blocking phrases out of text. English and Hinglish.
 ///
 /// **T0, named in `docs/09-tiering.md`:** *"after X", "once X is done",

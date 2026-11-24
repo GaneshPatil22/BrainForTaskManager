@@ -184,22 +184,14 @@ public struct EnrichmentPipeline: Sendable {
                 trace.notes.append("dependency \"\(reference.targetText)\" matched no item")
                 continue
             }
-            // `blocks` is directed: `from` must finish before `to` can start.
-            // "after X" makes the referent the blocker; "before X" makes this
-            // item the blocker. Emitting both the same way round would mark a
-            // task as blocked by something it actually has to precede.
-            let (from, to) =
-                switch reference.direction {
-                case .blockedByReferent: (match.id, item.id)
-                case .blocksReferent: (item.id, match.id)
-                }
-            // Proposed, never confirmed: the user wrote the phrase but the
-            // parse may be wrong (invariant 3).
+            // Direction, confidence and `confirmed` all live in
+            // `Edge.blocking`, shared with the backfill so the two paths
+            // cannot drift apart on which way round the edge runs.
             edges.append(
-                Edge(
-                    id: idGenerator.next(), from: from, to: to, kind: .blocks,
-                    confidence: reference.confidence * match.score,
-                    source: .t0Rule, confirmed: false))
+                Edge.blocking(
+                    id: idGenerator.next(), item: item.id, referent: match.id,
+                    direction: reference.direction,
+                    confidence: reference.confidence * match.score))
             trace.tierByField["blocks"] = .t0
         }
 

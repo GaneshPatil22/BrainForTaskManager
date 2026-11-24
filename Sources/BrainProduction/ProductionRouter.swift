@@ -181,6 +181,42 @@ public enum ProductionRouter {
         ]
     }
 
+    /// Category, when the lexicon has no term for the capture.
+    ///
+    /// **Registered unconditionally, reached only behind a flag.** The ladder
+    /// exists here so `brain compare` and `brain record` can use it; whether
+    /// the pipeline walks it is `EnrichmentFeatures.categoryEscalation`,
+    /// which is off by default. A ladder nobody calls costs nothing.
+    ///
+    /// Chosen first on measured weakness: 67.0% end-to-end on the dev split,
+    /// answering 258 of 339, against dates' 97.9% on the same run.
+    public static func classifyCategoryLadder(apiKey: String) -> [Rung] {
+        [
+            Rung(
+                name: "t2-decision",
+                action: .provider(
+                    DecisionProvider(
+                        model: "gemini-decision-1", apiKey: apiKey,
+                        instructions: Prompts.categorySystem,
+                        criteria: Prompts.categoryCriteria)),
+                model: "gemini-decision-1", tier: .t2),
+
+            Rung(
+                name: "t2-gemma",
+                action: .provider(
+                    GoogleProvider(model: "gemma-4-26b-a4b-it", apiKey: apiKey, timeout: 60)),
+                model: "gemma-4-26b-a4b-it", tier: .t2),
+
+            Rung(
+                name: "t2-flash-lite",
+                action: .provider(
+                    GoogleProvider(model: "gemini-3.1-flash-lite", apiKey: apiKey, timeout: 60)),
+                model: "gemini-3.1-flash-lite", tier: .t2),
+
+            Rung(name: "degrade", action: .degrade, model: "-", tier: .t0),
+        ]
+    }
+
     /// Build the production router and register every rung's free-tier limits
     /// on the ledger.
     ///
@@ -205,6 +241,7 @@ public enum ProductionRouter {
             ladders: [
                 .classifyType: classifyTypeLadder(apiKey: apiKey),
                 .estimateEffort: estimateEffortLadder(apiKey: apiKey),
+                .classifyCategory: classifyCategoryLadder(apiKey: apiKey),
             ],
             ledger: ledger, cassettes: cassettes, mode: mode, guards: guards)
     }

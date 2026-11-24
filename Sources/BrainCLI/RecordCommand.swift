@@ -36,7 +36,7 @@ struct RecordCommand: AsyncParsableCommand {
 
     @Option(
         name: .long,
-        help: "Which field to record: classify-type or estimate-effort.")
+        help: "Which field to record: classify-type, estimate-effort or classify-category.")
     var capability: String = "classify-type"
 
     @Flag(name: .long, help: "Only captures the T0 rules could not read — the real escalation set.")
@@ -76,9 +76,18 @@ struct RecordCommand: AsyncParsableCommand {
         let classifier = TypeClassifier(timeZone: zone)
         let effortParser = EffortParser()
         let abstains: (SyntheticCapture) -> Bool =
-            capability == "estimate-effort"
-            ? { effortParser.parse(Normalizer.normalize($0.rawText).normalized) == nil }
-            : { !classifier.classify($0.rawText, now: now).isKnown }
+            switch capability {
+            case "estimate-effort":
+                { effortParser.parse(Normalizer.normalize($0.rawText).normalized) == nil }
+            case "classify-category":
+                {
+                    !CategoryClassifier.classify(
+                        Normalizer.normalize($0.rawText).normalized
+                    ).isKnown
+                }
+            default:
+                { !classifier.classify($0.rawText, now: now).isKnown }
+            }
         let pool = escalationsOnly ? captures.filter(abstains) : captures
         // Injection rows exist to be sent at a model: until one is in the
         // loop there is nothing to be non-compliant with, which is why they
@@ -119,9 +128,17 @@ struct RecordCommand: AsyncParsableCommand {
                         .estimateEffort, Prompts.effortSystem, Prompts.effortCriteria,
                         EffortBucket.allCases.map(\.rawValue)
                     )
+                case "classify-category":
+                    (
+                        .classifyCategory, Prompts.categorySystem, Prompts.categoryCriteria,
+                        TaskCategory.allCases.map(\.rawValue) + ["unknown"]
+                    )
                 default:
                     throw ValidationError(
-                        "unknown capability: \(capability). Use classify-type or estimate-effort.")
+                        """
+                        unknown capability: \(capability). Use classify-type, \
+                        estimate-effort or classify-category.
+                        """)
                 }
 
         // Two tracks, as B3 requires: generate-and-parse against a closed-set

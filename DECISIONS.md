@@ -1993,3 +1993,72 @@ yet a comparison. The command says so in its own output rather than letting
 the near-identical columns read as a result.
 
 352 tests, `make ci` GATE: PASS.
+
+## 2026-11-24 — Category escalation, behind a flag
+
+First field moved onto the proposal-and-verification path, chosen by the
+comparison harness rather than by which failure was noticed most recently:
+
+| field | end-to-end | answered / expected | escalation path before today |
+|---|---|---|---|
+| **category** | **67.0%** | 258 / 339 | **none** |
+| type | 81.0% | 390 / 415 | T2 ladder |
+| effort | 91.8% | 140 / 147 | T2 ladder (added today) |
+| dueAt | 97.9% | 185 / 187 | none (guard 5) |
+
+Category is both the weakest field and the only one with no escalation at
+all. Dates — the failure that started this whole argument — are the field the
+rules handle best. That does not make the argument wrong; it makes dates the
+symptom rather than the subject.
+
+### Why a flag, and what the flag protects
+
+`EnrichmentFeatures` is an `OptionSet` on the pipeline, empty by default.
+With the flag off, nothing changes anywhere: `make ci` and the scorecard read
+exactly as before (T0 settled 62.6%, T2 rate 0.0%, category 82.3%), and a
+test asserts the model is never asked.
+
+The flag exists because moving a field from rules to a model is a **claim
+about accuracy**, and the synthetic labels cannot test it — the generator
+wrote both the captures and the labels, so the rules are scored on the
+distribution they were authored against. Building behind a flag means the
+path can be written, tested and measured without production betting on an
+argument. Every flag here should either graduate or be deleted.
+
+### What "Stage 2" honestly is for a closed set
+
+For `category` the verification step is `TaskCategory.init(rawValue:)` plus
+the abstention check, and that is **all it can be**: the answer comes from a
+nine-item closed set, so guard 1 is structural and there is no hallucinated
+category to reject.
+
+The quote-and-verify layer this architecture actually needs arrives with the
+first **open-ended** field — an amount, a deadline span, a subtask — where a
+model can invent something that is not in the text and a literal-substring
+check is the thing that catches it. Building that ceremony around an enum
+would have been theatre, so it is not here.
+
+### Measurement, and the honest gap
+
+`brain compare --features category` now switches path B's flag on. On the dev
+split it raises attempted model calls from 296 to **425** — 129 category
+escalations — and changes no score, because **no cassettes exist for
+`classifyCategory`**. In replay a capability with no recording abstains.
+
+`brain record --capability classify-category --escalations-only` records
+them, with the escalation filter running the *category* lexicon rather than
+the type classifier. 129 calls is about 1.3% of one day's free quota on
+Decision 1. It spends Ganesh's key, so it is his to run.
+
+Until then this is **built and tested, not measured**. The flag stays off.
+
+### One fixture worth recording
+
+My first test fixture for "a capture the lexicon cannot read" was "sort out
+the thing with the landlord's cousin". The lexicon classifies it `chores`.
+"follow up on that" is `communication`; "decide about the thing" is
+`planning`. The lexicon reaches much further than it looks, which is the
+second time today an invented fixture was wrong where a measured one was
+needed. The fixture is now `"that matter we discussed"`, checked.
+
+359 tests, `make ci` GATE: PASS.

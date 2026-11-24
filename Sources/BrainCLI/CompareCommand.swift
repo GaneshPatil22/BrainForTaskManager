@@ -54,6 +54,27 @@ struct CompareCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Score only the first N captures.")
     var limit: Int = 100_000
 
+    @Option(
+        name: .long,
+        help: "Comma-separated flags for path B: category. Empty means none.")
+    var features: String = ""
+
+    /// Parsed once so an unknown name is a usage error rather than a silently
+    /// ignored word — a typo here would otherwise print a "no change" table
+    /// and look like a finding.
+    func parsedFeatures() throws -> EnrichmentFeatures {
+        var set = EnrichmentFeatures.none
+        for name in features.split(separator: ",").map({
+            $0.trimmingCharacters(in: .whitespaces)
+        }) where !name.isEmpty {
+            switch name {
+            case "category": set.insert(.categoryEscalation)
+            default: throw ValidationError("unknown feature: \(name). Known: category.")
+            }
+        }
+        return set
+    }
+
     func run() async throws {
         guard let zone = TimeZone(identifier: timezone) else {
             throw ValidationError("unknown timezone: \(timezone)")
@@ -78,16 +99,20 @@ struct CompareCommand: AsyncParsableCommand {
         let rules = await Metrics.comparePath(
             name: "rules only", captures: captures,
             pipeline: EnrichmentPipeline(timeZone: zone), timeZone: zone, now: now)
+        let flags = try parsedFeatures()
         let hybrid = await Metrics.comparePath(
             name: "rules + model", captures: captures,
-            pipeline: EnrichmentPipeline(timeZone: zone, router: router),
+            pipeline: EnrichmentPipeline(timeZone: zone, router: router, features: flags),
             timeZone: zone, now: now)
 
-        Self.render(rules, hybrid, split: split, live: live)
+        Self.render(
+            rules, hybrid, split: split, live: live,
+            features: features.isEmpty ? "none" : features)
     }
 
     static func render(
-        _ a: Metrics.PathResult, _ b: Metrics.PathResult, split: String, live: Bool
+        _ a: Metrics.PathResult, _ b: Metrics.PathResult, split: String, live: Bool,
+        features: String
     ) {
         func pct(_ value: Double) -> String { String(format: "%5.1f%%", value * 100) }
 
@@ -95,7 +120,7 @@ struct CompareCommand: AsyncParsableCommand {
             """
 
             PATH COMPARISON   split \(split) · \(a.rows) captures · \
-            \(live ? "LIVE" : "replay")
+            \(live ? "LIVE" : "replay") · flags: \(features)
 
               end-to-end = correct / should-have-been-answered. The user-facing
               number: a field left blank counts against it, exactly as a wrong
@@ -138,6 +163,7 @@ struct CompareCommand: AsyncParsableCommand {
                     export GOOGLE_AI_API_KEY=...
                     swift run brain record --capability classify-type   --escalations-only --limit 50
                     swift run brain record --capability estimate-effort --escalations-only --limit 300
+                    swift run brain record --capability classify-category --escalations-only --limit 160
 
                 """)
         }

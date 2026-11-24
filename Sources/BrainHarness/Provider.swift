@@ -19,6 +19,14 @@ public enum Capability: String, Sendable, CaseIterable {
     /// closed set, verifiable in code, and wrong-by-one-bucket costs a
     /// ranking position rather than a missed deadline.
     case estimateEffort
+    /// Which kind of work this is, when the lexicon has no term for it.
+    ///
+    /// The weakest field Brain has: measured **67.0% end-to-end** on the dev
+    /// split by `brain compare`, answering only 258 of 339, and the only one
+    /// with no escalation path at all. That is why it is the first field
+    /// moved, rather than the dates the argument started over — those measure
+    /// 97.9% on the same run.
+    case classifyCategory
 }
 
 public struct ProviderID: Hashable, Sendable, CustomStringConvertible {

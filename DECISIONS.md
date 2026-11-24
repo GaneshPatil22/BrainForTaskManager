@@ -1929,3 +1929,67 @@ measured at all; it now takes `--capability estimate-effort`, with
 day's free quota. That spends Ganesh's key, so it is his call to run.
 
 352 tests, `make ci` GATE: PASS.
+
+## 2026-11-24 — The comparison harness, and what its first run proved
+
+Ganesh's argument: "due 3 days" failing is not a date bug, it is evidence that
+hand-written rules do not scale, and we should not keep paying a regression
+tax per phrasing forever. `brain compare` exists to settle that with numbers
+instead of two opinions — it scores the **pipeline's output** against labels,
+so any path can be measured, where `Metrics.extraction` can only ever measure
+T0 because it calls the parsers directly.
+
+The metric is **end-to-end: correct / should-have-been-answered.** A blank
+field counts against a path exactly as a wrong one does, because to a user
+they are the same thing.
+
+First run, dev split, 415 captures:
+
+| field | rules only | rules + model | answered / expected |
+|---|---|---|---|
+| type | 81.0% | 81.2% | 390 / 415 |
+| dueAt | **97.9%** | 97.9% | 185 / 187 |
+| effort | 91.8% | 91.8% | 140 / 147 |
+| category | **67.0%** | 67.0% | 258 / 339 |
+
+### The finding that matters, and it is not the comparison
+
+**`dueAt` measures 97.9% here and broke on Ganesh's first real capture.**
+
+Both are true, and that is the whole problem. 187 of 415 captures carry a date
+label, and the rules read 183 of them — because `scripts/make-synthetic.py`
+writes dates in the forms the rules were built to read. "Need to pay bill
+which is due 3 days" is not in the corpus and never would be.
+
+So the eval is **blind to the entire class of failure a real user finds in six
+captures.** This is the third time the same circularity has bitten: it hid the
+missing `before` rule, it hid the duplicate containment flaw, and it hides
+this. Each time it was found by hand, not by the gate.
+
+**Consequence: this harness cannot decide rules-versus-model on synthetic
+data.** It can only compare paths on the distribution the rules were authored
+against, which is the one place rules are guaranteed to look good. Read a
+model win here as strong evidence and a rules win as almost none. The real
+answer needs labelled captures of Ganesh's own — which the corrections table
+already collects, and which is now the reason to collect them.
+
+### A second finding, which changes the priority order
+
+**Category is the weakest field by a wide margin — 67.0% — and it is the one
+with no escalation path at all.** It also answers only 258 of 339. On measured
+weakness the order to route is **category, then effort, then type**, and
+`dueAt` is last. The field this whole argument started over is the field the
+rules handle best.
+
+That is not a reason to dismiss the argument. It is a reason to stop treating
+dates as the example and treat the *approach* as the subject.
+
+### Honest status of the comparison itself
+
+296 model calls were attempted and **one** produced an answer: in replay a
+capability with no cassette abstains, and only `classifyType` has recordings.
+So the two columns are very nearly the same path, and the comparison is not
+yet a comparison. The command says so in its own output rather than letting
+the near-identical columns read as a result.
+
+352 tests, `make ci` GATE: PASS.

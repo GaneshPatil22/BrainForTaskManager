@@ -604,4 +604,131 @@ public enum Metrics {
         }
         return (percentile(0.5), percentile(0.95))
     }
+
+    // MARK: - Comparing whole paths, not just the rules
+
+    /// One field's result for one path through the pipeline.
+    ///
+    /// `attempted` is the honest denominator: a field nobody answered is not
+    /// wrong, it is absent, and conflating the two is how a cautious system
+    /// gets scored as an accurate one.
+    public struct FieldScore: Sendable {
+        public var expected = 0
+        public var attempted = 0
+        public var correct = 0
+        /// Which tier settled it, when one did.
+        public var byTier: [Tier: Int] = [:]
+
+        public var coverage: Double {
+            expected == 0 ? 0 : Double(attempted) / Double(expected)
+        }
+        /// Of the ones it answered, how many were right.
+        public var precision: Double {
+            attempted == 0 ? 0 : Double(correct) / Double(attempted)
+        }
+        /// Of everything it should have answered, how many were right. The
+        /// number that actually matters to a user.
+        public var endToEnd: Double {
+            expected == 0 ? 0 : Double(correct) / Double(expected)
+        }
+    }
+
+    public struct PathResult: Sendable {
+        public var name: String
+        public var rows = 0
+        public var type = FieldScore()
+        public var dueAt = FieldScore()
+        public var effort = FieldScore()
+        public var category = FieldScore()
+        /// How many model calls the path actually made. Zero with no
+        /// cassettes, which is the difference between "the model did not help"
+        /// and "the model was never asked".
+        public var modelCalls = 0
+
+        public init(name: String) { self.name = name }
+
+        public var fields: [(String, FieldScore)] {
+            [("type", type), ("dueAt", dueAt), ("effort", effort), ("category", category)]
+        }
+    }
+
+    /// Scores a **pipeline** against labelled captures, rather than calling the
+    /// parsers directly as `extraction` does.
+    ///
+    /// This is the difference that lets two paths be compared: `extraction`
+    /// can only ever measure T0, because it talks to `DateParser` and friends.
+    /// This one measures whatever the pipeline is configured to do — rules
+    /// alone, rules with a model behind them, or anything added later — on
+    /// identical captures against identical labels.
+    ///
+    /// **Read the numbers with the same caution `extraction` asks for.** These
+    /// labels are true by construction because a generator wrote both the text
+    /// and the label (`scripts/make-synthetic.py`). For date and effort that
+    /// is legitimate — they are grammars, and reading back what was written is
+    /// the job. For type and category it is closer to circular, and a model
+    /// that has never seen the generator is at a genuine disadvantage against
+    /// rules written beside it. A win for the rules here is weaker evidence
+    /// than a win for the model.
+    public static func comparePath(
+        name: String, captures: [SyntheticCapture], pipeline: EnrichmentPipeline,
+        timeZone: TimeZone, now: Date
+    ) async -> PathResult {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        var result = PathResult(name: name)
+        var graph = BrainGraph()
+        var generator = ULIDGenerator(seed: 20_261_124)
+
+        func score(
+            _ field: inout FieldScore, expected: String?, got: String?, tier: Tier?
+        ) {
+            guard let expected else { return }
+            field.expected += 1
+            guard let got else { return }
+            field.attempted += 1
+            if let tier { field.byTier[tier, default: 0] += 1 }
+            if got == expected { field.correct += 1 }
+        }
+
+        for capture in captures {
+            result.rows += 1
+            let input = Capture(
+                id: generator.next(), rawText: capture.rawText, createdAt: now)
+            let enriched = await pipeline.enrich(
+                capture: input, graph: graph, now: now, idGenerator: &generator,
+                requester: .local)
+            graph.insert(enriched.item)
+            result.modelCalls += enriched.trace.routedCapabilities.count
+
+            let item = enriched.item
+            let tiers = enriched.trace.tierByField
+            score(
+                &result.type, expected: capture.labels.type,
+                got: item.type.value?.rawValue, tier: tiers["type"])
+            score(
+                &result.effort, expected: capture.labels.effort,
+                got: item.effort.value?.rawValue, tier: tiers["effort"])
+            score(
+                &result.category, expected: capture.labels.category,
+                got: item.category.value?.rawValue, tier: tiers["category"])
+
+            // The date label is a day offset, so the comparison is in whole
+            // calendar days in the user's zone — never a timestamp diff.
+            if let expectedOffset = capture.labels.dueAt {
+                result.dueAt.expected += 1
+                if let due = item.dueAt.value {
+                    result.dueAt.attempted += 1
+                    if let tier = tiers["dueAt"] { result.dueAt.byTier[tier, default: 0] += 1 }
+                    let days =
+                        calendar.dateComponents(
+                            [.day], from: calendar.startOfDay(for: now),
+                            to: calendar.startOfDay(for: due)
+                        ).day ?? -999
+                    if days == expectedOffset { result.dueAt.correct += 1 }
+                }
+            }
+        }
+        return result
+    }
+
 }

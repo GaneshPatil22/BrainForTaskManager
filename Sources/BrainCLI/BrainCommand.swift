@@ -14,6 +14,7 @@ struct BrainCommand: AsyncParsableCommand {
             AgreementCommand.self, SplitCommand.self, CategoryEvalCommand.self, SampleCommand.self,
             CoverageCommand.self, EnrichCommand.self, RecordCommand.self, T2ScoreCommand.self,
             GuardEvalCommand.self, BackfillAuditCommand.self,
+            CompareCommand.self,
         ],
         defaultSubcommand: NextCommand.self)
 }

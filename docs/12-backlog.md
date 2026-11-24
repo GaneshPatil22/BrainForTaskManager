@@ -6,18 +6,22 @@ would have to be true to start it.
 
 **Everything parked lives here. `make ideas` prints this index.**
 
+**Promoted 2026-11-24:** B-01, B-05, B-06c and B-06d are no longer parked.
+They are specified in `15-planner.md` and accepted for build. Their entries
+below are kept for the reasoning that led there.
+
 | id | idea | tier | gated on |
 |---|---|---|---|
-| B-01 | Time-budget: "what fits in this gap" | T0 | v1 frozen |
+| B-01 | Time-budget: "what fits in this gap" | T0 | **promoted → `15-planner.md`** |
 | B-02 | Timers: pomodoro, multiple concurrent | T0 | v1 frozen |
 | B-03 | Role and mindset as signals | mixed | B-03a is nearly free; B-03c is a dead end |
 | B-04 | Task `category` and the mode taxonomy | T0 | v1 frozen |
-| B-05 | Recurring tasks (SIPs, monthly reviews) | T0 | one-item-vs-series question |
+| B-05 | Recurring tasks (SIPs, monthly reviews) | T0 | **promoted → `15-planner.md`** |
 | B-06 | Views, each toggleable | mostly T0 | ranking validated (`make agreement`) |
 | B-06a | 1-3-5 board (1 big, 3 small, 5 quick) | T0 | after B-06d |
 | B-06b | Quick-wins list (the long one) | T0 | cheapest in B-06 |
-| B-06c | Journal | T0 + new type | needs its own argument |
-| B-06d | Daily review and next-day planning | T0 | **highest value — generates training signal** |
+| B-06c | Journal | T0 + new type | **promoted → `15-planner.md`** |
+| B-06d | Daily review and next-day planning | T0 | **promoted → `15-planner.md`** |
 | B-06e | Weekend / long-pending view | T0, except suggestions | split it; suggestion engine is a new claim |
 
 Entries B-01 through B-05 are single features. B-06 is a cluster of *views*:

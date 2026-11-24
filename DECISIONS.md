@@ -1370,3 +1370,41 @@ data. Treat the generated datasets as a floor, never as coverage.
 Tagged `0.6.0` rather than `0.5.2`: `ParsedDependency` gained a field and Brain
 now emits edges it never emitted before. No compile break for the server —
 `Edge` is unchanged — but the behaviour differs.
+
+### 2026-11-24 — The planner is accepted, and it repairs the ranking
+
+Ganesh's second main use case: a year-long day planner — nine daily habits, a
+Friday 3h office block, a Sunday weekly review, a first-Saturday monthly
+review, fixed payments, and monthly/quarterly goals — alongside capture.
+Specified in `docs/15-planner.md`; B-01, B-05, B-06c and B-06d are promoted
+out of the backlog.
+
+**Why it is not scope creep.** `servesGoals` is 0 for every item in
+production, because nothing assigns a goal, so leverage is really just
+unblocks plus due pressure. Declared month and quarter goals are the missing
+input to the formula we already built.
+
+**The load-bearing separation.** Commitments are scheduled; candidates are
+ranked. Nine daily commitments entering `ranked` would make "the one thing to
+do next" a habit checkbox forever. `Brain.compute` returns them as their own
+section. The bridge is "one big task": a commitment whose occupant comes from
+the ranked pile.
+
+**Four decisions taken** (detail in the spec): D1 template plus lazily
+materialised instances, persisted only when an occurrence carries state —
+answering B-05's fork. D2 a miss is forgiving daily, visible in the weekly
+review; its consequence is that a miss needs **no row at all** (expected minus
+actual), so the forgiving model is also the cheap one. D3 calendar quarters,
+not the Indian financial year. D4 Brain proposes the big task and the user
+confirms; a swap records into the existing `corrections` table.
+
+**Charter line, agreed.** "Pay rent 22k" as a dated reminder is in — B-05
+already had SIPs as an example. Any sum, category or trend over amounts is
+out. "Move body" as a habit with a streak is in; reps, weight and calories are
+out. Nothing ever adds amounts together.
+
+**Noted, not resolved:** B-02 timers, B-06a board and B-06b quick wins are
+marked "deliberately not built" in `12-backlog.md` but are already shipped in
+the web app as device-local features. The records contradict. Device-local
+also means a test user's board and habit data never reaches us, which is the
+signal the friends test is for — step 4 of the build order fixes that.

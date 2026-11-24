@@ -98,6 +98,51 @@ struct PendingReferenceTests {
         #expect(result.capture.status == .failed, "kept and retryable")
     }
 
+    // MARK: - The point of the whole thing
+
+    /// **Capture order must not change the graph.** Writing the dependency
+    /// first and the referent second is the case that used to lose the edge
+    /// entirely; writing them the other way round always worked. After the
+    /// backfill the two orders agree on direction and on confidence, which is
+    /// the only claim this feature really makes.
+    @Test("Writing the dependency before the referent gives the same edge")
+    func captureOrderDoesNotMatter() async {
+        let dependency = "deploy the migration after the pooler thing"
+        let referent = "the pooler thing"
+
+        // Order A: referent first. The live path links it immediately.
+        var genA = generator()
+        var graphA = BrainGraph()
+        let firstA = await enrich(referent, into: graphA, &genA)
+        graphA.insert(firstA.item)
+        let secondA = await enrich(dependency, into: graphA, &genA)
+        let liveEdge = try! #require(secondA.suggestedEdges.first { $0.kind == .blocks })
+        #expect(secondA.pendingReferences.isEmpty)
+
+        // Order B: dependency first. Nothing to link to, so it waits.
+        var genB = generator()
+        var graphB = BrainGraph()
+        let firstB = await enrich(dependency, into: graphB, &genB)
+        graphB.insert(firstB.item)
+        #expect(firstB.suggestedEdges.filter { $0.kind == .blocks }.isEmpty)
+        #expect(firstB.pendingReferences.count == 1, "this is what used to be lost")
+
+        let secondB = await enrich(referent, into: graphB, &genB)
+        let resolved = DependencyBackfill.resolve(
+            pending: firstB.pendingReferences, against: secondB.item, now: Self.now,
+            idGenerator: &genB)
+        let backfilledEdge = try! #require(resolved.first?.edge)
+
+        // Same shape, both orders: referent blocks the dependent task.
+        #expect(liveEdge.from == firstA.item.id && liveEdge.to == secondA.item.id)
+        #expect(backfilledEdge.from == secondB.item.id && backfilledEdge.to == firstB.item.id)
+        #expect(
+            abs(liveEdge.confidence - backfilledEdge.confidence) < 0.0001,
+            "waiting costs no confidence")
+        #expect(liveEdge.kind == backfilledEdge.kind)
+        #expect(!backfilledEdge.confirmed && backfilledEdge.source == .t0Rule)
+    }
+
     /// A closed item is not a referent: "after the thing I already finished"
     /// should wait for a new one, not link to the done one. The candidate
     /// filter already excludes closed items, so this asserts the consequence.

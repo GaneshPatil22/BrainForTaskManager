@@ -1465,3 +1465,42 @@ expressed by where the capture group goes in each pattern. The field said the
 same thing a second time, in a place that could drift out of agreement with
 the patterns. Removed, with the comment corrected to describe what actually
 does the work.
+
+### 2026-11-24 — Period goals (planner step 2, second half)
+
+`Sources/BrainCore/GoalPeriod.swift`, `Goal` gains `period` and `parentId`,
+and `goalsServed` learns to drop lapsed goals. 18 tests.
+
+**A lapsed period goal stops pulling on the ranking.** Last month's goal must
+not keep inflating today's scores, or the ranking drifts further from the
+user's intent every month. Closing a goal out is what the monthly review is
+for; until the user does, the period boundary speaks for them. A **future**
+period goal still counts — working ahead on next month's goal is a good thing
+and penalising it would be strange.
+
+**Nothing changed for existing data, and that is checked.** `period` is
+optional and a goal without one never lapses, so every current goal scores
+exactly as before. Verified: every ranking metric came back `=` — top-3
+71.4%, top-1 23.1%, NDCG@5 0.7425. Had the filter touched existing scoring,
+NDCG would have moved.
+
+**No signature changed.** `Scoring.score` already takes `now` and a
+`Calendar`, so "today in the user's zone" is derived from what is already
+there rather than added as a parameter. `goalsServed` gained a defaulted
+`on:`, so the server keeps compiling, and `Goal.init` gained two defaulted
+parameters for the same reason.
+
+**`canRollUp(into:)` is a predicate, not an enforced invariant.** A month goal
+may roll up only into a quarter that contains it, but `BrainGraph.insert`
+stays non-throwing: the server owns rejecting a bad write, and one odd row
+must never cost the user their whole plan. `children(of:)` leaves out a child
+that names a parent it does not fit inside, rather than counting it.
+
+**Noted:** `eval/baselines/dev.json` was last written at 00:16 on 24 Nov,
+before 0.6.0 shipped at 10:51, so the scorecard's delta column has been
+comparing against a pre-0.6.0 run. That is why `T0 settled` reads `+0.1pp` —
+it is 0.6.0's new dependency rules, not this change. Left stale deliberately:
+refreshing a baseline is how a regression signal gets lost, and when to
+refresh it is Ganesh's call.
+
+Verified: `make ci` GATE: PASS, `make ci-linux` GATE: PASS.

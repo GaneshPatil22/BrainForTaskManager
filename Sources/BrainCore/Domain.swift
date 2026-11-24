@@ -192,11 +192,27 @@ public struct Goal: Hashable, Sendable, Identifiable {
     public var status: GoalStatus
     public let createdAt: Date
 
-    public init(id: ULID, title: String, status: GoalStatus = .active, createdAt: Date) {
+    /// The month or quarter this goal belongs to, or nil for an open-ended
+    /// one (`GoalPeriod`). A lapsed period stops the goal pulling on the
+    /// ranking; nil never lapses.
+    public var period: GoalPeriod?
+
+    /// The quarter goal a month goal rolls up into. Validated by the writer,
+    /// not here — see `canRollUp(into:)`.
+    public var parentId: ULID?
+
+    /// `period` and `parentId` are **defaulted**, so every existing caller and
+    /// the server's `Goal(...)` keep compiling unchanged.
+    public init(
+        id: ULID, title: String, status: GoalStatus = .active, createdAt: Date,
+        period: GoalPeriod? = nil, parentId: ULID? = nil
+    ) {
         self.id = id
         self.title = title
         self.status = status
         self.createdAt = createdAt
+        self.period = period
+        self.parentId = parentId
     }
 }
 

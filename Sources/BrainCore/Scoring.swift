@@ -90,10 +90,15 @@ public enum Scoring {
             from: item.id, confirmedOnly: false, maxDepth: policy.maxDepth)
         let additionalUnblocked = allUnblocked.subtracting(confirmedUnblocked)
 
+        // "Today" in the user's zone, which is what decides whether a period
+        // goal has lapsed. No new parameter: the calendar already carries the
+        // zone, and the plan is always computed in it.
+        let today = CalendarDay(now, in: calendar.timeZone)
+
         let confirmedGoals = graph.goalsServed(
-            by: item.id, confirmedOnly: true, maxDepth: policy.maxDepth)
+            by: item.id, confirmedOnly: true, maxDepth: policy.maxDepth, on: today)
         let allGoals = graph.goalsServed(
-            by: item.id, confirmedOnly: false, maxDepth: policy.maxDepth)
+            by: item.id, confirmedOnly: false, maxDepth: policy.maxDepth, on: today)
         let additionalGoals = allGoals.subtracting(confirmedGoals)
 
         let u = Double(confirmedUnblocked.count) + policy.alpha * Double(additionalUnblocked.count)

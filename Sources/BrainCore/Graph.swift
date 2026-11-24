@@ -192,8 +192,20 @@ public struct BrainGraph: Sendable {
     }
 
     /// Goals served by `id` itself or by anything it transitively unblocks.
-    /// Only `active` goals count.
-    public func goalsServed(by id: ULID, confirmedOnly: Bool, maxDepth: Int) -> Set<ULID> {
+    ///
+    /// Only `active` goals count. Pass `on:` to also drop **lapsed** period
+    /// goals — last month's goal should stop inflating today's scores
+    /// (`GoalPeriod`, `docs/15-planner.md`). Omitting it keeps the original
+    /// behaviour exactly, which is why it is defaulted: a goal with no period
+    /// never lapses, so every existing dataset scores identically either way.
+    public func goalsServed(
+        by id: ULID, confirmedOnly: Bool, maxDepth: Int, on day: CalendarDay? = nil
+    ) -> Set<ULID> {
+        func counts(_ goalId: ULID) -> Bool {
+            guard let goal = goals[goalId] else { return false }
+            guard let day else { return goal.status == .active }
+            return goal.counts(on: day)
+        }
         var sources: Set<ULID> = [id]
         sources.formUnion(
             transitivelyUnblocked(
@@ -203,14 +215,29 @@ public struct BrainGraph: Sendable {
         for source in sources {
             for goal in servesOut[source] ?? [] {
                 if confirmedOnly && !isConfirmed(source, goal, .serves) { continue }
-                if goals[goal]?.status == .active { result.insert(goal) }
+                if counts(goal) { result.insert(goal) }
             }
             // A goal set directly on the item counts too.
-            if let direct = items[source]?.goalId.value, goals[direct]?.status == .active {
+            if let direct = items[source]?.goalId.value, counts(direct) {
                 result.insert(direct)
             }
         }
         return result
+    }
+
+    /// Goals belonging to one month or quarter, oldest id first.
+    public func goals(in period: GoalPeriod) -> [Goal] {
+        goals.values.filter { $0.period == period }.sorted { $0.id < $1.id }
+    }
+
+    /// Month goals that roll up into `goalId`. Only the ones that legitimately
+    /// can: a child naming a parent it does not fit inside is a bad write, and
+    /// is left out rather than silently counted.
+    public func children(of goalId: ULID) -> [Goal] {
+        guard let parent = goals[goalId] else { return [] }
+        return goals.values
+            .filter { $0.parentId == goalId && $0.canRollUp(into: parent) }
+            .sorted { $0.id < $1.id }
     }
 
     /// Open items that must finish before `id` can start.

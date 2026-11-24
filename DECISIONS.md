@@ -1679,3 +1679,76 @@ records. Until then the threshold stays conservative.
 
 21 tests across the two suites, 320 in the package. `make ci` and
 `make ci-linux` both GATE: PASS; no ranking metric moved.
+
+## 2026-11-24 — Dependency backfill, and what auditing it found
+
+Step 6's third piece (`docs/15-planner.md`). A dependency stated before its
+referent exists — "deploy after the pooler thing", captured first — parsed
+correctly and matched nothing, and nothing ever looked again: the sweeper
+requeues captures that are `raw`, stuck or `failed`, and a capture whose
+dependency missed is `enriched` and perfectly healthy. The edge was lost
+permanently and silently.
+
+`EnrichmentResult.pendingReferences` now carries unmatched referents out as
+structured data, and `DependencyBackfill.resolve` offers them back when a new
+item arrives. The claim, asserted end to end: **capture order does not change
+the graph.**
+
+Deliberately *not* filed in `trace.unresolved`: `BrainEval/Metrics.swift:317`
+counts that into `fieldsConsidered`, the denominator of every tier-share
+percentage, so recording it there would move the whole scorecard for a
+bookkeeping reason. A test asserts it stays out, because the next person to
+touch this will reach for `unresolved` as I did.
+
+### The audit failed, and the first version was wrong
+
+`brain backfill-audit` replays a split in capture order and offers kept
+references to each later item. The first run, using the live path's
+`TitleMatcher.score`: **seven resolutions on the dev split, none of them
+correct.** Every one linked an item waiting for X to *another item waiting for
+X* — "after the design review" contains "the design review" and therefore
+scores 0.850 against a reference to it, through the containment bonus.
+
+**Why the live path survives this and the backfill does not.** `bestMatch`
+takes the argmax over every open item, so when the real referent exists it
+scores higher and wins. The backfill has no competition: it asks "does this
+one item satisfy this reference?" against a floor, one reference at a time, so
+a containment hit is accepted on its own. The asymmetry is structural, which
+is what justifies the backfill using a different matcher rather than
+inconsistency for its own sake.
+
+Switched to `TitleMatcher.overlap` at 0.5. Measured separation on nine pairs:
+wrong ones 0.100–0.286, right ones 0.500–1.000, where `score` gives 0.850 to
+both kinds alike. Nine hand-picked pairs are not a validation set; the solid
+part is the negative result, that no floor on `score` separates them at all.
+
+### Where it stands, honestly
+
+| split | captures | live edges | kept | resolved | correct by eye |
+|---|---|---|---|---|---|
+| dev | 415 | 70 | 16 | 1 | 1 |
+| train | 1401 | 248 | 16 | 3 | 1 |
+
+**Two of four, not a working feature.** Every remaining error has one cause,
+and it is not the backfill: **"after lunch" and "before bed" are parsed as
+dependencies at all.** They are times of day. `DependencyParser.isTimeExpression`
+catches "after 3 days" and not these, so the parser invents a blocker named
+"lunch", and then anything else mentioning lunch satisfies it.
+
+That bug is in T0 and affects the **live path's 248 edges too**, so fixing it
+changes which `blocks` edges are proposed, which changes startability, which
+moves the ranking metrics. It is a measured change of its own and not
+something to slip in beside a feature.
+
+**Consequence: the server must not wire the backfill up yet.** The mechanism
+is right and tested; the parser feeding it is not. The daypart fix comes
+first, measured on its own.
+
+One false positive survives the matcher fix and is asserted as a test:
+"call manager about raise" overlaps "call manager about leave" at **0.600**,
+above the floor. 0.7 would clear it and would also reject "Priya's reply"
+against "reply to priya" at 0.500 — the one dev resolution that was right.
+One true positive against one false positive is not a decision 16 references
+can make.
+
+343 tests, `make ci` GATE: PASS, every ranking metric unchanged.

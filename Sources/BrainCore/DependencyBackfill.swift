@@ -35,6 +35,42 @@ public enum DependencyBackfill {
     /// this guesses at.
     public static let defaultHorizon: TimeInterval = 30 * 24 * 60 * 60
 
+    /// How much of the referent and the arriving title must be shared.
+    ///
+    /// **The live path's matcher cannot be reused here, and that is measured,
+    /// not assumed.** `TitleMatcher.score` carries a containment bonus: a
+    /// short referent scores 0.850 against any longer title that contains it.
+    /// On the live path that is harmless and often right, because
+    /// `bestMatch` takes the *argmax* over every open item — when the real
+    /// referent exists it scores higher and wins the competition.
+    ///
+    /// The backfill has no competition. It asks "does this one item satisfy
+    /// this reference?" against a floor, one reference at a time, so a 0.850
+    /// containment hit is accepted on its own. The first audit of the dev
+    /// split showed what that means in practice: **seven resolutions, none of
+    /// them correct.** Every one linked an item waiting for X to *another
+    /// item waiting for X*, because "after the design review" contains "the
+    /// design review" and therefore scores 0.850 against a reference to it.
+    ///
+    /// Plain overlap separates those cleanly where `score` cannot:
+    ///
+    /// | pair | `score` | `overlap` |
+    /// |---|---|---|
+    /// | "the design review" vs "the design review ke baad reply…" | 0.850 | 0.286 |
+    /// | "Priya's reply" vs "…restock printer ink waiting for Priya's reply" | 0.850 | 0.250 |
+    /// | "lunch" vs "stretch after lunch today 20 minutes" | 0.850 | 0.167 |
+    /// | "Priya's reply" vs "reply to priya poora din" | 0.850 | 0.500 |
+    /// | "schema review" vs "schema review with the team" | 0.850 | 0.500 |
+    /// | "the design review" vs "design review" | 1.000 | 1.000 |
+    ///
+    /// 0.5 sits in a band from 0.286 to 0.500. **Nine hand-picked pairs are
+    /// not a validation set** — the band is wider than the duplicate
+    /// threshold's was, which is some comfort and not proof. What is solid is
+    /// the negative result: no floor on `score` separates these at all,
+    /// because `score` gives 0.850 to the right answers and the wrong ones
+    /// alike.
+    public static let minimumOverlap = 0.5
+
     /// One pending reference, satisfied.
     ///
     /// The reference is handed back alongside the edge so the caller can
@@ -67,13 +103,14 @@ public enum DependencyBackfill {
     ///   - pending: references the caller has kept, in any order.
     ///   - item: the newly arrived item that might satisfy them.
     ///   - now: used only for expiry.
-    ///   - minScore: the same floor `TitleMatcher.bestMatch` applies live.
+    ///   - minOverlap: how much of the two titles must be shared. See
+    ///     `minimumOverlap` for why this is not the live path's floor.
     public static func resolve(
         pending: [PendingReference],
         against item: Item,
         now: Date,
         idGenerator: inout ULIDGenerator,
-        minScore: Double = 0.5,
+        minOverlap: Double = minimumOverlap,
         horizon: TimeInterval = defaultHorizon
     ) -> [Resolution] {
         // A closed item satisfies nothing: `EnrichmentPipeline` only ever
@@ -96,8 +133,10 @@ public enum DependencyBackfill {
 
         var resolutions: [Resolution] = []
         for reference in candidates {
-            let score = TitleMatcher.score(reference.targetText, item.title)
-            guard score >= minScore else { continue }
+            // `overlap`, not `score`. Measured, not assumed — see
+            // `minimumOverlap`.
+            let score = TitleMatcher.overlap(reference.targetText, item.title)
+            guard score >= minOverlap else { continue }
             resolutions.append(
                 Resolution(
                     reference: reference,

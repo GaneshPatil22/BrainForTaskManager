@@ -81,7 +81,7 @@ struct BackfillTests {
             pending: [reference(itemId: waiter, confidence: 0.8, ago: 20 * Self.day)],
             against: arrival, now: Self.now, idGenerator: &gen)
 
-        let score = TitleMatcher.score("the pooler thing", "the pooler thing")
+        let score = TitleMatcher.overlap("the pooler thing", "the pooler thing")
         #expect(abs((fresh.first?.edge.confidence ?? 0) - 0.8 * score) < 0.0001)
         #expect(fresh.first?.edge.confidence == late.first?.edge.confidence)
     }
@@ -113,29 +113,67 @@ struct BackfillTests {
         #expect(resolved.isEmpty, "\(referent) || \(arrival)")
     }
 
-    /// **A false positive this shares with the live path, recorded rather
-    /// than hidden.** Three shared words out of four clear `TitleMatcher`'s
-    /// 0.5 floor: "call manager about raise" scores **0.637** against "call
-    /// manager about leave", so a reference to one resolves against the
-    /// other. `EnrichmentPipeline` has always behaved this way — `bestMatch`
-    /// applies the same floor — so the backfill is not introducing it.
+    /// **The failure the dev-split audit found, as a regression test.**
     ///
-    /// Left alone deliberately. Raising the floor changes which `blocks`
-    /// edges the live path proposes, which changes startability, which moves
-    /// the ranking metrics; that is a measured change of its own, not
-    /// something to slip in beside a new feature. The number is asserted here
-    /// so a later change to the floor shows up as this test failing.
-    @Test("A near-miss referent resolves, as it does on the live path")
+    /// An item that says "after the design review" *contains* "the design
+    /// review", so `TitleMatcher.score` gives it 0.850 — the containment
+    /// bonus — and the first version of this resolver accepted it. Every one
+    /// of the seven resolutions on the dev split was this mistake: an item
+    /// waiting for X linked to another item waiting for X, never to X.
+    @Test(
+        "An item that is also waiting for X does not satisfy a reference to X",
+        arguments: [
+            ("the design review", "the design review ke baad reply to the client aadha ghanta"),
+            ("Priya's reply", "end of month restock printer ink waiting for Priya's reply"),
+            ("lunch", "stretch after lunch today 20 minutes"),
+        ])
+    func fellowWaitersDoNotResolve(referent: String, waiter: String) {
+        var gen = generator()
+        #expect(
+            TitleMatcher.score(referent, waiter) >= 0.8,
+            "the containment bonus is why this used to resolve")
+        let resolved = DependencyBackfill.resolve(
+            pending: [reference(itemId: gen.next(), text: referent)],
+            against: item(gen.next(), waiter), now: Self.now, idGenerator: &gen)
+        #expect(resolved.isEmpty, "\(referent) || \(waiter)")
+    }
+
+    /// A referent genuinely restated in other words still resolves. This is
+    /// the one resolution on the dev split the audit judged correct, so if a
+    /// later threshold change loses it, that change has a cost to argue for.
+    @Test("A referent written differently still resolves")
+    func restatedReferentResolves() {
+        var gen = generator()
+        let resolved = DependencyBackfill.resolve(
+            pending: [reference(itemId: gen.next(), text: "Priya's reply")],
+            against: item(gen.next(), "reply to priya poora din"), now: Self.now,
+            idGenerator: &gen)
+        #expect(resolved.count == 1)
+        #expect(abs((resolved.first?.score ?? 0) - 0.5) < 0.001, "exactly on the floor")
+    }
+
+    /// **A false positive that survives the fix, stated rather than hidden.**
+    /// Three shared words out of four put "call manager about raise" at
+    /// `overlap` **0.600** against "call manager about leave" — above the 0.5
+    /// floor, so it resolves.
+    ///
+    /// Not fixed, because the fix is not free: 0.7 would clear this and would
+    /// also reject "Priya's reply" against "reply to priya" at 0.500, which is
+    /// the one resolution on the dev split that was right. One true positive
+    /// against one false positive is not a decision 16 kept references can
+    /// make. Asserted so that moving the floor fails loudly and has to be
+    /// argued for.
+    @Test("A near-miss on the same verb still resolves, and that is known")
     func knownFalsePositive() {
         var gen = generator()
-        let score = TitleMatcher.score("call manager about raise", "call manager about leave")
-        #expect(abs(score - 0.637) < 0.001, "measured, not assumed")
+        let overlap = TitleMatcher.overlap("call manager about raise", "call manager about leave")
+        #expect(abs(overlap - 0.6) < 0.001, "measured, not assumed")
 
         let resolved = DependencyBackfill.resolve(
             pending: [reference(itemId: gen.next(), text: "call manager about raise")],
             against: item(gen.next(), "call manager about leave"), now: Self.now,
             idGenerator: &gen)
-        #expect(resolved.count == 1, "the floor lets this through, on both paths")
+        #expect(resolved.count == 1, "0.600 clears the 0.5 floor")
     }
 
     @Test("A closed item satisfies nothing")

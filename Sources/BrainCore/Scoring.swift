@@ -141,12 +141,24 @@ public enum Scoring {
     /// 3. effort minutes ascending
     /// 4. createdAt ascending
     /// 5. id ascending — guarantees no two items ever tie
+    /// Whether this item belongs in the plan.
+    ///
+    /// **An item whose type is not yet known still ranks.** `type` is
+    /// `Classified`, and it is nil while the ladder abstained and a T3
+    /// question is waiting for an answer. Hiding those would mean a capture
+    /// silently absent from the plan until the user answers a question they
+    /// have not been shown yet — and a capture is never lost. Showing
+    /// something you can dismiss is the recoverable direction.
+    public static func appearsInPlan(_ item: Item) -> Bool {
+        item.type.value?.appearsInPlan ?? true
+    }
+
     public static func rank(
         graph: BrainGraph, now: Date, calendar: Calendar,
         weights: ScoringWeights = .default,
         policy: EdgePolicy = .default
     ) -> [ScoreBreakdown] {
-        let scored = graph.openItems.map { item in
+        let scored = graph.openItems.filter(appearsInPlan).map { item in
             (
                 item,
                 score(

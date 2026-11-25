@@ -115,6 +115,50 @@ Applied in order until one discriminates. The last key guarantees no ties ever:
 
 Invariant 4 of `01-domain.md` depends on key 5.
 
+## What the plan contains — membership by type
+
+The plan answers *"what should I do next"*, and **an idea is not a thing to
+do.** Open items whose type is `idea` or `note` are **not ranked**, and are
+therefore absent from `ranked`, `startable`, `next`, `quickWins` and `blocked`
+— every derived output comes off the ranked list, so one filter in
+`Scoring.rank` settles all five.
+
+| type | in the plan | why |
+|---|---|---|
+| `task` | yes | the thing this product is for |
+| `reminder` | yes | a thing to do, at a time |
+| `link` | yes | "read this" is an action with a real duration |
+| `idea` | **no** | capturing a thought is not committing to act on it |
+| `note` | **no** | reference material — written down to keep, not to finish |
+
+**Why this exists.** `rank` scored every open item whatever its type, so
+"rust vs go for the backend?" could outrank real work, become `next`, and be
+proposed as the day's big task. A tool that treats a captured thought as
+committed work punishes you for thinking out loud, which is the one thing the
+product exists to make cheap.
+
+**`link` is in and `note` is out, deliberately.** Revisit `link` if saved
+links turn out to be hoarded rather than read: that shows up as links piling
+at the top of `quickWins` and being dismissed, and it is a measurement, not an
+opinion.
+
+**An item whose type is not yet known still ranks.** `type` is `Classified`
+and is nil while the ladder abstained and a T3 question is unanswered. Hiding
+those would mean a capture silently missing from the plan until the user
+answers a question they have not been shown. A capture is never lost, and
+showing something dismissible is the recoverable direction.
+
+**Excluded is not deleted.** These items stay in the graph: they keep goal
+links, they still block and get blocked, and an open idea blocking a task is
+still named as that task's blocker — otherwise "decide the stack, then build
+it" would quietly become startable. Membership is computed at rank time from
+the current type, so **correcting a type to `task` makes it rank normally**,
+with no migration.
+
+One consequence worth naming: `quickWins` takes the median leverage over
+startable candidates, so a backlog of captured thoughts can no longer drag the
+quick-win bar down.
+
 ## Derived outputs
 
 **Quick wins** — `effort ∈ {tiny, small}` **and** `leverage ≥ median(leverage)`

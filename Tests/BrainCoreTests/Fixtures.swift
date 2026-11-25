@@ -30,14 +30,18 @@ enum Fixtures {
         ULIDGenerator(seed: seed, clock: { UInt64(now.timeIntervalSince1970 * 1000) })
     }
 
+    /// `type` defaults to nil — *unknown*, which is what the pipeline produces
+    /// while a T3 question is unanswered, and which still ranks.
     static func item(
         _ gen: inout ULIDGenerator, _ title: String,
         effort: EffortBucket = .unknown,
         due: Date? = nil,
-        status: ItemStatus = .open
+        status: ItemStatus = .open,
+        type: ItemType? = nil
     ) -> Item {
         Item(
             id: gen.next(), title: title,
+            type: type.map { Classified($0, confidence: 1, tier: .user) } ?? .unknown(),
             status: status,
             effort: Classified(effort, confidence: 1, tier: .user),
             dueAt: due.map { Classified($0, confidence: 1, tier: .t0) } ?? .unknown(),

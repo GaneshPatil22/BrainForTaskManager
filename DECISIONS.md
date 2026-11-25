@@ -2363,3 +2363,71 @@ buying nothing.
 The abstention words now live in one place, `Guards.abstentionWords`, with the
 normalisation beside them, because the router and the schema guard both need
 them. 372 tests, `make ci` GATE: PASS.
+
+---
+
+## 2026-11-25 — Ideas are not work: plan membership by type
+
+`Scoring.rank` scored every open item whatever its type, so "rust vs go for the
+backend?" could outrank real work, become `next`, and be proposed as the day's
+big task. **Capturing a thought is not committing to act on it**, and a tool
+that treats the two alike punishes you for thinking out loud — the one thing
+this product exists to make cheap.
+
+`idea` and `note` are now excluded from the plan. `task`, `reminder` and `link`
+stay in.
+
+### The decisions inside the decision
+
+**One filter, not five.** `ranked`, `startable`, `next`, `quickWins` and
+`blocked` all derive from the ranked list, so a single filter in `Scoring.rank`
+settles all of them. The tests assert all five anyway rather than trusting the
+derivation.
+
+**`note` out, `link` in**, as Ganesh proposed and for his reason: a note is
+reference material, written down to keep rather than to finish, while "read
+this" is an action with a real duration. Revisit `link` if saved links turn out
+to be hoarded rather than read — that shows up as links piling at the top of
+`quickWins` and being dismissed, which is a measurement, not an opinion.
+
+**An item whose type is not yet known still ranks.** `type` is `Classified` and
+is nil while the ladder abstained and a T3 question is unanswered — which, now
+that the server stores questions, is a live state rather than a theoretical
+one. Hiding those would mean a capture silently missing from the plan until the
+user answers a question they have not been shown yet. A capture is never lost,
+and showing something dismissible is the recoverable direction.
+
+**Excluded is not deleted.** They stay in the graph with their goal links, and
+an open idea blocking a task is still named as that task's blocker — otherwise
+"decide the stack, then build it" would quietly become startable. Membership is
+computed at rank time from the current type, so **correcting a type to `task`
+makes it rank normally, with no migration.**
+
+One consequence named rather than discovered: `quickWins` takes the median
+leverage over startable candidates, so a backlog of captured thoughts can no
+longer drag the quick-win bar down. Tested.
+
+### Measured
+
+Ranking metrics are **unchanged** — human pick in top-3 71.4%, top-1 23.1%,
+NDCG@5 0.7425, all flat against the baseline. The ranked scenarios contain no
+ideas or notes, so this moved nothing it was not meant to move. On Ganesh's own
+five captures: 5 items created, **3 ranked**, 0 lost.
+
+### Also recorded, built nowhere
+
+`docs/00-charter.md` gains "Outside Brain, not outside the product": comments
+on items, goals and commitments, and opt-in **count** goals (N circles, each
+fill dated and optionally commented), are planned as **Server and Web**
+features that **Brain does not read**. They are the user's own records, not
+ranking inputs, and nothing in scoring, tiering or the graph may come to depend
+on them. If a comment ever becomes a signal that is a new decision made on
+purpose, with a measurement.
+
+**Counts of things, never money.** A count goal counts occurrences — pages
+read, sessions done, calls made — and holds no amounts, prices or balances.
+Expense tracking is a rejected non-goal and a count field is exactly how it
+would arrive by the back door, so the limit is written down now rather than
+discovered later.
+
+379 tests, `make ci` GATE: PASS.

@@ -15,6 +15,28 @@ Expense tracking · subscriptions · gym/health · social features · collaborat
 These are not "later." They are **not this product.** Any proposal that adds one
 is rejected without discussion.
 
+## Outside Brain, not outside the product
+
+Two features are **planned for Server and Web, and Brain does not read them.**
+They are the user's own records, not ranking inputs, and nothing in scoring,
+tiering or the graph may come to depend on them.
+
+**Comments on items, goals and commitments.** Free text the user writes against
+a thing, to say what happened or what they were thinking. Brain never parses
+it, never classifies it, and never sends it to a model. If a comment ever
+becomes a signal, that is a new decision made on purpose, with a measurement —
+not a quiet widening of what the ranker sees.
+
+**Opt-in "count" goals.** A goal may be a target count: N circles, each one
+filled on a date, each fill optionally carrying a comment. Opt-in, never the
+default shape of a goal.
+
+**Counts of things, never money.** A count goal counts occurrences — pages
+read, sessions done, calls made. It does not hold amounts, prices or balances.
+Expense tracking is rejected above and a count field is exactly how it would
+arrive by the back door, so the limit is stated here rather than discovered
+later.
+
 ## Users
 
 Individuals, primarily in India. Expect English and Hinglish, messy and vague

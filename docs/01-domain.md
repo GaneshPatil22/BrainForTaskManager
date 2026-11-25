@@ -68,7 +68,7 @@ What a capture becomes once it has structure. One capture may yield several.
 | `id` | ULID | |
 | `captureId` | ULID | provenance, always set |
 | `title` | String | span-grounded in the capture's raw text |
-| `type` | `Classified<ItemType>` | `task`, `idea`, `note`, `reminder`, `link` |
+| `type` | `Classified<ItemType>` | `task`, `idea`, `note`, `reminder`, `link`. `idea` and `note` are kept in the graph but never ranked — see `02-scoring-spec.md`, "What the plan contains" |
 | `status` | enum | `open`, `done`, `dropped` |
 | `effort` | `Classified<EffortBucket>` | see below |
 | `dueAt` | `Classified<Date>` | **parsed by T0 code only** |

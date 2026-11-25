@@ -61,6 +61,38 @@ public struct Classified<Value: Sendable & Hashable>: Hashable, Sendable {
 
 public enum ItemType: String, Sendable, Codable, CaseIterable {
     case task, idea, note, reminder, link
+
+    /// Whether an open item of this type belongs in the plan at all — which
+    /// means `ranked`, `startable`, `next`, `quickWins` and `blocked`, since
+    /// every one of those derives from the ranked list.
+    ///
+    /// **The plan answers "what should I do next", and an idea is not a
+    /// thing to do.** `Scoring.rank` used to score every open item whatever
+    /// its type, so "rust vs go for the backend?" could outrank real work,
+    /// become `next`, and be proposed as the day's big task. Capturing a
+    /// thought is not committing to act on it; a tool that treats the two
+    /// alike punishes you for thinking out loud, which is the one thing the
+    /// product exists to make cheap.
+    ///
+    /// **`note` is out, `link` is in.** A note is reference material — "the
+    /// whole landlord situation and the deposit from the old flat" is
+    /// something you wrote down to keep, not to finish. A link is "read
+    /// this", which is an action with a real duration, so it ranks like any
+    /// other small job.
+    ///
+    /// Revisit `link` if saved links turn out to be hoarded rather than read:
+    /// that would show up as links accumulating at the top of `quickWins`
+    /// and being dismissed, and it is a measurement, not an opinion.
+    ///
+    /// Excluded items **stay in the graph**. They still carry goal links,
+    /// they still block and get blocked, and an open idea blocking a task
+    /// still shows as that task's blocker. Only the plan ignores them.
+    public var appearsInPlan: Bool {
+        switch self {
+        case .task, .reminder, .link: true
+        case .idea, .note: false
+        }
+    }
 }
 
 public enum ItemStatus: String, Sendable, Codable, CaseIterable {
